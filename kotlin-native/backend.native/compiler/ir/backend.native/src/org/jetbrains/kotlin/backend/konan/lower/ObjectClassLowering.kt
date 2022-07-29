@@ -25,6 +25,8 @@ import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.util.irCall
 
+internal object DECLARATION_ORIGIN_OBJECT_INSTANCE_GETTER : IrDeclarationOriginImpl("OBJECT_INSTANCE_GETTER")
+
 internal fun Context.getObjectClassInstanceFunction(clazz: IrClass) = mapping.objectInstanceGetter.getOrPut(clazz) {
     when {
         clazz.isUnit() -> ir.symbols.theUnitInstance.owner
@@ -39,6 +41,7 @@ internal fun Context.getObjectClassInstanceFunction(clazz: IrClass) = mapping.ob
                 addGetter {
                     startOffset = clazz.startOffset
                     endOffset = clazz.endOffset
+                    origin = DECLARATION_ORIGIN_OBJECT_INSTANCE_GETTER
                     returnType = clazz.defaultType
                 }
             }
@@ -54,6 +57,7 @@ internal fun Context.getObjectClassInstanceFunction(clazz: IrClass) = mapping.ob
                 addGetter {
                     startOffset = clazz.startOffset
                     endOffset = clazz.endOffset
+                    origin = DECLARATION_ORIGIN_OBJECT_INSTANCE_GETTER
                     returnType = clazz.defaultType
                 }
             }

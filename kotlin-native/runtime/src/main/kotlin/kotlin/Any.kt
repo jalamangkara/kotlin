@@ -28,8 +28,7 @@ public open class Any {
      *
      * Read more about [equality](https://kotlinlang.org/docs/reference/equality.html) in Kotlin.
      */
-    @GCUnsafeCall("Kotlin_Any_equals")
-    external public open operator fun equals(other: Any?): Boolean
+    public open operator fun equals(other: Any?): Boolean = equalsImpl(this, other)
 
     /**
      * Returns a hash code value for the object.  The general contract of `hashCode` is:
@@ -51,3 +50,6 @@ public open class Any {
         return "$className@$hashCodeStr"
     }
 }
+
+@GCUnsafeCall("Kotlin_Any_equals")
+external private fun equalsImpl(thiz: Any, other: Any?): Boolean

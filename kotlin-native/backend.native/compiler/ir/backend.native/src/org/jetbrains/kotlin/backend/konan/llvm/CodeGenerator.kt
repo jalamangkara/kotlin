@@ -11,6 +11,11 @@ import llvm.*
 import org.jetbrains.kotlin.backend.konan.*
 import org.jetbrains.kotlin.backend.konan.cgen.CBridgeOrigin
 import org.jetbrains.kotlin.backend.konan.descriptors.ClassGlobalHierarchyInfo
+import org.jetbrains.kotlin.backend.konan.descriptors.isBuiltInOperator
+import org.jetbrains.kotlin.backend.konan.llvm.objc.*
+import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.ir.declarations.*
+import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.backend.konan.ir.*
 import org.jetbrains.kotlin.backend.konan.llvm.KonanBinaryInterface.symbolName
 import org.jetbrains.kotlin.backend.konan.llvm.ThreadState.Native
@@ -1281,7 +1286,7 @@ internal abstract class FunctionGenerationContext(
         val getterId = context.enumsSupport.enumEntriesMap(enumClass)[enumEntry.name]!!.getterId
         return call(
                 context.enumsSupport.getValueGetter(enumClass).llvmFunction,
-                listOf(llvm.int32(getterId)),
+                listOf(llvm.int32(getterId), llvm.kNullInt8Ptr),
                 Lifetime.GLOBAL,
                 exceptionHandler
         )
