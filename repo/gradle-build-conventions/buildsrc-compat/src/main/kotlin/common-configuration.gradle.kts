@@ -169,9 +169,14 @@ fun Project.configureKotlinCompilationOptions() {
                 }
 
             // Workaround to avoid remote build cache misses due to absolute paths in relativePathBaseArg
-            doFirst {
-                if (relativePathBaseArg != null) {
-                    kotlinOptions.freeCompilerArgs += relativePathBaseArg
+            if (project.path != ":kotlin-native:utilities:xctest-runner") {
+                // FIXME: KGP is used in xctest-runner project and this setting fails with
+                //  Execution failed for task ':kotlin-native:utilities:xctest-runner:compileKotlinIos_arm64'.
+                //  > The value for property 'freeCompilerArgs' is final and cannot be changed any further.
+                doFirst {
+                    if (relativePathBaseArg != null) {
+                        kotlinOptions.freeCompilerArgs += relativePathBaseArg
+                    }
                 }
             }
         }
