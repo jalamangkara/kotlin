@@ -145,6 +145,12 @@ private val collectClassDefaultConstructorsPhase = makeDeclarationTransformerPha
     description = "Collect classes default constructors to add it to metadata on code generating phase"
 )
 
+private val prepareCollectionsToExportLowering = makeDeclarationTransformerPhase(
+    ::PrepareCollectionsToExportLowering,
+    name = "PrepareCollectionsToExportLowering",
+    description = "Add @JsTransitiveExport to exportable collections all the  declarations which we don't want to export such as `Enum.entries` or `DataClass::componentN`",
+)
+
 private val preventExportOfSyntheticDeclarationsLowering = makeDeclarationTransformerPhase(
     ::ExcludeSyntheticDeclarationsFromExportLowering,
     name = "ExcludeSyntheticDeclarationsFromExportLowering",
@@ -883,6 +889,7 @@ val mainFunctionCallWrapperLowering = makeJsModulePhase(
 val loweringList = listOf<Lowering>(
     scriptRemoveReceiverLowering,
     validateIrBeforeLowering,
+    prepareCollectionsToExportLowering,
     preventExportOfSyntheticDeclarationsLowering,
     upgradeImplicitExportToExplicitLowering,
     removeImplicitExportIfItsNotReachableLowering,
