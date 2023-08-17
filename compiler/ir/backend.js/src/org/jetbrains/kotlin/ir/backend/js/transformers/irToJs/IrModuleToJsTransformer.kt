@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.backend.common.serialization.checkIsFunctionInterfac
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.ir.backend.js.*
 import org.jetbrains.kotlin.ir.backend.js.export.*
+import org.jetbrains.kotlin.ir.backend.js.ic.CachedTestFunctionsWithTheirPackage
 import org.jetbrains.kotlin.ir.backend.js.lower.JsCodeOutliningLowering
 import org.jetbrains.kotlin.ir.backend.js.lower.StaticMembersLowering
 import org.jetbrains.kotlin.ir.backend.js.lower.isBuiltInClass
@@ -29,7 +30,6 @@ import org.jetbrains.kotlin.js.sourceMap.SourceMapBuilderConsumer
 import org.jetbrains.kotlin.js.util.TextOutputImpl
 import org.jetbrains.kotlin.serialization.js.ModuleKind
 import org.jetbrains.kotlin.utils.memoryOptimizedMap
-import org.jetbrains.kotlin.utils.putToMultiMap
 import org.jetbrains.kotlin.utils.addToStdlib.runIf
 import org.jetbrains.kotlin.utils.addToStdlib.ifNotEmpty
 import java.io.File
@@ -51,21 +51,29 @@ val IrModuleFragment.safeName: String
 fun generateProxyIrModuleWith(
     safeName: String,
     externalName: String,
-    mainFunction: String?,
+    mainFunctionTag: String?,
+    suiteFunctionTag: String? = null,
+    cachedTestFunctionsWithTheirPackage: CachedTestFunctionsWithTheirPackage? = null,
     importedWithEffectInModuleWithName: String? = null
 ): JsIrModule {
     val programFragment = JsIrProgramFragment(safeName, "<proxy-file>").apply {
-        mainFunction?.let {
-            this.mainFunction = it
-            this.nameBindings[it] = JsName("main", true)
+        mainFunctionTag?.let {
+            this.mainFunctionTag = it
+            nameBindings[it] = JsName("main", true)
+        }
+        cachedTestFunctionsWithTheirPackage?.let {
+            nameBindings += it.values.asSequence()
+                .flatten()
+                .map { tag -> tag to JsName("test", true) }
+                .plus(suiteFunctionTag!! to JsName("suite", true))
+
+            JsTestFunctionTransformer.generateTestFunctionCall(
+                it.asTestFunctionContainers(suiteFunctionTag, nameBindings)
+            )?.run { declarations.statements += makeStmt() }
         }
     }
-    return JsIrModule(
-        safeName,
-        externalName,
-        listOf(programFragment),
-        importedWithEffectInModuleWithName = importedWithEffectInModuleWithName
-    )
+
+    return JsIrModule(safeName, externalName, listOf(programFragment), importedWithEffectInModuleWithName = importedWithEffectInModuleWithName)
 }
 
 enum class JsGenerationGranularity {
@@ -288,13 +296,23 @@ class IrModuleToJsTransformer(
             override val JsIrModules.hasEffect get() = this.mainModule.importedWithEffectInModuleWithName != null
             override val JsIrModules.hasExport get() = this.exportModule != null
             override val JsIrModules.packageFqn get() = this.mainModule.fragments.first().packageFqn
-            override val JsIrModules.mainFunction get() = this.mainModule.fragments.first().mainFunction
+            override val JsIrModules.mainFunction get() = this.mainModule.fragments.first().mainFunctionTag
+            override var JsIrModules.suiteFunction
+                get() = this.mainModule.fragments.first().suiteFunctionTag
+                set(value) { this.mainModule.fragments.first().suiteFunctionTag = value }
+            override var JsIrModules.testFunction
+                get() = this.mainModule.fragments.first().testFunctionTag
+                set(value) { this.mainModule.fragments.first().testFunctionTag = value }
 
             override fun List<JsIrModules>.merge() =
                 JsIrModules(map { it.mainModule }.merge(), mapNotNull { it.exportModule }.ifNotEmpty { merge() })
 
-            override fun IrAndExportedDeclarations.generateArtifact(mainFunctionTag: String?, moduleNameForEffects: String?) =
-                JsIrModules(toJsIrProxyModule(mainFunctionTag, moduleNameForEffects))
+            override fun IrAndExportedDeclarations.generateArtifact(
+                mainFunctionTag: String?,
+                suiteFunctionTag: String?,
+                testFunctions: Map<String, List<String>>,
+                moduleNameForEffects: String?
+            ) = JsIrModules(toJsIrProxyModule(mainFunctionTag, suiteFunctionTag, testFunctions, moduleNameForEffects))
 
             override fun IrFileExports.generateArtifact(module: IrAndExportedDeclarations) = takeIf { !file.couldBeSkipped() }
                 ?.let { generateProgramFragment(it, mode) }
@@ -332,13 +350,17 @@ class IrModuleToJsTransformer(
     }
 
     private fun IrAndExportedDeclarations.toJsIrProxyModule(
-        mainFunction: String?,
+        mainFunctionTag: String?,
+        suiteFunctionTag: String?,
+        cachedTestFunctionsWithTheirPackage: CachedTestFunctionsWithTheirPackage?,
         importedWithEffectInModuleWithName: String? = null
     ): JsIrModule {
         return generateProxyIrModuleWith(
             fragment.safeName,
             moduleFragmentToNameMapper.getExternalNameFor(fragment),
-            mainFunction,
+            mainFunctionTag,
+            suiteFunctionTag,
+            cachedTestFunctionsWithTheirPackage,
             importedWithEffectInModuleWithName
         )
     }
@@ -422,12 +444,6 @@ class IrModuleToJsTransformer(
 
         result.initializers.statements += staticContext.initializerBlock.statements
         result.eagerInitializers.statements += staticContext.eagerInitializerBlock.statements
-
-        backendContext.testFunsPerFile[fileExports.file]?.let {
-            result.testFunInvocation = JsInvocation(staticContext.getNameForStaticFunction(it).makeRef()).makeStmt()
-            result.suiteFn = staticContext.getNameForStaticFunction(backendContext.suiteFun!!.owner)
-        }
-
         result.importedModules += nameGenerator.importedModules
 
         val definitionSet = fileExports.file.declarations.toSet()
@@ -435,7 +451,12 @@ class IrModuleToJsTransformer(
         if (shouldReferMainFunction) {
             JsMainFunctionDetector(backendContext).getMainFunctionOrNull(fileExports.file)
                 ?.let { backendContext.mapping.mainFunctionToItsWrapper[it] }
-                ?.let { result.mainFunction = definitionSet.computeTag(it) }
+                ?.let { result.mainFunctionTag = definitionSet.computeTag(it) }
+        }
+
+        backendContext.testFunsPerFile[fileExports.file]?.let {
+            result.testFunctionTag = definitionSet.computeTag(it)
+            result.suiteFunctionTag = definitionSet.computeTag(backendContext.suiteFun!!.owner)
         }
 
         result.computeAndSaveNameBindings(definitionSet, nameGenerator)

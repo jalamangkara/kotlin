@@ -103,10 +103,10 @@ private class JsIrAstDeserializer(private val source: ByteArray) {
             readRepeated { optionalCrossModuleImports.add(stringTable[readInt()]) }
             readRepeated { classes[nameTable[readInt()]] = readIrIcClassModel() }
 
-            ifTrue { testFunInvocation = readStatement() }
-            ifTrue { mainFunction = readString() }
+            ifTrue { mainFunctionTag = readString() }
+            ifTrue { testFunctionTag = stringTable[readInt()] }
+            ifTrue { suiteFunctionTag = stringTable[readInt()] }
             ifTrue { dts = TypeScriptFragment(readString()) }
-            ifTrue { suiteFn = nameTable[readInt()] }
 
             readRepeated { definitions += stringTable[readInt()] }
         }

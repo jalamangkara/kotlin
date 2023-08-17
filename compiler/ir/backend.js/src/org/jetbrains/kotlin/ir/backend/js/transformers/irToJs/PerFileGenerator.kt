@@ -20,10 +20,17 @@ interface PerFileGenerator<Module, File, Artifact> {
     val Artifact.hasExport: Boolean
     val Artifact.packageFqn: String
     val Artifact.mainFunction: String?
+    var Artifact.testFunction: String?
+    var Artifact.suiteFunction: String?
 
     fun List<Artifact>.merge(): Artifact
     fun File.generateArtifact(module: Module): Artifact?
-    fun Module.generateArtifact(mainFunctionTag: String?, moduleNameForEffects: String?): Artifact
+    fun Module.generateArtifact(
+        mainFunctionTag: String?,
+        suiteFunctionTag: String?,
+        testFunctions: Map<String, List<String>>,
+        moduleNameForEffects: String?
+    ): Artifact
 
     fun generatePerFileArtifacts(modules: List<Module>): List<Artifact> {
         var someModuleHasEffect = false
@@ -32,6 +39,8 @@ interface PerFileGenerator<Module, File, Artifact> {
             for (module in modules) {
                 var hasModuleLevelEffect = false
                 var hasFileWithExportedDeclaration = false
+                var suiteFunctionTag: String? = null
+                val testFunctions = mutableMapOf<String, MutableList<String>>()
 
                 val artifacts = module.fileList.mapNotNull {
                     val generatedArtifact = it.generateArtifact(module) ?: return@mapNotNull null
@@ -44,6 +53,13 @@ interface PerFileGenerator<Module, File, Artifact> {
                         hasModuleLevelEffect = true
                     }
 
+                    generatedArtifact.testFunction?.let {
+                        testFunctions.putToMultiMap(generatedArtifact.packageFqn, it)
+                        suiteFunctionTag = generatedArtifact.suiteFunction
+                        generatedArtifact.testFunction = null
+                        generatedArtifact.suiteFunction = null
+                    }
+
                     putToMultiMap(generatedArtifact.artifactName, generatedArtifact)
 
                     generatedArtifact
@@ -54,19 +70,21 @@ interface PerFileGenerator<Module, File, Artifact> {
                 }
 
                 val mainFunctionTag = runIf(module.isMain) {
-                    JsMainFunctionDetector
-                        .pickMainFunctionFromCandidates(artifacts) {
-                            JsMainFunctionDetector.MainFunctionCandidate(
-                                it.packageFqn,
-                                it.mainFunction
-                            )
-                        }
-                        ?.mainFunction
+                    JsMainFunctionDetector.pickMainFunctionFromCandidates(artifacts) {
+                        JsMainFunctionDetector.MainFunctionCandidate(
+                            it.packageFqn,
+                            it.mainFunction
+                        )
+                    }?.mainFunction
                 }
 
-                if (mainFunctionTag != null || hasFileWithExportedDeclaration || hasModuleLevelEffect || (module.isMain && someModuleHasEffect)) {
-                    val proxyArtifact =
-                        module.generateArtifact(mainFunctionTag, mainModuleName.takeIf { !module.isMain && hasModuleLevelEffect }) ?: continue
+                if (mainFunctionTag != null || hasFileWithExportedDeclaration || hasModuleLevelEffect || suiteFunctionTag != null || (module.isMain && someModuleHasEffect)) {
+                    val proxyArtifact = module.generateArtifact(
+                        mainFunctionTag,
+                        suiteFunctionTag,
+                        testFunctions,
+                        mainModuleName.takeIf { !module.isMain && hasModuleLevelEffect }
+                    ) ?: continue
                     putToMultiMap(proxyArtifact.artifactName, proxyArtifact)
                 }
             }
