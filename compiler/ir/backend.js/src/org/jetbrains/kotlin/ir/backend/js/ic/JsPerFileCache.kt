@@ -113,12 +113,12 @@ class JsPerFileCache(private val moduleArtifacts: List<ModuleArtifact>) : JsMult
 
             class Merged(private val cachedFileInfos: List<MainFileCachedInfo>) :
                 MainFileCachedInfo(cachedFileInfos.first().moduleArtifact, cachedFileInfos.first().fileArtifact) {
+                override fun loadJsIrModule(): JsIrModule = cachedFileInfos.map { it.loadJsIrModule() }.merge()
+
                 override val filePrefix by lazy(LazyThreadSafetyMode.NONE) {
                     val hash = cachedFileInfos.map { it.fileArtifact.srcFilePath }.sorted().joinToString().cityHash64()
                     fileArtifact.srcFilePath.run { "${substringAfterLast('/')}.$hash.merged" }
                 }
-
-                override fun loadJsIrModule(): JsIrModule = cachedFileInfos.map { it.loadJsIrModule() }.merge()
 
                 init {
                     assert(cachedFileInfos.size > 1) { "Merge is unnecessary" }
@@ -149,15 +149,15 @@ class JsPerFileCache(private val moduleArtifacts: List<ModuleArtifact>) : JsMult
                     }
 
                     jsIrHeader = mainHeaders.merge()
-                    exportFileCachedInfo = exportHeaders
-                        .takeIf { it.isNotEmpty() }
-                        ?.let {
-                            ExportFileCachedInfo.Merged(
-                                filePrefix,
-                                it.merge(),
-                                cachedFileInfos.mapNotNull(MainFileCachedInfo::exportFileCachedInfo)
-                            )
-                        }
+                    testFunctionTag = cachedFileInfos.firstNotNullOfOrNull { it.testFunctionTag }
+                    suiteFunctionTag = cachedFileInfos.firstNotNullOfOrNull { it.suiteFunctionTag }
+                    exportFileCachedInfo = exportHeaders.takeIf { it.isNotEmpty() }?.let {
+                        ExportFileCachedInfo.Merged(
+                            filePrefix,
+                            it.merge(),
+                            cachedFileInfos.mapNotNull(MainFileCachedInfo::exportFileCachedInfo)
+                        )
+                    }
                 }
             }
         }
@@ -216,14 +216,16 @@ class JsPerFileCache(private val moduleArtifacts: List<ModuleArtifact>) : JsMult
 
         when (it) {
             is CachedFileInfo.MainFileCachedInfo -> {
-                it.testFunctionTag = runIf(readBool()) { readString() }
-                it.suiteFunctionTag = runIf(readBool()) { readString() }
+                it.mainFunctionTag = ifTrue { readString() }
+                it.testFunctionTag = ifTrue { readString() }
+                it.suiteFunctionTag = ifTrue { readString() }
             }
             is CachedFileInfo.ExportFileCachedInfo -> {
-                it.tsDeclarationsHash = runIf(readBool()) { readInt64() }
+                it.tsDeclarationsHash = ifTrue { readInt64() }
                 reexportedIn = cachedFileInfo.moduleArtifact.moduleExternalName
             }
             is CachedFileInfo.ModuleProxyFileCachedInfo -> {
+                it.mainFunctionTag = ifTrue { readString() }
                 it.suiteFunctionTag = ifTrue { readString() }
                 it.packagesToItsTestFunctions = loadTestFunctions()
             }
@@ -262,7 +264,6 @@ class JsPerFileCache(private val moduleArtifacts: List<ModuleArtifact>) : JsMult
         return mainFileCachedFileInfo.readModuleHeaderCache {
             mainFileCachedFileInfo.apply {
                 exportFileCachedInfo = fetchFileInfoForExportedPart(this)
-                mainFunctionTag = ifTrue { readString() }
                 loadSingleCachedFileInfo(this)
             }
         }
@@ -271,7 +272,6 @@ class JsPerFileCache(private val moduleArtifacts: List<ModuleArtifact>) : JsMult
     private fun ModuleArtifact.fetchModuleProxyFileInfo(): CachedFileInfo.ModuleProxyFileCachedInfo? {
         val mainFileCachedFileInfo = CachedFileInfo.ModuleProxyFileCachedInfo(this)
         return mainFileCachedFileInfo.moduleHeaderArtifact?.useCodedInputIfExists {
-            mainFileCachedFileInfo.mainFunctionTag = ifTrue { readString() }
             loadSingleCachedFileInfo(mainFileCachedFileInfo)
         }
     }
