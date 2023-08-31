@@ -184,6 +184,11 @@ class KonanConfig(val project: Project, val configuration: CompilerConfiguration
         }
     }
 
+    val compileWithMarkBarriers: Boolean by lazy {
+        // TODO warn if used with concurrent mark
+        configuration.get(BinaryOptions.compileWithMarkBarriers) ?: false
+    }
+
     val irVerificationMode: IrVerificationMode
         get() = configuration.getNotNull(KonanConfigKeys.VERIFY_IR)
 
@@ -449,6 +454,8 @@ class KonanConfig(val project: Project, val configuration: CompilerConfiguration
             append("-disable_mmap${if (disableMmap) "TRUE" else "FALSE"}")
         if (gcMarkSingleThreaded != defaultGcMarkSingleThreaded)
             append("-gc_mark_single_threaded${if (gcMarkSingleThreaded) "TRUE" else "FALSE"}")
+        if (compileWithMarkBarriers) // TODO this might get complicated with concurrent mark
+            append("-compile_with_mark_barriers${if (compileWithMarkBarriers) "TRUE" else "FALSE"}")
     }
 
     private val userCacheFlavorString = buildString {

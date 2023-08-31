@@ -28,7 +28,7 @@ namespace kotlin::mm {
 
 class DirectRefAccessor {
     static constexpr auto builtinOrder(std::memory_order stdOrder) {
-        switch(stdOrder) {
+        switch (stdOrder) {
             case (std::memory_order_relaxed): return __ATOMIC_RELAXED;
             case (std::memory_order_consume): return __ATOMIC_CONSUME;
             case (std::memory_order_acquire): return __ATOMIC_ACQUIRE;
@@ -93,19 +93,22 @@ private:
     ObjHeader*& ref_;
 };
 
-template<bool kOnStack>
+template <bool kOnStack>
 class RefAccessor {
 public:
     RefAccessor() = delete;
     RefAccessor& operator=(const RefAccessor&) = delete;
 
-    explicit RefAccessor(ObjHeader*& fieldRef) noexcept : direct_(fieldRef) {}
-    explicit RefAccessor(ObjHeader** fieldPtr) noexcept : RefAccessor(*fieldPtr) {}
-    RefAccessor(const RefAccessor& other) noexcept : direct_(other.direct_) {}
+    explicit RefAccessor(ObjHeader*& fieldRef) noexcept: direct_(fieldRef) {}
+
+    explicit RefAccessor(ObjHeader** fieldPtr) noexcept: RefAccessor(*fieldPtr) {}
+
+    RefAccessor(const RefAccessor& other) noexcept: direct_(other.direct_) {}
 
     DirectRefAccessor direct() const noexcept { return direct_; }
 
     bool operator==(RefAccessor other) const noexcept { return direct_ == other.direct_; }
+
     bool operator!=(RefAccessor other) const noexcept { return !operator==(other); }
 
     void beforeLoad() noexcept;
@@ -131,7 +134,10 @@ public:
         return result;
     }
 
-    ALWAYS_INLINE ObjHeader* operator=(ObjHeader* desired) noexcept { store(desired); return desired; }
+    ALWAYS_INLINE ObjHeader* operator=(ObjHeader* desired) noexcept {
+        store(desired);
+        return desired;
+    }
 
     ALWAYS_INLINE void store(ObjHeader* desired) noexcept {
         AssertThreadState(ThreadState::kRunnable);
@@ -180,9 +186,11 @@ public:
     auto accessor() noexcept {
         return mm::RefFieldAccessor(value_);
     }
+
     auto direct() noexcept {
         return accessor().direct();
     }
+
     // FIXME probably most of the uses should instead use accessor
     auto ptr() noexcept {
         return direct().location();
@@ -215,6 +223,6 @@ void afterHeapRefLoad(DirectRefAccessor ref) noexcept;
 void beforeStackRefLoad(DirectRefAccessor ref) noexcept;
 void afterStackRefLoad(DirectRefAccessor ref) noexcept;
 
-OBJ_GETTER(weakRefReadBarrier, std::atomic<ObjHeader*>& referee) noexcept;
+OBJ_GETTER(weakRefReadBarrier, ObjHeader* weakReferee) noexcept;
 
 }

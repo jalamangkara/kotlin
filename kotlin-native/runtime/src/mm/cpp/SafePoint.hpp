@@ -10,6 +10,7 @@
 
 #include "ThreadData.hpp"
 #include "Utils.hpp"
+#include "CallsChecker.hpp"
 
 namespace kotlin::mm {
 
@@ -101,6 +102,12 @@ public:
             // let a runnable thread perform the action themself
             return false;
         })) { std::this_thread::yield(); }
+    }
+
+    void ensurePerformedInSTW(mm::ThreadRegistry::Iterable& threads) {
+        for (auto& thread: threads) {
+            Impl::action(thread);
+        }
     }
 
 private:

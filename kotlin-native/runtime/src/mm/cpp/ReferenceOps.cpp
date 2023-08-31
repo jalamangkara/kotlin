@@ -53,7 +53,11 @@ void mm::RefAccessor<kOnStack>::beforeLoad() noexcept {
 template void mm::RefAccessor<true>::beforeLoad() noexcept;
 template void mm::RefAccessor<false>::beforeLoad() noexcept;
 
-ALWAYS_INLINE void mm::beforeHeapRefStore(mm::DirectRefAccessor ref, ObjHeader* value) noexcept {}
+ALWAYS_INLINE void mm::beforeHeapRefStore(mm::DirectRefAccessor ref, ObjHeader* value) noexcept {
+    auto& threadData = *mm::ThreadRegistry::Instance().CurrentThreadData();
+    threadData.gc().beforeHeapRefUpdate(ref, value);
+}
+
 ALWAYS_INLINE void mm::afterHeapRefStore(mm::DirectRefAccessor ref, ObjHeader* value) noexcept {}
 ALWAYS_INLINE void mm::beforeStackRefStore(mm::DirectRefAccessor ref, ObjHeader* value) noexcept {}
 ALWAYS_INLINE void mm::afterStackRefStore(mm::DirectRefAccessor ref, ObjHeader* value) noexcept {}
@@ -62,6 +66,7 @@ ALWAYS_INLINE void mm::afterHeapRefLoad(mm::DirectRefAccessor ref) noexcept {}
 ALWAYS_INLINE void mm::beforeStackRefLoad(mm::DirectRefAccessor ref) noexcept {}
 ALWAYS_INLINE void mm::afterStackRefLoad(mm::DirectRefAccessor ref) noexcept {}
 
-ALWAYS_INLINE OBJ_GETTER(mm::weakRefReadBarrier, std::atomic<ObjHeader*>& referee) noexcept {
-    RETURN_RESULT_OF(kotlin::gc::tryRef, referee);
+ALWAYS_INLINE OBJ_GETTER(mm::weakRefReadBarrier, ObjHeader* weakReferee) noexcept {
+    auto& threadData = *mm::ThreadRegistry::Instance().CurrentThreadData();
+    RETURN_RESULT_OF(threadData.gc().weakRefReadBarrier, weakReferee);
 }
