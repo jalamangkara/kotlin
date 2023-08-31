@@ -187,6 +187,9 @@ internal abstract class KotlinBuildStatsService internal constructor() : IStatis
 
     override fun close() {
     }
+    /**
+     * Collects metrics at the end of a build
+     */
     open fun recordBuildFinish(action: String?, buildFailed: Boolean, metric: NonSynchronizedMetricsContainer) {}
 
     open fun recordProjectsEvaluated(gradle: Gradle) {}

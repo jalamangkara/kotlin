@@ -75,9 +75,7 @@ internal abstract class BuildFusService : BuildService<BuildFusService.Parameter
             return when {
                 //known issue for Gradle with configurationCache: https://github.com/gradle/gradle/issues/20001
                 GradleVersion.current().baseVersion < GradleVersion.version("7.4") -> !project.isConfigurationCacheRequested
-                GradleVersion.current().baseVersion < GradleVersion.version("8.1") -> true
-                //known issue. Cant reuse cache if file is changed in gradle_user_home dir: KT-58768
-                else -> !project.isConfigurationCacheRequested
+                else -> true
             }
         }
 
@@ -126,7 +124,7 @@ internal abstract class BuildFusService : BuildService<BuildFusService.Parameter
                 })
 
                 spec.parameters.configurationMetrics.add(project.provider {
-                    KotlinBuildStatHandler.collectProjectConfigurationTimeMetrics(project, isProjectIsolationEnabled)
+                    KotlinBuildStatHandler.collectProjectConfigurationTimeMetrics(project)
                 })
                 spec.parameters.fusStatisticsAvailable.set(fusStatisticsAvailable)
             }.also { buildService ->
