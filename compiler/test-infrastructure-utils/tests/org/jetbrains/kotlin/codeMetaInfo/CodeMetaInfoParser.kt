@@ -21,7 +21,7 @@ object CodeMetaInfoParser {
      */
     private val tagRegex = """([\S&&[^,(){}]]+)([{](.*?)[}])?(\("(.*?)"\))?(, )?""".toRegex()
 
-    private class Opening(val index: Int, val tags: String, val startOffset: Int) {
+    private class Opening(val index: Int, val tags: String, val startOffset: Int, val visualShift: Int) {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (javaClass != other?.javaClass) return false
@@ -62,7 +62,10 @@ object CodeMetaInfoParser {
 
             text = if (openingStartOffset < closingStartOffset) {
                 requireNotNull(opening)
-                val openingMatch = Opening(counter++, opening.groups[2]!!.value, opening.range.first)
+                val openingMatch = Opening(
+                    counter++, opening.groups[2]!!.value, opening.range.first,
+                    renderedText.length - text.length,
+                )
                 openings.addLast(openingMatch)
                 stackOfOpenings.addLast(openingMatch)
                 text.removeRange(openingStartOffset, opening.range.last + 1)
@@ -90,7 +93,8 @@ object CodeMetaInfoParser {
                         closingMatchResult,
                         attributes.toMutableList(),
                         tag,
-                        description
+                        description,
+                        visualShift = openingMatchResult.visualShift,
                     )
                 )
             }
