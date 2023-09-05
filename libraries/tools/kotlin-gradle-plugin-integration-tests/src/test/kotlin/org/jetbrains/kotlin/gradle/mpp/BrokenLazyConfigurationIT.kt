@@ -94,7 +94,6 @@ class BrokenLazyConfigurationIT : KGPBaseTest() {
                     assert(false) // The assertion above now fails. This line is to ensure try-catch is removed after fixing related issues
                 } catch (e: AssertionError) {
                     val expectedTopLevelSubdirectoriesMapping = mapOf(
-                        "js" to "KT-61294",
                         "reports" to "KT-61295",
                     )
                     val expectedTopLevelSubdirectories = expectedTopLevelSubdirectoriesMapping.keys
