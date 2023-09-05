@@ -43,7 +43,7 @@ abstract class CommonCompilerArguments : CommonToolArguments() {
     @Argument(
         value = "-language-version",
         valueDescription = "<version>",
-        description = "Provide source compatibility with the specified version of Kotlin"
+        description = "Provides source compatibility with the specified version of Kotlin"
     )
     var languageVersion: String? = null
         set(value) {
@@ -66,7 +66,7 @@ abstract class CommonCompilerArguments : CommonToolArguments() {
     @Argument(
         value = "-api-version",
         valueDescription = "<version>",
-        description = "Allow using declarations only from the specified version of bundled libraries"
+        description = "Allows using declarations only from the specified version of bundled libraries"
     )
     var apiVersion: String? = null
         set(value) {
@@ -92,11 +92,11 @@ abstract class CommonCompilerArguments : CommonToolArguments() {
     @Argument(
         value = "-progressive",
         deprecatedName = "-Xprogressive",
-        description = "Enable progressive compiler mode.\n" +
+        description = "Enables progressive compiler mode.\n" +
                 "In this mode, deprecations and bug fixes for unstable code take effect immediately,\n" +
                 "instead of going through a graceful migration cycle.\n" +
-                "Code written in the progressive mode is backward compatible; however, code written in\n" +
-                "non-progressive mode may cause compilation errors in the progressive mode."
+                "Code written in progressive mode is backward compatible. However, code written in\n" +
+                "non-progressive mode may cause compilation errors in progressive mode."
     )
     var progressiveMode = false
         set(value) {
@@ -119,7 +119,7 @@ abstract class CommonCompilerArguments : CommonToolArguments() {
         value = "-opt-in",
         deprecatedName = "-Xopt-in",
         valueDescription = "<fq.name>",
-        description = "Enable usages of API that requires opt-in with an opt-in requirement marker with the given fully qualified name"
+        description = "Enables use of any API that requires opt-in with an opt-in requirement containing its fully qualified name."
     )
     var optIn: Array<String>? = null
         set(value) {
@@ -504,7 +504,7 @@ abstract class CommonCompilerArguments : CommonToolArguments() {
     @Argument(
         value = "-Xuse-k2",
         deprecatedName = "-Xuse-fir",
-        description = "Compile using experimental K2. K2 is a new compiler pipeline, no compatibility guarantees are yet provided"
+        description = "Compiles using the experimental K2 compiler. K2 is a new compiler pipeline that has no compatibility guarantees."
     )
     var useK2 = false
         set(value) {

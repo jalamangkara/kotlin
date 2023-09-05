@@ -8,8 +8,9 @@ package org.jetbrains.kotlin.gradle.dsl
 interface KotlinNativeCompilerOptions : org.jetbrains.kotlin.gradle.dsl.KotlinCommonCompilerOptions {
 
     /**
-     * Specify a name for the compilation module
-     * Default value: null
+     * Specifies a name for the compilation module
+     *
+     * Default value: `null`
      */
     @get:org.gradle.api.tasks.Optional
     @get:org.gradle.api.tasks.Input

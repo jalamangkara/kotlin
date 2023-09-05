@@ -9,24 +9,27 @@ interface KotlinCommonToolOptions {
     val options: org.jetbrains.kotlin.gradle.dsl.KotlinCommonCompilerToolOptions
 
     /**
-     * Report an error if there are any warnings
-     * Default value: false
+     * Reports an error if there are any warnings
+     *
+     * Default value: `false`
      */
     var allWarningsAsErrors: kotlin.Boolean
         get() = options.allWarningsAsErrors.get()
         set(value) = options.allWarningsAsErrors.set(value)
 
     /**
-     * Generate no warnings
-     * Default value: false
+     * Generates no warnings
+     *
+     * Default value: `false`
      */
     var suppressWarnings: kotlin.Boolean
         get() = options.suppressWarnings.get()
         set(value) = options.suppressWarnings.set(value)
 
     /**
-     * Enable verbose logging output
-     * Default value: false
+     * Enables verbose logging output
+     *
+     * Default value: `false`
      */
     var verbose: kotlin.Boolean
         get() = options.verbose.get()
@@ -34,7 +37,8 @@ interface KotlinCommonToolOptions {
 
     /**
      * A list of additional compiler arguments
-     * Default value: emptyList<String>()
+     *
+     * Default value: `emptyList<String>()`
      */
     var freeCompilerArgs: kotlin.collections.List<kotlin.String>
         get() = options.freeCompilerArgs.get()

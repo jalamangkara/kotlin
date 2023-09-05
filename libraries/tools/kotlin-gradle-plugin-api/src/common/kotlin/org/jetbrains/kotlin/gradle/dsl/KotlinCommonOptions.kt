@@ -13,9 +13,11 @@ interface KotlinCommonOptions : org.jetbrains.kotlin.gradle.dsl.KotlinCommonTool
     private val org.jetbrains.kotlin.gradle.dsl.KotlinVersion?.apiVersionKotlinOption get() = this?.version
 
     /**
-     * Allow using declarations only from the specified version of bundled libraries
+     * Allows using declarations only from the specified version of bundled libraries
+     *
      * Possible values: "1.4 (deprecated)", "1.5 (deprecated)", "1.6", "1.7", "1.8", "1.9", "2.0 (experimental)", "2.1 (experimental)"
-     * Default value: null
+     *
+     * Default value: `null`
      */
     var apiVersion: kotlin.String?
         get() = options.apiVersion.orNull.apiVersionKotlinOption
@@ -26,17 +28,20 @@ interface KotlinCommonOptions : org.jetbrains.kotlin.gradle.dsl.KotlinCommonTool
     private val org.jetbrains.kotlin.gradle.dsl.KotlinVersion?.languageVersionKotlinOption get() = this?.version
 
     /**
-     * Provide source compatibility with the specified version of Kotlin
+     * Provides source compatibility with the specified version of Kotlin
+     *
      * Possible values: "1.4 (deprecated)", "1.5 (deprecated)", "1.6", "1.7", "1.8", "1.9", "2.0 (experimental)", "2.1 (experimental)"
-     * Default value: null
+     *
+     * Default value: `null`
      */
     var languageVersion: kotlin.String?
         get() = options.languageVersion.orNull.languageVersionKotlinOption
         set(value) = options.languageVersion.set(value.languageVersionCompilerOption)
 
     /**
-     * Compile using experimental K2. K2 is a new compiler pipeline, no compatibility guarantees are yet provided
-     * Default value: false
+     * Compiles using the experimental K2 compiler. K2 is a new compiler pipeline that has no compatibility guarantees.
+     *
+     * Default value: `false`
      */
     @Deprecated(message = "Compiler flag -Xuse-k2 is deprecated; please use language version 2.0 instead", level = DeprecationLevel.WARNING)
     var useK2: kotlin.Boolean

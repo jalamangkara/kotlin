@@ -875,11 +875,21 @@ private fun Printer.generateDoc(property: KProperty1<*, *>) {
     val defaultValue = property.gradleValues.defaultValue
 
     println("/**")
-    println(" * ${description.replace("\n", " ")}")
+    description.split("\n")
+        .filter {
+            // TODO (Yahor): Introduce better approach to default values for kotlinc CLI output,
+            // so it will not interfere with generated KDoc
+            !it.startsWith("Default is")
+        }
+        .forEach {
+            println(" * $it")
+        }
     if (possibleValues != null) {
+        println(" *")
         println(" * Possible values: ${possibleValues.joinToString()}")
     }
-    println(" * Default value: ${defaultValue.removePrefix("$OPTIONS_PACKAGE_PREFIX.")}")
+    println(" *")
+    println(" * Default value: `${defaultValue.removePrefix("$OPTIONS_PACKAGE_PREFIX.")}`")
     println(" */")
 }
 

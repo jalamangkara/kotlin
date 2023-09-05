@@ -57,7 +57,7 @@ class K2JVMCompilerArguments : CommonCompilerArguments() {
         gradleInputType = GradleInputTypes.INPUT,
         shouldGenerateDeprecatedKotlinOptions = true,
     )
-    @Argument(value = "-no-jdk", description = "Don't automatically include the Java runtime into the classpath")
+    @Argument(value = "-no-jdk", description = "Disables automatically including the Java runtime into the classpath")
     var noJdk = false
         set(value) {
             checkFrozen()
@@ -108,7 +108,7 @@ class K2JVMCompilerArguments : CommonCompilerArguments() {
         gradleInputType = GradleInputTypes.INPUT,
         shouldGenerateDeprecatedKotlinOptions = true,
     )
-    @Argument(value = "-module-name", valueDescription = "<name>", description = "Name of the generated .kotlin_module file")
+    @Argument(value = "-module-name", valueDescription = "<name>", description = "The name of the generated `.kotlin_module` file")
     var moduleName: String? = null
         set(value) {
             checkFrozen()
@@ -123,7 +123,7 @@ class K2JVMCompilerArguments : CommonCompilerArguments() {
     @Argument(
         value = "-jvm-target",
         valueDescription = "<version>",
-        description = "Target version of the generated JVM bytecode (${JvmTarget.SUPPORTED_VERSIONS_DESCRIPTION}), default is 1.8",
+        description = "The target version of the generated JVM bytecode (${JvmTarget.SUPPORTED_VERSIONS_DESCRIPTION}).\nDefault is 1.8.",
     )
     var jvmTarget: String? = null
         set(value) {
@@ -136,7 +136,7 @@ class K2JVMCompilerArguments : CommonCompilerArguments() {
         gradleInputType = GradleInputTypes.INPUT,
         shouldGenerateDeprecatedKotlinOptions = true,
     )
-    @Argument(value = "-java-parameters", description = "Generate metadata for Java 1.8 reflection on method parameters")
+    @Argument(value = "-java-parameters", description = "Generates metadata for Java 1.8 reflection on method parameters")
     var javaParameters = false
         set(value) {
             checkFrozen()

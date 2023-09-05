@@ -62,7 +62,7 @@ class K2JSDceArguments : CommonToolArguments() {
     )
     @Argument(
             value = "-dev-mode",
-            description = "Development mode: don't strip out any code, just copy dependencies"
+            description = "Development mode: No code is removed. Dependencies are copied."
     )
     var devMode = false
         set(value) {

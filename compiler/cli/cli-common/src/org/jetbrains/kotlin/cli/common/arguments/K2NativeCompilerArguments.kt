@@ -67,7 +67,7 @@ class K2NativeCompilerArguments : CommonCompilerArguments() {
         value = "-module-name",
         deprecatedName = "-module_name",
         valueDescription = "<name>",
-        description = "Specify a name for the compilation module"
+        description = "Specifies a name for the compilation module"
     )
     var moduleName: String? = null
 
