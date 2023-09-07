@@ -16,7 +16,6 @@ import org.jetbrains.kotlin.generators.tree.printer.FunctionParameter
 import org.jetbrains.kotlin.generators.tree.printer.GeneratedFile
 import org.jetbrains.kotlin.generators.tree.printer.printFunctionDeclaration
 import org.jetbrains.kotlin.generators.tree.printer.printGeneratedType
-import org.jetbrains.kotlin.types.Variance
 import org.jetbrains.kotlin.utils.SmartPrinter
 import org.jetbrains.kotlin.utils.withIndent
 import java.io.File
@@ -62,7 +61,7 @@ private class TransformerPrinter(
                         FunctionParameter(elementParameterName, element),
                         FunctionParameter("data", dataTypeVariable)
                     ),
-                    returnType = element.transformerType,
+                    returnType = element.transformerClass,
                     typeParameters = element.params,
                     modality = Modality.OPEN,
                 )
@@ -76,7 +75,7 @@ private class TransformerPrinter(
             printVisitMethodDeclaration(
                 element = element,
                 additionalParameters = listOf(FunctionParameter("data", dataTypeVariable)),
-                returnType = element.transformerType,
+                returnType = element.transformerClass,
                 modality = Modality.FINAL,
                 override = true,
             )

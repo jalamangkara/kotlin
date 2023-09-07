@@ -20,6 +20,7 @@ internal class FirLegacyRawContractDescriptionImpl(
     override val source: KtSourceElement?,
     override var contractCall: FirFunctionCall,
 ) : FirLegacyRawContractDescription() {
+
     override fun <R, D> acceptChildren(visitor: FirVisitor<R, D>, data: D) {
         contractCall.accept(visitor, data)
     }
