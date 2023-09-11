@@ -660,6 +660,7 @@ tasks {
 
     register("jsFirCompilerTest") {
         dependsOn(":js:js.tests:jsFirTest")
+        dependsOn(":js:js.tests:jsFirES6Test")
     }
 
     register("jsIrCompilerTest") {
