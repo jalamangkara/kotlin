@@ -1,5 +1,5 @@
 // TARGET_BACKEND: JVM
-// IGNORE_BACKEND_K2: JVM_IR, JS_IR
+// IGNORE_BACKEND_K2: JVM_IR, JS_IR, JS_IR_ES6
 // FIR status: validation failed. TODO decide if we want to fix KT-42020 for FIR as well
 
 open class Base<T> {
