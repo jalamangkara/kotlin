@@ -2307,6 +2307,33 @@ public class FirNativeCodegenBoxTestNoPLGenerated extends AbstractNativeCodegenB
                                 runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/targetTypes/TypeParameter.kt");
                             }
                         }
+
+                        @Nested
+                        @TestMetadata("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/typeInfoSinks")
+                        @TestDataPath("$PROJECT_ROOT")
+                        @Tag("frontend-fir")
+                        @FirPipeline()
+                        @UseExtTestCaseGroupProvider()
+                        @UsePartialLinkage(mode = Mode.DISABLED)
+                        @Tag("no-partial-linkage-may-be-skipped")
+                        public class TypeInfoSinks {
+                            @Test
+                            public void testAllFilesPresentInTypeInfoSinks() throws Exception {
+                                KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/typeInfoSinks"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.NATIVE, true);
+                            }
+
+                            @Test
+                            @TestMetadata("PropertyMaterializeCase.kt")
+                            public void testPropertyMaterializeCase() throws Exception {
+                                runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/typeInfoSinks/PropertyMaterializeCase.kt");
+                            }
+
+                            @Test
+                            @TestMetadata("PropertyYieldCase.kt")
+                            public void testPropertyYieldCase() throws Exception {
+                                runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/typeInfoSinks/PropertyYieldCase.kt");
+                            }
+                        }
                     }
                 }
             }
