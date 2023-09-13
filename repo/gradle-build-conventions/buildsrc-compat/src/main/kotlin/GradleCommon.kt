@@ -661,6 +661,7 @@ fun Project.addBomCheckTask() {
 fun Project.configureDokkaPublication(
     shouldLinkGradleApi: Boolean = false,
     configurePublishingToKotlinlang: Boolean = false,
+    additionalDokkaTaskConfiguration: DokkaTask.() -> Unit = {}
 ) {
 
     val dokkaVersioningPluginVersion = "1.8.10"
@@ -712,6 +713,8 @@ fun Project.configureDokkaPublication(
                         }
                     }
                 }
+
+                additionalDokkaTaskConfiguration()
             }
 
             tasks.named<Jar>(variantSourceSet.javadocJarTaskName) {
@@ -761,6 +764,8 @@ fun Project.configureDokkaPublication(
                             }
                         }
                     }
+
+                    additionalDokkaTaskConfiguration()
                 }
             }
         }
