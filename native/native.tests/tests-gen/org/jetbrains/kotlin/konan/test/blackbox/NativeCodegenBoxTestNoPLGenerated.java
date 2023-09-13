@@ -2295,6 +2295,31 @@ public class NativeCodegenBoxTestNoPLGenerated extends AbstractNativeCodegenBoxT
                                 runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/typeInfoSinks/PropertyYieldCase.kt");
                             }
                         }
+
+                        @Nested
+                        @TestMetadata("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/typeInfoSources")
+                        @TestDataPath("$PROJECT_ROOT")
+                        @UseExtTestCaseGroupProvider()
+                        @UsePartialLinkage(mode = Mode.DISABLED)
+                        @Tag("no-partial-linkage-may-be-skipped")
+                        public class TypeInfoSources {
+                            @Test
+                            public void testAllFilesPresentInTypeInfoSources() throws Exception {
+                                KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/typeInfoSources"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.NATIVE, true);
+                            }
+
+                            @Test
+                            @TestMetadata("ExtensionFunctionWithBoxedPTVSink.kt")
+                            public void testExtensionFunctionWithBoxedPTVSink() throws Exception {
+                                runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/typeInfoSources/ExtensionFunctionWithBoxedPTVSink.kt");
+                            }
+
+                            @Test
+                            @TestMetadata("ExtensionPropertyWithBoxedPTVSink.kt")
+                            public void testExtensionPropertyWithBoxedPTVSink() throws Exception {
+                                runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/typeInfoSources/ExtensionPropertyWithBoxedPTVSink.kt");
+                            }
+                        }
                     }
                 }
             }

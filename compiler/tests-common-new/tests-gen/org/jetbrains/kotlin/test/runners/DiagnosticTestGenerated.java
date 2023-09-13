@@ -3558,6 +3558,28 @@ public class DiagnosticTestGenerated extends AbstractDiagnosticTest {
                                 runTest("compiler/testData/diagnostics/tests/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/typeInfoSinks/PropertyYieldCase.kt");
                             }
                         }
+
+                        @Nested
+                        @TestMetadata("compiler/testData/diagnostics/tests/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/typeInfoSources")
+                        @TestDataPath("$PROJECT_ROOT")
+                        public class TypeInfoSources {
+                            @Test
+                            public void testAllFilesPresentInTypeInfoSources() throws Exception {
+                                KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/diagnostics/tests/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/typeInfoSources"), Pattern.compile("^(.*)\\.kts?$"), Pattern.compile("^(.+)\\.(reversed|fir|ll)\\.kts?$"), true);
+                            }
+
+                            @Test
+                            @TestMetadata("ExtensionFunctionWithPTVSink.kt")
+                            public void testExtensionFunctionWithPTVSink() throws Exception {
+                                runTest("compiler/testData/diagnostics/tests/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/typeInfoSources/ExtensionFunctionWithPTVSink.kt");
+                            }
+
+                            @Test
+                            @TestMetadata("ExtensionPropertyWithPTVSink.kt")
+                            public void testExtensionPropertyWithPTVSink() throws Exception {
+                                runTest("compiler/testData/diagnostics/tests/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/typeInfoSources/ExtensionPropertyWithPTVSink.kt");
+                            }
+                        }
                     }
                 }
             }
