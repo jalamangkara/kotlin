@@ -3547,6 +3547,12 @@ public class DiagnosticTestGenerated extends AbstractDiagnosticTest {
                             }
 
                             @Test
+                            @TestMetadata("ExtensionPropertyYieldCase.kt")
+                            public void testExtensionPropertyYieldCase() throws Exception {
+                                runTest("compiler/testData/diagnostics/tests/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/typeInfoSinks/ExtensionPropertyYieldCase.kt");
+                            }
+
+                            @Test
                             @TestMetadata("PropertyYieldCase.kt")
                             public void testPropertyYieldCase() throws Exception {
                                 runTest("compiler/testData/diagnostics/tests/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/typeInfoSinks/PropertyYieldCase.kt");

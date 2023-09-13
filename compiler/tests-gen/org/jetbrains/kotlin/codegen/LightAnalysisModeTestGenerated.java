@@ -2697,6 +2697,21 @@ public class LightAnalysisModeTestGenerated extends AbstractLightAnalysisModeTes
                             KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/typeInfoSinks"), Pattern.compile("^(.+)\\.kt$"), null, TargetBackend.JVM_IR, true);
                         }
 
+                        @TestMetadata("ExtensionFunction.kt")
+                        public void testExtensionFunction() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/typeInfoSinks/ExtensionFunction.kt");
+                        }
+
+                        @TestMetadata("ExtensionPropertyMaterializeCase.kt")
+                        public void testExtensionPropertyMaterializeCase() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/typeInfoSinks/ExtensionPropertyMaterializeCase.kt");
+                        }
+
+                        @TestMetadata("ExtensionPropertyYieldCase.kt")
+                        public void testExtensionPropertyYieldCase() throws Exception {
+                            runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/typeInfoSinks/ExtensionPropertyYieldCase.kt");
+                        }
+
                         @TestMetadata("PropertyMaterializeCase.kt")
                         public void testPropertyMaterializeCase() throws Exception {
                             runTest("compiler/testData/codegen/box/builderInference/oneParameter/oneTypeVariable/oneTypeInfoOrigin/typeInfoSinks/PropertyMaterializeCase.kt");
