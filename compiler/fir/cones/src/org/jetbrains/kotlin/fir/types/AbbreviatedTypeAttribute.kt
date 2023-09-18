@@ -10,9 +10,9 @@ import kotlin.reflect.KClass
 class AbbreviatedTypeAttribute(
     val coneType: ConeKotlinType,
 ) : ConeAttribute<AbbreviatedTypeAttribute>() {
-    override fun union(other: AbbreviatedTypeAttribute?): AbbreviatedTypeAttribute? = null
-    override fun intersect(other: AbbreviatedTypeAttribute?): AbbreviatedTypeAttribute? = null
-    override fun add(other: AbbreviatedTypeAttribute?): AbbreviatedTypeAttribute? = null
+    override fun union(other: AbbreviatedTypeAttribute?): AbbreviatedTypeAttribute = other ?: this
+    override fun intersect(other: AbbreviatedTypeAttribute?): AbbreviatedTypeAttribute = other ?: this
+    override fun add(other: AbbreviatedTypeAttribute?): AbbreviatedTypeAttribute = other ?: this
     override fun isSubtypeOf(other: AbbreviatedTypeAttribute?): Boolean = true
     override fun toString(): String = "{${coneType.renderForDebugging()}=}"
 
