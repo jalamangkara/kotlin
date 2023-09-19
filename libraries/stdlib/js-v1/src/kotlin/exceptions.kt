@@ -97,14 +97,14 @@ public actual open class ArithmeticException actual constructor(message: String?
     actual constructor() : this(null)
 }
 
-public actual open class NoWhenBranchMatchedException actual constructor(message: String?, cause: Throwable?) : RuntimeException(message, cause) {
-    actual constructor() : this(null, null)
-    actual constructor(message: String?) : this(message, null)
-    actual constructor(cause: Throwable?) : this(undefined, cause)
+public actual open class NoWhenBranchMatchedException public actual constructor(message: String?, cause: Throwable?) : RuntimeException(message, cause) {
+    public actual constructor() : this(null, null)
+    public actual constructor(message: String?) : this(message, null)
+    public actual constructor(cause: Throwable?) : this(undefined, cause)
 }
 
-public actual open class UninitializedPropertyAccessException actual constructor(message: String?, cause: Throwable?) : RuntimeException(message, cause) {
-    actual constructor() : this(null, null)
-    actual constructor(message: String?) : this(message, null)
-    actual constructor(cause: Throwable?) : this(undefined, cause)
+public actual open class UninitializedPropertyAccessException public actual constructor(message: String?, cause: Throwable?) : RuntimeException(message, cause) {
+    public actual constructor() : this(null, null)
+    public actual constructor(message: String?) : this(message, null)
+    public actual constructor(cause: Throwable?) : this(undefined, cause)
 }
