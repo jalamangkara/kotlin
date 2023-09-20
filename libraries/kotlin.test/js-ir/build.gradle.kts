@@ -1,3 +1,4 @@
+import org.gradle.jvm.tasks.Jar
 import org.jetbrains.kotlin.gradle.dsl.KotlinCompile
 
 plugins {
@@ -65,7 +66,11 @@ tasks {
         archiveAppendix = null
         manifestAttributes(manifest, "Test")
     }
-    val jsSourcesJar by existing(org.gradle.jvm.tasks.Jar::class) {
+    artifacts {
+        val distJsKlib = configurations.create("distJsKlib")
+        add(distJsKlib.name, jsJar)
+    }
+    val jsSourcesJar by existing(Jar::class) {
         archiveAppendix = null
     }
 }

@@ -9,7 +9,6 @@ import org.jetbrains.kotlin.backend.common.serialization.checkIsFunctionInterfac
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.ir.backend.js.*
 import org.jetbrains.kotlin.ir.backend.js.export.*
-import org.jetbrains.kotlin.ir.backend.js.ic.CachedTestFunctionsWithTheirPackage
 import org.jetbrains.kotlin.ir.backend.js.lower.JsCodeOutliningLowering
 import org.jetbrains.kotlin.ir.backend.js.lower.StaticMembersLowering
 import org.jetbrains.kotlin.ir.backend.js.lower.isBuiltInClass
@@ -53,15 +52,14 @@ fun generateProxyIrModuleWith(
     externalName: String,
     mainFunctionTag: String?,
     suiteFunctionTag: String? = null,
-    cachedTestFunctionsWithTheirPackage: CachedTestFunctionsWithTheirPackage? = null,
+    cachedTestFunctionsWithTheirPackage: CachedTestFunctionsWithTheirPackage = emptyMap(),
     importedWithEffectInModuleWithName: String? = null
 ): JsIrModule {
     val programFragment = JsIrProgramFragment(safeName, "<proxy-file>").apply {
         mainFunctionTag?.let {
-            this.mainFunctionTag = it
             nameBindings[it] = JsName("main", true)
         }
-        cachedTestFunctionsWithTheirPackage?.let {
+        cachedTestFunctionsWithTheirPackage.takeIf { it.isNotEmpty() }?.let {
             nameBindings += it.values.asSequence()
                 .flatten()
                 .map { tag -> tag to JsName("test", true) }
@@ -73,7 +71,12 @@ fun generateProxyIrModuleWith(
         }
     }
 
-    return JsIrModule(safeName, externalName, listOf(programFragment), importedWithEffectInModuleWithName = importedWithEffectInModuleWithName)
+    return JsIrModule(
+        safeName,
+        externalName,
+        listOf(programFragment),
+        importedWithEffectInModuleWithName = importedWithEffectInModuleWithName
+    )
 }
 
 enum class JsGenerationGranularity {
@@ -310,7 +313,7 @@ class IrModuleToJsTransformer(
             override fun IrAndExportedDeclarations.generateArtifact(
                 mainFunctionTag: String?,
                 suiteFunctionTag: String?,
-                testFunctions: Map<String, List<String>>,
+                testFunctions: CachedTestFunctionsWithTheirPackage,
                 moduleNameForEffects: String?
             ) = JsIrModules(toJsIrProxyModule(mainFunctionTag, suiteFunctionTag, testFunctions, moduleNameForEffects))
 
@@ -352,7 +355,7 @@ class IrModuleToJsTransformer(
     private fun IrAndExportedDeclarations.toJsIrProxyModule(
         mainFunctionTag: String?,
         suiteFunctionTag: String?,
-        cachedTestFunctionsWithTheirPackage: CachedTestFunctionsWithTheirPackage?,
+        cachedTestFunctionsWithTheirPackage: CachedTestFunctionsWithTheirPackage,
         importedWithEffectInModuleWithName: String? = null
     ): JsIrModule {
         return generateProxyIrModuleWith(

@@ -14,6 +14,7 @@ fun Test.useJsIrBoxTests(
     setupV8()
     dependsOn(":kotlin-stdlib:jsJar")
     dependsOn(":kotlin-stdlib:jsJarForTests") // TODO: think how to remove dependency on the artifact in this place
+    dependsOn(":kotlin-test:kotlin-test-js-ir:jsJar")
     dependsOn(":kotlin-test:kotlin-test-js-ir:compileKotlinJs")
     dependsOn(":kotlin-stdlib-js-ir-minimal-for-test:compileKotlinJs")
 

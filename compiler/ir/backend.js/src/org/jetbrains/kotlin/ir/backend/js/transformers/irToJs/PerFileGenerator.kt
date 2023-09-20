@@ -9,6 +9,8 @@ import org.jetbrains.kotlin.ir.backend.js.utils.JsMainFunctionDetector
 import org.jetbrains.kotlin.utils.addToStdlib.runIf
 import org.jetbrains.kotlin.utils.putToMultiMap
 
+typealias CachedTestFunctionsWithTheirPackage = Map<String, List<String>>
+
 interface PerFileGenerator<Module, File, Artifact> {
     val mainModuleName: String
 
@@ -28,7 +30,7 @@ interface PerFileGenerator<Module, File, Artifact> {
     fun Module.generateArtifact(
         mainFunctionTag: String?,
         suiteFunctionTag: String?,
-        testFunctions: Map<String, List<String>>,
+        testFunctions: CachedTestFunctionsWithTheirPackage,
         moduleNameForEffects: String?
     ): Artifact
 

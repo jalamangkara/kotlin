@@ -12,8 +12,6 @@ import org.jetbrains.kotlin.protobuf.CodedOutputStream
 import org.jetbrains.kotlin.utils.addToStdlib.runIf
 import java.io.File
 
-typealias CachedTestFunctionsWithTheirPackage = Map<String, List<String>>
-
 class JsPerFileCache(private val moduleArtifacts: List<ModuleArtifact>) : JsMultiArtifactCache<JsPerFileCache.CachedFileInfo>() {
     companion object {
         private const val JS_MODULE_HEADER = "js.module.header.bin"
@@ -122,16 +120,19 @@ class JsPerFileCache(private val moduleArtifacts: List<ModuleArtifact>) : JsMult
 
                 init {
                     assert(cachedFileInfos.size > 1) { "Merge is unnecessary" }
-                    val isModified = cachedFileInfos.any { it.fileArtifact.isModified() }
+                    var isModified = false
+
+                    for (info in cachedFileInfos) {
+                        if (!info.fileArtifact.isModified()) {
+                            isModified = true
+                        }
+                        info.testFunctionTag?.let { testFunctionTag = it }
+                        info.suiteFunctionTag?.let { suiteFunctionTag = it }
+                    }
+
                     val mainAndExportHeaders = when {
                         isModified -> cachedFileInfos.asSequence().map { it.fileArtifact.loadJsIrModuleHeaders(moduleArtifact) }
-                        else -> cachedFileInfos.asSequence().map {
-                            LoadedJsIrModuleHeaders(
-                                it.mainFunctionTag,
-                                it.jsIrHeader,
-                                it.exportFileCachedInfo?.jsIrHeader
-                            )
-                        }
+                        else -> cachedFileInfos.asSequence().map { LoadedJsIrModuleHeaders(it.mainFunctionTag, it.jsIrHeader, it.exportFileCachedInfo?.jsIrHeader) }
                     }
 
                     val mainHeaders = mutableListOf<JsIrModuleHeader>()
@@ -199,7 +200,7 @@ class JsPerFileCache(private val moduleArtifacts: List<ModuleArtifact>) : JsMult
                     jsIrHeader.externalModuleName,
                     mainFunctionTag,
                     suiteFunctionTag,
-                    packagesToItsTestFunctions,
+                    packagesToItsTestFunctions ?: emptyMap(),
                     jsIrHeader.importedWithEffectInModuleWithName
                 )
             }
@@ -271,9 +272,7 @@ class JsPerFileCache(private val moduleArtifacts: List<ModuleArtifact>) : JsMult
 
     private fun ModuleArtifact.fetchModuleProxyFileInfo(): CachedFileInfo.ModuleProxyFileCachedInfo? {
         val mainFileCachedFileInfo = CachedFileInfo.ModuleProxyFileCachedInfo(this)
-        return mainFileCachedFileInfo.moduleHeaderArtifact?.useCodedInputIfExists {
-            loadSingleCachedFileInfo(mainFileCachedFileInfo)
-        }
+        return mainFileCachedFileInfo.moduleHeaderArtifact?.useCodedInputIfExists { loadSingleCachedFileInfo(mainFileCachedFileInfo) }
     }
 
     private fun CodedInputStream.fetchFileInfoForExportedPart(mainCachedFileInfo: CachedFileInfo.MainFileCachedInfo): CachedFileInfo.ExportFileCachedInfo? {
@@ -331,7 +330,7 @@ class JsPerFileCache(private val moduleArtifacts: List<ModuleArtifact>) : JsMult
     private fun ModuleArtifact.generateModuleProxyFileCachedInfo(
         mainFunctionTag: String?,
         suiteFunctionTag: String?,
-        cachedTestFunctionsWithTheirPackage: CachedTestFunctionsWithTheirPackage?,
+        cachedTestFunctionsWithTheirPackage: CachedTestFunctionsWithTheirPackage,
         importedWithEffectInModuleWithName: String? = null
     ): CachedFileInfo {
         val moduleHeader = generateProxyIrModuleWith(
@@ -443,7 +442,7 @@ class JsPerFileCache(private val moduleArtifacts: List<ModuleArtifact>) : JsMult
             override fun ModuleArtifact.generateArtifact(
                 mainFunctionTag: String?,
                 suiteFunctionTag: String?,
-                testFunctions: Map<String, List<String>>,
+                testFunctions: CachedTestFunctionsWithTheirPackage,
                 moduleNameForEffects: String?
             ) = fetchModuleProxyFileInfo()?.takeIf {
                 it.mainFunction == mainFunctionTag
