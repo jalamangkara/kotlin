@@ -16,10 +16,19 @@
 
 package samples
 
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 typealias Sample = org.junit.Test
 typealias RunWith = org.junit.runner.RunWith
 typealias Enclosed = org.junit.experimental.runners.Enclosed
 
 fun assertPrints(expression: Any?, expectedOutput: String) = assertEquals(expectedOutput, expression.toString())
+
+@OptIn(ExperimentalContracts::class)
+fun validate(condition: Boolean, message: String? = null) {
+    contract { returns() implies condition }
+    assertTrue(condition, message)
+}

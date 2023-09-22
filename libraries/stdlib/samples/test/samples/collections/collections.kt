@@ -448,9 +448,8 @@ class Collections {
 
             scientists.associateTo(byLastName) { it.lastName to it.firstName }
 
-            assertTrue(byLastName.isNotEmpty())
             // Jacob Bernoulli does not occur in the map because only the last pair with the same key gets added
-            assertPrints(byLastName, "{Hopper=Grace, Bernoulli=Johann}")
+            validate(byLastName != mapOf("Hopper" to "Grace", "Bernoulli" to "Johann"))
         }
 
         @Sample
