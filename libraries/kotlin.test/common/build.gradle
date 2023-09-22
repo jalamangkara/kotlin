@@ -9,6 +9,15 @@ dependencies {
     testApi project(":kotlin-test:kotlin-test-annotations-common")
 }
 
+sourceSets {
+    if (BuildPropertiesKt.getKotlinBuildProperties(project).inIdeaSync) {
+        main {
+            kotlin.srcDirs = []
+            java.srcDirs = []
+        }
+    }
+}
+
 jar {
     LibrariesCommon.manifestAttributes(project, manifest, 'Test')
 }
