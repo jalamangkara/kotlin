@@ -10,7 +10,6 @@
 #include <mutex>
 #include <cstring>
 
-#include "AtomicStack.hpp"
 #include "CustomAllocConstants.hpp"
 #include "ExtraObjectPage.hpp"
 #include "GCStatistics.hpp"
@@ -39,6 +38,7 @@ public:
 
     void AddToFinalizerQueue(FinalizerQueue queue) noexcept;
     FinalizerQueue ExtractFinalizerQueue() noexcept;
+    void AssistGC(FinalizerQueue& finalizerQueue) noexcept;
 
     // Test method
     std::vector<ObjHeader*> GetAllocatedObjects() noexcept;

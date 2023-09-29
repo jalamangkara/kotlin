@@ -34,6 +34,10 @@ void alloc::Allocator::ThreadData::prepareForGC() noexcept {
     impl_->alloc().PrepareForGC();
 }
 
+void alloc::Allocator::ThreadData::assistGC() noexcept {
+    impl_->alloc().AssistGC();
+}
+
 void alloc::Allocator::ThreadData::clearForTests() noexcept {
     impl_->alloc().PrepareForGC();
 }
