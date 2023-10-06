@@ -29,10 +29,7 @@ import org.jetbrains.kotlin.fir.scopes.getFunctions
 import org.jetbrains.kotlin.fir.scopes.impl.toConeType
 import org.jetbrains.kotlin.fir.scopes.unsubstitutedScope
 import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirClassSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirTypeParameterSymbol
+import org.jetbrains.kotlin.fir.symbols.impl.*
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.name.StandardClassIds
 import org.jetbrains.kotlin.types.ConstantValueKind
@@ -555,11 +552,11 @@ abstract class FirDataFlowAnalyzer(
         //     return true
         // }
 
+        val ownerTag = this.toLookupTag()
         return this.unsubstitutedScope(
             session, components.scopeSession, withForcedTypeCalculator = false, memberRequiredPhase = FirResolvePhase.STATUS
         ).getFunctions(OperatorNameConventions.EQUALS).any {
-            !it.isSubstitutionOrIntersectionOverride && it.fir.isEquals(session) &&
-                    it.dispatchReceiverClassLookupTagOrNull() == this.toLookupTag()
+            !it.isSubstitutionOrIntersectionOverride && it.fir.isEquals(session) && ownerTag.isRealOwner(it)
         }
     }
 
