@@ -54,6 +54,7 @@ internal open class StubBasedFirDeserializedSymbolProvider(
     private val kotlinScopeProvider: FirKotlinScopeProvider,
     project: Project,
     scope: GlobalSearchScope,
+    private val toStringDebugPostfix: String = "",
 ) : LLFirKotlinSymbolProvider(session) {
     private val moduleData = moduleDataProvider.getModuleData(null)
 
@@ -355,5 +356,9 @@ internal open class StubBasedFirDeserializedSymbolProvider(
             else -> null
         }
         return callableSymbols?.singleOrNull { it.fir.realPsi == callableDeclaration }
+    }
+
+    override fun toString(): String {
+        return super.toString() + toStringDebugPostfix
     }
 }

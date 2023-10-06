@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.fir.scopes.FirKotlinScopeProvider
 import org.jetbrains.kotlin.library.KLIB_METADATA_FILE_EXTENSION
 import org.jetbrains.kotlin.serialization.deserialization.MetadataPackageFragment
 import org.jetbrains.kotlin.serialization.deserialization.builtins.BuiltInSerializerProtocol
+import org.jetbrains.kotlin.serialization.js.KotlinJavascriptSerializationUtil
 
 internal fun createStubBasedFirSymbolProviderForClassFiles(
     project: Project,
@@ -26,7 +27,7 @@ internal fun createStubBasedFirSymbolProviderForClassFiles(
     moduleDataProvider: SingleModuleDataProvider,
     kotlinScopeProvider: FirKotlinScopeProvider,
 ): FirSymbolProvider = createStubBasedFirSymbolProviderForScopeLimitedByFiles(
-    project, baseScope, session, moduleDataProvider, kotlinScopeProvider,
+    project, baseScope, session, moduleDataProvider, kotlinScopeProvider, debugStringPostfix = "(for .class and .kotlin_builtins files)",
     fileFilter = { file ->
         val extension = file.extension
         extension == JavaClassFileType.INSTANCE.defaultExtension || extension == BuiltInSerializerProtocol.BUILTINS_FILE_EXTENSION
@@ -41,6 +42,7 @@ internal fun createStubBasedFirSymbolProviderForCommonMetadataFiles(
     kotlinScopeProvider: FirKotlinScopeProvider,
 ): FirSymbolProvider = createStubBasedFirSymbolProviderForScopeLimitedByFiles(
     project, baseScope, session, moduleDataProvider, kotlinScopeProvider,
+    debugStringPostfix = "(for .kotlin_builtin and .kotlin_metadata files)",
     fileFilter = { file ->
         val extension = file.extension
         extension == BuiltInSerializerProtocol.BUILTINS_FILE_EXTENSION ||
@@ -57,7 +59,7 @@ internal fun createStubBasedFirSymbolProviderForKotlinNativeMetadataFiles(
     moduleDataProvider: SingleModuleDataProvider,
     kotlinScopeProvider: FirKotlinScopeProvider,
 ): FirSymbolProvider = createStubBasedFirSymbolProviderForScopeLimitedByFiles(
-    project, baseScope, session, moduleDataProvider, kotlinScopeProvider,
+    project, baseScope, session, moduleDataProvider, kotlinScopeProvider, debugStringPostfix = "(for .knm files)",
     fileFilter = { file -> file.extension == KLIB_METADATA_FILE_EXTENSION },
 )
 
@@ -67,13 +69,15 @@ internal fun createStubBasedFirSymbolProviderForScopeLimitedByFiles(
     session: FirSession,
     moduleDataProvider: SingleModuleDataProvider,
     kotlinScopeProvider: FirKotlinScopeProvider,
+    debugStringPostfix: String,
     fileFilter: (VirtualFile) -> Boolean,
 ): StubBasedFirDeserializedSymbolProvider {
     return createFirSymbolProviderForScopeLimitedByFiles(
         project, baseScope, fileFilter,
         symbolProviderFactory = { reducedScope: GlobalSearchScope ->
             StubBasedFirDeserializedSymbolProvider(
-                session, moduleDataProvider, kotlinScopeProvider, project, reducedScope,
+                session, moduleDataProvider, kotlinScopeProvider, project,
+                reducedScope, " $debugStringPostfix"
             )
         }
     )
