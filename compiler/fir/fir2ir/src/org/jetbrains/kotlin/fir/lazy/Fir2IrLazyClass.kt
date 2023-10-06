@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.fir.isSubstitutionOrIntersectionOverride
 import org.jetbrains.kotlin.fir.resolve.isRealOwner
 import org.jetbrains.kotlin.fir.scopes.FirContainingNamesAwareScope
 import org.jetbrains.kotlin.fir.scopes.processClassifiersByName
+import org.jetbrains.kotlin.fir.symbols.impl.FirFieldSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirNamedFunctionSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
@@ -195,10 +196,12 @@ class Fir2IrLazyClass(
                 scope.processPropertiesByName(name) { symbol ->
                     if (symbol.isSubstitutionOrIntersectionOverride) return@processPropertiesByName
                     if (!shouldBuildStub(symbol.fir)) return@processPropertiesByName
-                    if (symbol is FirPropertySymbol && (symbol.isStatic || ownerLookupTag.isRealOwner(symbol))) {
-                        result.addIfNotNull(
-                            declarationStorage.getOrCreateIrProperty(symbol.fir, this, origin)
-                        )
+                    if (symbol.isStatic || ownerLookupTag.isRealOwner(symbol)) {
+                        when (symbol) {
+                            is FirPropertySymbol -> result.add(declarationStorage.getOrCreateIrProperty(symbol.fir, this, origin))
+                            is FirFieldSymbol -> result.add(declarationStorage.getOrCreateIrField(symbol.fir, this))
+                            else -> {}
+                        }
                     }
                 }
             }
