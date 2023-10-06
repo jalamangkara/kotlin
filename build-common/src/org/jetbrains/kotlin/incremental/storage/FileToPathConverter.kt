@@ -13,14 +13,7 @@ interface FileToPathConverter {
     fun toFile(path: String): File
 }
 
-fun FileToPathConverter.toPaths(files: Collection<File>): List<String> =
-    files.map { toPath(it) }
-
-fun FileToPathConverter.toFiles(paths: Collection<String>): List<File> =
-    paths.map { toFile(it) }
-
-object FileToAbsolutePathConverter : FileToPathConverter {
-    override fun toPath(file: File): String = file.normalize().absolutePath
-
+object BasicFileToPathConverter : FileToPathConverter {
+    override fun toPath(file: File): String = file.path
     override fun toFile(path: String): File = File(path)
 }

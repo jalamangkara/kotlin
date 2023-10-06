@@ -60,48 +60,47 @@ class SourceToOutputFilesMapTest {
 
     @Test
     fun testSetOneGetReturnsOne() {
-        stofMap[fooDotKt] = listOf(fooDotClass)
+        stofMap[fooDotKt] = setOf(fooDotClass)
 
-        assertEquals(listOf(fooDotClass), stofMap[fooDotKt])
+        assertEquals(setOf(fooDotClass), stofMap[fooDotKt])
     }
 
     @Test
     fun testSetDupeGetReturnsUnique() {
-        stofMap[fooDotKt] = listOf(fooDotClass, fooDotClass)
+        stofMap.append(fooDotKt, fooDotClass)
+        stofMap.append(fooDotKt, fooDotClass)
 
-        assertEquals(listOf(fooDotClass), stofMap[fooDotKt])
+        assertEquals(setOf(fooDotClass), stofMap[fooDotKt])
     }
 
     @Test
     fun testSetOverwriteGetReturnsNew() {
         val fooKtDotClass = classesDir.resolve("FooKt.class")
-        stofMap[fooDotKt] = listOf(fooDotClass)
-        stofMap[fooDotKt] = listOf(fooKtDotClass)
+        stofMap[fooDotKt] = setOf(fooDotClass)
+        stofMap[fooDotKt] = setOf(fooKtDotClass)
 
-        assertEquals(listOf(fooKtDotClass), stofMap[fooDotKt])
+        assertEquals(setOf(fooKtDotClass), stofMap[fooDotKt])
     }
 
     @Test
-    fun testSetRelativeFails() {
+    fun testSetRelativePathFails() {
         assertFailsWith<IllegalArgumentException> {
-            stofMap[fooDotKt] = listOf(File("relativePath"))
+            stofMap[fooDotKt] = setOf(File("relativePath"))
         }
     }
 
     @Test
-    fun testGetRelativeFails() {
-        stofMap[fooDotKt] = listOf(fooDotClass)
+    fun testGetRelativePathReturnsNull() {
+        stofMap[fooDotKt] = setOf(fooDotClass)
 
-        assertFailsWith<IllegalArgumentException> {
-            stofMap[fooDotKt.relativeTo(srcDir)]
-        }
+        assertNull(stofMap[fooDotKt.relativeTo(srcDir)])
     }
 
     @Test
     fun testGetAndRemove() {
-        stofMap[fooDotKt] = listOf(fooDotClass)
+        stofMap[fooDotKt] = setOf(fooDotClass)
 
-        assertEquals(listOf(fooDotClass), stofMap.getAndRemove(fooDotKt))
+        assertEquals(setOf(fooDotClass), stofMap.getAndRemove(fooDotKt))
         assertNull(stofMap[fooDotKt])
     }
 

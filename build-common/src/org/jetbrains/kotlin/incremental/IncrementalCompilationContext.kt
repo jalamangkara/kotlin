@@ -7,13 +7,14 @@ package org.jetbrains.kotlin.incremental
 
 import org.jetbrains.kotlin.build.report.DoNothingICReporter
 import org.jetbrains.kotlin.build.report.ICReporter
-import org.jetbrains.kotlin.incremental.storage.FileToAbsolutePathConverter
+import org.jetbrains.kotlin.incremental.storage.BasicFileToPathConverter
+import org.jetbrains.kotlin.incremental.storage.FileExternalizer
 import org.jetbrains.kotlin.incremental.storage.FileToPathConverter
 
 class IncrementalCompilationContext(
-    // The root directories of source files and output files are different, so we may need different `FileToPathConverter`s
-    val pathConverterForSourceFiles: FileToPathConverter = FileToAbsolutePathConverter,
-    val pathConverterForOutputFiles: FileToPathConverter = FileToAbsolutePathConverter,
+    // The root directories of source files and output files are different, so we need different `FileToPathConverter`s
+    val pathConverterForSourceFiles: FileToPathConverter = BasicFileToPathConverter,
+    val pathConverterForOutputFiles: FileToPathConverter = BasicFileToPathConverter,
     val storeFullFqNamesInLookupCache: Boolean = false,
     val transaction: CompilationTransaction = NonRecoverableCompilationTransaction(),
     val reporter: ICReporter = DoNothingICReporter,
@@ -46,7 +47,6 @@ class IncrementalCompilationContext(
         keepIncrementalCompilationCachesInMemory
     )
 
-    // FIXME: Remove `pathConverter` and require its users to decide whether to use `pathConverterForSourceFiles` or
-    // `pathConverterForOutputFiles`
-    val pathConverter = pathConverterForSourceFiles
+    val fileExternalizerForSourceFiles = FileExternalizer(pathConverterForSourceFiles)
+    val fileExternalizerForOutputFiles = FileExternalizer(pathConverterForOutputFiles)
 }
