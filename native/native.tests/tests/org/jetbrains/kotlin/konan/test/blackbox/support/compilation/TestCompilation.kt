@@ -307,15 +307,14 @@ internal class CInteropCompilation(
     }
 }
 
-internal class ExecutableCompilation(
+internal abstract class FinalBinaryCompilation<A : TestCompilationArtifact>(
     settings: Settings,
     freeCompilerArgs: TestCompilerArgs,
     sourceModules: Collection<TestModule>,
-    private val extras: Extras,
     dependencies: Iterable<TestCompilationDependency<*>>,
-    expectedArtifact: Executable,
+    expectedArtifact: A,
     val tryPassSystemCacheDirectory: Boolean = true,
-) : SourceBasedCompilation<Executable>(
+) : SourceBasedCompilation<A>(
     targets = settings.get(),
     home = settings.get(),
     classLoader = settings.get(),
@@ -333,7 +332,34 @@ internal class ExecutableCompilation(
     dependencies = CategorizedDependencies(dependencies),
     expectedArtifact = expectedArtifact
 ) {
-    private val cacheMode: CacheMode = settings.get()
+    internal open val cacheMode: CacheMode = settings.get()
+
+    override fun applyDependencies(argsBuilder: ArgsBuilder): Unit = with(argsBuilder) {
+        super.applyDependencies(argsBuilder)
+        cacheMode.staticCacheForDistributionLibrariesRootDir
+            ?.takeIf { tryPassSystemCacheDirectory }
+            ?.let { cacheRootDir -> add("-Xcache-directory=$cacheRootDir") }
+        add(dependencies.uniqueCacheDirs) { libraryCacheDir -> "-Xcache-directory=${libraryCacheDir.path}" }
+    }
+}
+
+
+internal class ExecutableCompilation(
+    settings: Settings,
+    freeCompilerArgs: TestCompilerArgs,
+    sourceModules: Collection<TestModule>,
+    private val extras: Extras,
+    dependencies: Iterable<TestCompilationDependency<*>>,
+    expectedArtifact: Executable,
+    tryPassSystemCacheDirectory: Boolean = true,
+) : FinalBinaryCompilation<Executable>(
+    settings = settings,
+    freeCompilerArgs = freeCompilerArgs,
+    sourceModules = sourceModules,
+    dependencies = dependencies,
+    expectedArtifact = expectedArtifact,
+    tryPassSystemCacheDirectory
+) {
     override val binaryOptions = BinaryOptions.RuntimeAssertionsMode.chooseFor(cacheMode)
 
     private val partialLinkageConfig: UsedPartialLinkageConfig = settings.get()
@@ -367,16 +393,8 @@ internal class ExecutableCompilation(
         super.applySpecificArgs(argsBuilder)
     }
 
-    override fun applyDependencies(argsBuilder: ArgsBuilder): Unit = with(argsBuilder) {
-        super.applyDependencies(argsBuilder)
-        cacheMode.staticCacheForDistributionLibrariesRootDir
-            ?.takeIf { tryPassSystemCacheDirectory }
-            ?.let { cacheRootDir -> add("-Xcache-directory=$cacheRootDir") }
-        add(dependencies.uniqueCacheDirs) { libraryCacheDir -> "-Xcache-directory=${libraryCacheDir.path}" }
-    }
-
     override fun postCompileCheck() {
-        expectedArtifact.assertTestDumpFileNotEmptyIfExists()
+        expectedArtifact.testDumpFile.assertTestDumpFileNotEmptyIfExists()
     }
 
     companion object {
@@ -390,10 +408,10 @@ internal class ExecutableCompilation(
             testDumpFile?.let { add("-Xdump-tests-to=$it") }
         }
 
-        internal fun Executable.assertTestDumpFileNotEmptyIfExists() {
-            if (testDumpFile.exists()) {
-                testDumpFile.useLines { lines ->
-                    assertTrue(lines.filter(String::isNotBlank).any()) { "Test dump file is empty: $testDumpFile" }
+        internal fun File.assertTestDumpFileNotEmptyIfExists() {
+            if (exists()) {
+                useLines { lines ->
+                    assertTrue(lines.filter(String::isNotBlank).any()) { "Test dump file is empty: $this" }
                 }
             }
         }
@@ -485,7 +503,7 @@ internal class StaticCacheCompilation(
     }
 
     override fun postCompileCheck() {
-        (options as? Options.ForIncludedLibraryWithTests)?.expectedExecutableArtifact?.assertTestDumpFileNotEmptyIfExists()
+        (options as? Options.ForIncludedLibraryWithTests)?.expectedExecutableArtifact?.testDumpFile?.assertTestDumpFileNotEmptyIfExists()
     }
 }
 
@@ -496,30 +514,17 @@ internal class TestBundleCompilation(
     private val extras: Extras,
     dependencies: Iterable<TestCompilationDependency<*>>,
     expectedArtifact: XCTestBundle,
-    private val tryPassSystemCacheDirectory: Boolean = true,
-) : SourceBasedCompilation<XCTestBundle>(
-    targets = settings.get(),
-    home = settings.get(),
-    classLoader = settings.get(),
-    optimizationMode = settings.get(),
-    compilerOutputInterceptor = settings.get(),
-    threadStateChecker = settings.get(),
-    sanitizer = settings.get(),
-    gcType = settings.get(),
-    gcScheduler = settings.get(),
-    allocator = settings.get(),
-    pipelineType = settings.getStageDependentPipelineType(),
-    freeCompilerArgs = freeCompilerArgs,
-    compilerPlugins = settings.get(),
-    sourceModules = sourceModules,
-    dependencies = CategorizedDependencies(dependencies),
-    expectedArtifact = expectedArtifact
+    tryPassSystemCacheDirectory: Boolean = true,
+) : FinalBinaryCompilation<XCTestBundle>(
+    settings,
+    freeCompilerArgs,
+    sourceModules,
+    dependencies,
+    expectedArtifact,
+    tryPassSystemCacheDirectory
 ) {
-    // TODO: Enabling caches lead to link failure
-    //  Undefined symbols for architecture x86_64:
-    //    "_dns_class_number", referenced from:
-    //        _platform_darwin_dns_class_number_wrapper379 in liborg.jetbrains.kotlin.native.platform.darwin-cache.a(result.o)
-    private val cacheMode: CacheMode = CacheMode.WithoutCache // settings.get()
+    // TODO: Enabling caches lead to link failure "Undefined symbols for architecture"
+    override val cacheMode: CacheMode = CacheMode.WithoutCache
     override val binaryOptions = BinaryOptions.RuntimeAssertionsMode.chooseFor(cacheMode)
 
     private val partialLinkageConfig: UsedPartialLinkageConfig = settings.get()
@@ -531,7 +536,7 @@ internal class TestBundleCompilation(
             "-output", expectedArtifact.bundleDir.path
         )
         when (extras) {
-            is NoTestRunnerExtras -> error("It doesn't suit")
+            is NoTestRunnerExtras -> error("XCTest supports only TestRunner extras")
             is WithTestRunnerExtras -> {
                 val testDumpFile: File? = if (sourceModules.isEmpty()
                     && dependencies.includedLibraries.isNotEmpty()
@@ -551,42 +556,18 @@ internal class TestBundleCompilation(
         super.applySpecificArgs(argsBuilder)
     }
 
-    override fun applyDependencies(argsBuilder: ArgsBuilder): Unit = with(argsBuilder) {
-        super.applyDependencies(argsBuilder)
-        cacheMode.staticCacheForDistributionLibrariesRootDir
-            ?.takeIf { tryPassSystemCacheDirectory }
-            ?.let { cacheRootDir -> add("-Xcache-directory=$cacheRootDir") }
-        add(dependencies.uniqueCacheDirs) { libraryCacheDir -> "-Xcache-directory=${libraryCacheDir.path}" }
-    }
-
     override fun postCompileCheck() {
-        expectedArtifact.assertTestDumpFileNotEmptyIfExists()
+        expectedArtifact.testDumpFile.assertTestDumpFileNotEmptyIfExists()
     }
 
     companion object {
         internal fun ArgsBuilder.applyTestRunnerSpecificArgs(extras: WithTestRunnerExtras, testDumpFile: File?) {
             val testRunnerArg = when (extras.runnerType) {
                 TestRunnerType.DEFAULT -> "-generate-test-runner"
-                TestRunnerType.WORKER, TestRunnerType.NO_EXIT -> error("Those runners don't work here")
+                TestRunnerType.WORKER, TestRunnerType.NO_EXIT -> error("${extras.runnerType} runner is not supported in XCTest execution")
             }
             add(testRunnerArg)
             testDumpFile?.let { add("-Xdump-tests-to=$it") }
-        }
-
-        internal fun XCTestBundle.assertTestDumpFileNotEmptyIfExists() {
-            if (testDumpFile.exists()) {
-                testDumpFile.useLines { lines ->
-                    assertTrue(lines.filter(String::isNotBlank).any()) { "Test dump file is empty: $testDumpFile" }
-                }
-            }
-        }
-
-        internal fun ArgsBuilder.applyPartialLinkageArgs(partialLinkageConfig: UsedPartialLinkageConfig) {
-            with(partialLinkageConfig.config) {
-                add("-Xpartial-linkage=${mode.name.lowercase()}")
-                if (mode.isEnabled)
-                    add("-Xpartial-linkage-loglevel=${logLevel.name.lowercase()}")
-            }
         }
     }
 }
