@@ -308,7 +308,7 @@ internal class ListBuilder<E>(initialCapacity: Int = 10) : MutableList<E>, Rando
         private var length: Int,
         private val parent: BuilderSubList<E>?,
         private val root: ListBuilder<E>
-    ) : MutableList<E>, RandomAccess, AbstractMutableList<E>() {
+    ) : MutableList<E>, RandomAccess, AbstractMutableList<E>(), Serializable {
         init {
             this.modCount = root.modCount
         }
