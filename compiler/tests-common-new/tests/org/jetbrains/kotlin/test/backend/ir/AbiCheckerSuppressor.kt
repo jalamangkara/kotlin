@@ -32,7 +32,7 @@ class AbiCheckerSuppressor(testServices: TestServices) : AfterAnalysisChecker(te
         get() = listOf(IGNORE_BACKEND, IGNORE_BACKEND_K1, IGNORE_BACKEND_K2)
             .any { testServices.abiCheckerSuppressionChecker.failuresInModuleAreIgnored(this, it).testMuted }
 
-    private val TestModule.ignoredByInliner: Boolean
+    private val ignoredByInliner: Boolean
         get() = listOf(IGNORE_INLINER, IGNORE_INLINER_K1, IGNORE_INLINER_K2)
             .any { testServices.tryRetrieveIgnoredInliner(it) == TargetInliner.BYTECODE }
 
