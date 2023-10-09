@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.test.builders.CompilerStepsNames.JS_ARTIFACTS_HANDLE
 import org.jetbrains.kotlin.test.builders.CompilerStepsNames.JVM_ARTIFACTS_HANDLERS_STEP_NAME
 import org.jetbrains.kotlin.test.builders.CompilerStepsNames.KLIB_ARTIFACTS_HANDLERS_STEP_NAME
 import org.jetbrains.kotlin.test.builders.CompilerStepsNames.RAW_IR_HANDLERS_STEP_NAME
+import org.jetbrains.kotlin.test.builders.CompilerStepsNames.TWO_JVM_ARTIFACTS_HANDLERS_STEP_NAME
 import org.jetbrains.kotlin.test.builders.CompilerStepsNames.WASM_ARTIFACTS_HANDLERS_STEP_NAME
 import org.jetbrains.kotlin.test.frontend.classic.ClassicFrontend2ClassicBackendConverter
 import org.jetbrains.kotlin.test.frontend.classic.ClassicFrontend2IrConverter
@@ -43,6 +44,7 @@ object CompilerStepsNames {
     const val JS_ARTIFACTS_HANDLERS_STEP_NAME = "js artifacts handlers"
     const val WASM_ARTIFACTS_HANDLERS_STEP_NAME = "wasm artifacts handlers"
     const val KLIB_ARTIFACTS_HANDLERS_STEP_NAME = "klib artifacts handlers"
+    const val TWO_JVM_ARTIFACTS_HANDLERS_STEP_NAME = "two jvm artifacts handlers"
 
 }
 
@@ -107,6 +109,12 @@ inline fun TestConfigurationBuilder.jvmArtifactsHandlersStep(
     init: HandlersStepBuilder<BinaryArtifacts.Jvm, ArtifactKinds.Jvm>.() -> Unit = {}
 ) {
     namedHandlersStep(JVM_ARTIFACTS_HANDLERS_STEP_NAME, ArtifactKinds.Jvm, init)
+}
+
+inline fun TestConfigurationBuilder.twoJvmArtifactsHandlersStep(
+    init: HandlersStepBuilder<BinaryArtifacts.TwoJvm, ArtifactKinds.TwoJvm>.() -> Unit = {},
+) {
+    namedHandlersStep(TWO_JVM_ARTIFACTS_HANDLERS_STEP_NAME, ArtifactKinds.TwoJvm, init)
 }
 
 inline fun TestConfigurationBuilder.jsArtifactsHandlersStep(
@@ -174,4 +182,10 @@ inline fun TestConfigurationBuilder.configureKlibArtifactsHandlersStep(
     init: HandlersStepBuilder<BinaryArtifacts.KLib, ArtifactKinds.KLib>.() -> Unit = {}
 ) {
     configureNamedHandlersStep(KLIB_ARTIFACTS_HANDLERS_STEP_NAME, ArtifactKinds.KLib, init)
+}
+
+inline fun TestConfigurationBuilder.configureTwoJvmArtifactHandlerStep(
+    init: HandlersStepBuilder<BinaryArtifacts.TwoJvm, ArtifactKinds.TwoJvm>.() -> Unit,
+) {
+    configureNamedHandlersStep(TWO_JVM_ARTIFACTS_HANDLERS_STEP_NAME, ArtifactKinds.TwoJvm, init)
 }

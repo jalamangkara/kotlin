@@ -25,6 +25,11 @@ object BinaryArtifacts {
             get() = ArtifactKinds.Jvm
     }
 
+    class TwoJvm(val fromClassicFrontend: Jvm, val fromFir: Jvm) : ResultingArtifact.Binary<TwoJvm>() {
+        override val kind: BinaryKind<TwoJvm>
+            get() = ArtifactKinds.TwoJvm
+    }
+
     sealed class Js : ResultingArtifact.Binary<Js>() {
         abstract val outputFile: File
         override val kind: BinaryKind<Js>

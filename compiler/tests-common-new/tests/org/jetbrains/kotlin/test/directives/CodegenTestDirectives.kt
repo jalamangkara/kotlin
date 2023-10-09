@@ -16,6 +16,8 @@ import org.jetbrains.kotlin.test.directives.model.SimpleDirectivesContainer
 import org.jetbrains.kotlin.test.directives.model.ValueDirective
 import org.jetbrains.kotlin.test.model.FrontendKinds
 import org.jetbrains.kotlin.test.model.TestModule
+import org.jetbrains.kotlin.test.services.TestServices
+import org.jetbrains.kotlin.test.services.moduleStructure
 
 object CodegenTestDirectives : SimpleDirectivesContainer() {
     val IGNORE_BACKEND by enumDirective<TargetBackend>(
@@ -284,3 +286,12 @@ fun extractIgnoredDirectiveForTargetBackend(
             }
         }
     }
+
+fun TestServices.tryRetrieveIgnoredInliner(directive: ValueDirective<TargetInliner>): TargetInliner? {
+    val directiveName = directive.name
+    val ignoreDirectives = moduleStructure.allDirectives[directive]
+    if (ignoreDirectives.size > 1) {
+        throw IllegalArgumentException("Directive $directiveName should contains only one value")
+    }
+    return ignoreDirectives.singleOrNull()
+}
