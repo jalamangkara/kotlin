@@ -304,7 +304,7 @@ internal class ListBuilder<E>(initialCapacity: Int = 10) : MutableList<E>, Rando
 
     class BuilderSubList<E>(
         private var backing: Array<E>,
-        private var offset: Int,
+        private val offset: Int,
         private var length: Int,
         private val parent: BuilderSubList<E>?,
         private val root: ListBuilder<E>

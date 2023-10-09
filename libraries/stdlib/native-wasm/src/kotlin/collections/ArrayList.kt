@@ -334,7 +334,7 @@ actual class ArrayList<E> actual constructor(initialCapacity: Int) : MutableList
 
     private class ArraySubList<E>(
         private var backing: Array<E>,
-        private var offset: Int,
+        private val offset: Int,
         private var length: Int,
         private val parent: ArraySubList<E>?,
         private val root: ArrayList<E>
