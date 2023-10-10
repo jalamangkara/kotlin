@@ -40,14 +40,14 @@ class AbiCheckerSuppressor(testServices: TestServices) : AfterAnalysisChecker(te
 
     override fun suppressIfNeeded(failedAssertions: List<WrappedException>): List<WrappedException> {
         val module = testServices.moduleStructure.modules.first()
-        val ignoreAbiComparison = testServices.moduleStructure.allDirectives.contains(IGNORE_K1_K2_ABI_DIFFERENCE)
+        val mutedAbiChecking = testServices.mutedAbiChecking
         if (module.ignoredByBackend || ignoredByInliner) {
-            if (ignoreAbiComparison) {
+            if (mutedAbiChecking) {
                 return listOf(AssertionError("Codegen is ignored for this test. Please remove ${IGNORE_K1_K2_ABI_DIFFERENCE.name} directive.").wrap())
             }
             return emptyList()
         }
-        if (ignoreAbiComparison) {
+        if (mutedAbiChecking) {
             if (failedAssertions.isEmpty()) {
                 return listOf(AssertionError("Looks like this test can be unmuted. Please remove ${IGNORE_K1_K2_ABI_DIFFERENCE.name} directive.").wrap())
             }
@@ -58,3 +58,5 @@ class AbiCheckerSuppressor(testServices: TestServices) : AfterAnalysisChecker(te
 }
 
 val TestServices.abiCheckerSuppressionChecker: BlackBoxCodegenSuppressor.SuppressionChecker by TestServices.testServiceAccessor()
+
+val TestServices.mutedAbiChecking: Boolean get() = moduleStructure.allDirectives.contains(IGNORE_K1_K2_ABI_DIFFERENCE)

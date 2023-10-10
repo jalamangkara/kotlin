@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.abicmp.tasks.ClassTask
 import org.jetbrains.kotlin.abicmp.tasks.checkerConfiguration
 import org.jetbrains.kotlin.codegen.getClassFiles
 import org.jetbrains.kotlin.test.backend.codegenSuppressionChecker
+import org.jetbrains.kotlin.test.backend.ir.mutedAbiChecking
 import org.jetbrains.kotlin.test.directives.CodegenTestDirectives.IGNORE_BACKEND_K1
 import org.jetbrains.kotlin.test.directives.CodegenTestDirectives.IGNORE_BACKEND_K2
 import org.jetbrains.kotlin.test.model.*
@@ -54,14 +55,21 @@ class AbiConsistencyHandler(testServices: TestServices) : AnalysisHandler<Binary
         Sets.difference(classesFromK2.keys, classesFromK1.keys)
             .also { if (it.isNotEmpty()) assertions.fail { "Missing classes in K1: ${assertions.renderCollectionToString(it)}" } }
 
-        val report = DefectReport()
+        val nonEmptyClassReports = mutableListOf<ClassReport>()
         classesFromK1.keys.forEach { classInternalName ->
             val k1ClassNode = parseClassNode(classesFromK1[classInternalName]!!)
             val k2ClassNode = parseClassNode(classesFromK2[classInternalName]!!)
-            val classReport = ClassReport(Location.Class("", classInternalName), classInternalName, "K1", "K2", report)
+            val classReport = ClassReport(Location.Class("", classInternalName), classInternalName, "K1", "K2", DefectReport())
             ClassTask(checkerConfiguration { }, k1ClassNode, k2ClassNode, classReport).run()
             if (classReport.isNotEmpty()) {
-                val reportPath = reportToFile(classReport.asHtmlReport())
+                nonEmptyClassReports.add(classReport)
+            }
+        }
+        if (nonEmptyClassReports.isNotEmpty()) {
+            if (testServices.mutedAbiChecking) {
+                assertions.fail { "ABI difference obtained." }
+            } else {
+                val reportPath = reportToFile(nonEmptyClassReports.asHtmlReport())
                 assertions.fail { "ABI difference obtained, see the report: ${reportPath.toAbsolutePath()}" }
             }
         }
@@ -88,7 +96,7 @@ class AbiConsistencyHandler(testServices: TestServices) : AnalysisHandler<Binary
             return "$prefix$path/$fileName"
         }
 
-    private fun ClassReport.asHtmlReport(): String {
+    private fun List<ClassReport>.asHtmlReport(): String {
         val outputStream = ByteArrayOutputStream()
         PrintWriter(outputStream, true).use { out ->
             out.tag("html") {
@@ -97,7 +105,7 @@ class AbiConsistencyHandler(testServices: TestServices) : AnalysisHandler<Binary
                 }
                 out.tag("body") {
                     out.println(filePath)
-                    write(out)
+                    forEach { it.write(out) }
                 }
             }
         }
