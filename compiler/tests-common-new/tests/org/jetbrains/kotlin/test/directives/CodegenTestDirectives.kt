@@ -262,7 +262,7 @@ object CodegenTestDirectives : SimpleDirectivesContainer() {
         """.trimIndent()
     )
 
-    val IGNORE_K1_K2_ABI_DIFFERENCE by directive(
+    val IGNORE_K1_K2_ABI_DIFFERENCE by stringDirective(
         description = "Ignore K1/K2 ABI difference",
         applicability = Global
     )
