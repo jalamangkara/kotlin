@@ -3,11 +3,10 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
-#import <XCTest/XCTest.h>
-
 #import "Common.h"
 #import "Runtime.h"
 #import "ObjCExport.h"
+#import "TestLauncher.h"
 
 extern "C" OBJ_GETTER0(Konan_create_testSuite);
 

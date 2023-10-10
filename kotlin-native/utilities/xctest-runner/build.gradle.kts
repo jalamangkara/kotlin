@@ -128,35 +128,6 @@ if (!project.isIdeaActive) {
     }
 }
 
-bitcode {
-    targets.map { it.withSanitizer() }
-        .forEach { targetWithSanitizer ->
-            target(targetWithSanitizer) {
-                module("xctest") {
-                    compilerArgs.set(
-                        listOf(
-                            "-iframework", target.getDeveloperFramework(),
-                            "--std=c++17",
-                        )
-                    )
-                    // Uses headers from the K/N runtime
-                    headersDirs.from(project(":kotlin-native:runtime").files("src/main/cpp"))
-
-                    sourceSets { main {} }
-                    onlyIf { target.family.isAppleFamily }
-                }
-            }
-        }
-}
-
-val xcTestLauncherBitcode by configurations.creating {
-    isCanBeConsumed = false
-    isCanBeResolved = true
-    attributes {
-        attribute(CppUsage.USAGE_ATTRIBUTE, objects.named(CppUsage.LLVM_BITCODE))
-    }
-}
-
 val xcTestArtifactsConfig by configurations.creating {
     attributes {
         attribute(Usage.USAGE_ATTRIBUTE, objects.named(KotlinUsages.KOTLIN_API))
@@ -165,41 +136,13 @@ val xcTestArtifactsConfig by configurations.creating {
     }
 }
 
-dependencies {
-    xcTestLauncherBitcode(project)
-}
-
-// Each platform has three artifacts: cinterop, regular klib and bc. Add bc file to the klib
 targets.forEach { target ->
     val targetName = target.name
 
-    val bitcodeArtifacts = xcTestLauncherBitcode.incoming.artifactView {
-        attributes {
-            attribute(TargetWithSanitizer.TARGET_ATTRIBUTE, target.withSanitizer())
-        }
-    }
-
-    tasks.register("${targetName}XCTestLauncher") {
-        description = "Build native launcher for $targetName"
-        group = CompileToBitcodeExtension.BUILD_TASK_GROUP
-        dependsOn(bitcodeArtifacts.files)
-    }
-
-    val runnerKlibProducer = tasks.register<Zip>("${targetName}XCTestRunner") {
-        val klibTask = tasks.named<KotlinNativeCompile>("compileKotlin${targetName.capitalize()}")
-        dependsOn(klibTask)
-
-        archiveFileName.set("${targetName}XCTest.klib")
-        destinationDirectory.set(layout.buildDirectory)
-
-        from(zipTree(klibTask.get().outputFile))
-        from(bitcodeArtifacts.files) {
-            into("default/targets/$targetName/native")
-        }
-    }
+    val outputKlib = tasks.named<KotlinNativeCompile>("compileKotlin${targetName.capitalize()}").get().outputFile
 
     artifacts {
-        add(xcTestArtifactsConfig.name, runnerKlibProducer) {
+        add(xcTestArtifactsConfig.name, outputKlib) {
             classifier = targetName
         }
         add(xcTestArtifactsConfig.name, tasks.named<CInteropProcess>("cinteropXCTest${targetName.capitalize()}")) {
