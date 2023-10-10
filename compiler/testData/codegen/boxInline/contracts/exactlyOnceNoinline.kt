@@ -1,5 +1,6 @@
 // !OPT_IN: kotlin.contracts.ExperimentalContracts
 // NO_CHECK_LAMBDA_INLINING
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-62464
 
 // FILE: 1.kt
 

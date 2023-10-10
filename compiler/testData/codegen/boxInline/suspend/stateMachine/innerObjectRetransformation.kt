@@ -1,6 +1,7 @@
 // WITH_STDLIB
 // WITH_COROUTINES
 // CHECK_STATE_MACHINE
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-62464
 
 // In this test the following transformation are occuring:
 //   flow$1 -> flowWith$$inlined$flow$1

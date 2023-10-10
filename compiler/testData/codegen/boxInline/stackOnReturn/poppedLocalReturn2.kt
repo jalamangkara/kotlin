@@ -1,3 +1,5 @@
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-62464
+
 // FILE: 1.kt
 inline fun alwaysOk(s: String, fn: (String) -> String): String {
     return fn(try {return "OK"} catch (e: Exception) {

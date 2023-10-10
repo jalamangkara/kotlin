@@ -1,6 +1,8 @@
 // WITH_COROUTINES
 // NO_CHECK_LAMBDA_INLINING
 // WITH_STDLIB
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-62464
+
 // FILE: inlined.kt
 
 interface Flow<out T> {

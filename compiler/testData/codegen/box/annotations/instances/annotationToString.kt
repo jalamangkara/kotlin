@@ -10,6 +10,8 @@
 // WITH_STDLIB
 // !LANGUAGE: +InstantiationOfAnnotationClasses
 
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-62465
+
 package test
 
 import kotlin.reflect.KClass

@@ -1,5 +1,6 @@
 // IGNORE_INLINER: IR
 // IGNORE_BACKEND: WASM
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-62464
 
 // FILE: 1.kt
 inline fun <U> unchecked(any: Any): Any {

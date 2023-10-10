@@ -1,3 +1,5 @@
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-62464
+
 fun foo(block: () -> String): String = block()
 inline fun bar(crossinline f: () -> String) = foo { f() }
 

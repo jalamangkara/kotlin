@@ -1,5 +1,7 @@
 // NO_CHECK_LAMBDA_INLINING
 // !LANGUAGE: +ProperFinally
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-62464
+
 // FILE: 1.kt
 package test
 

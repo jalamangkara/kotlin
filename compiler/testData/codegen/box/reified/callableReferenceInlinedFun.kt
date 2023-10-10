@@ -1,4 +1,5 @@
 // WITH_STDLIB
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-62464
 
 inline fun <reified T> baz(value: T): String = "OK" + value
 

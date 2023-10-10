@@ -6,6 +6,8 @@
 // WITH_STDLIB
 // !LANGUAGE: +InstantiationOfAnnotationClasses
 
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-62465
+
 // note: taken from ../parameters.kt and ../parametersWithPrimitiveValues.kt
 import kotlin.reflect.KClass
 import kotlin.test.assertEquals

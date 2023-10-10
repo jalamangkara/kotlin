@@ -1,6 +1,7 @@
 // !OPT_IN: kotlin.contracts.ExperimentalContracts
 // WITH_STDLIB
 // KJS_WITH_FULL_RUNTIME
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-62464
 
 // FILE: 1.kt
 

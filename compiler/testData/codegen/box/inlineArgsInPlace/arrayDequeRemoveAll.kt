@@ -1,4 +1,5 @@
 // WITH_STDLIB
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-62464
 
 @Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 class ArrayDeque<E> : AbstractMutableList<E> {
