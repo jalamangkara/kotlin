@@ -357,6 +357,12 @@ public class AbiConsistencyTestGenerated extends AbstractAbiConsistencyTest {
             }
 
             @Test
+            @TestMetadata("platformDependent.kt")
+            public void testPlatformDependent() throws Exception {
+                runTest("compiler/testData/codegen/box/annotations/platformDependent.kt");
+            }
+
+            @Test
             @TestMetadata("propertyWithPropertyInInitializerAsParameter.kt")
             public void testPropertyWithPropertyInInitializerAsParameter() throws Exception {
                 runTest("compiler/testData/codegen/box/annotations/propertyWithPropertyInInitializerAsParameter.kt");
@@ -18355,6 +18361,12 @@ public class AbiConsistencyTestGenerated extends AbstractAbiConsistencyTest {
                     runTest("compiler/testData/codegen/box/extensionFunctions/contextReceivers/useFromAnotherModuleWithDefaultParameterValues.kt");
                 }
 
+                @Test
+                @TestMetadata("withTwoContextReceivers.kt")
+                public void testWithTwoContextReceivers() throws Exception {
+                    runTest("compiler/testData/codegen/box/extensionFunctions/contextReceivers/withTwoContextReceivers.kt");
+                }
+
                 @Nested
                 @TestMetadata("compiler/testData/codegen/box/extensionFunctions/contextReceivers/fromKEEP")
                 @TestDataPath("$PROJECT_ROOT")
@@ -18586,6 +18598,12 @@ public class AbiConsistencyTestGenerated extends AbstractAbiConsistencyTest {
             @TestMetadata("kt49371.kt")
             public void testKt49371() throws Exception {
                 runTest("compiler/testData/codegen/box/fakeOverride/kt49371.kt");
+            }
+
+            @Test
+            @TestMetadata("methodOfAnyFromInterface.kt")
+            public void testMethodOfAnyFromInterface() throws Exception {
+                runTest("compiler/testData/codegen/box/fakeOverride/methodOfAnyFromInterface.kt");
             }
 
             @Test
@@ -19048,6 +19066,12 @@ public class AbiConsistencyTestGenerated extends AbstractAbiConsistencyTest {
             @TestMetadata("KotlinDocumentationProvider.kt")
             public void testKotlinDocumentationProvider() throws Exception {
                 runTest("compiler/testData/codegen/box/fir/KotlinDocumentationProvider.kt");
+            }
+
+            @Test
+            @TestMetadata("kt61856.kt")
+            public void testKt61856() throws Exception {
+                runTest("compiler/testData/codegen/box/fir/kt61856.kt");
             }
 
             @Test
@@ -34036,9 +34060,33 @@ public class AbiConsistencyTestGenerated extends AbstractAbiConsistencyTest {
                 }
 
                 @Test
+                @TestMetadata("dataClassInCommonAndPlatform.kt")
+                public void testDataClassInCommonAndPlatform() throws Exception {
+                    runTest("compiler/testData/codegen/box/multiplatform/k2/dataClassInCommonAndPlatform.kt");
+                }
+
+                @Test
+                @TestMetadata("expectValInInlineClass.kt")
+                public void testExpectValInInlineClass() throws Exception {
+                    runTest("compiler/testData/codegen/box/multiplatform/k2/expectValInInlineClass.kt");
+                }
+
+                @Test
+                @TestMetadata("expectValInInlineClassJVM.kt")
+                public void testExpectValInInlineClassJVM() throws Exception {
+                    runTest("compiler/testData/codegen/box/multiplatform/k2/expectValInInlineClassJVM.kt");
+                }
+
+                @Test
                 @TestMetadata("javaMethodWithTypeParameter.kt")
                 public void testJavaMethodWithTypeParameter() throws Exception {
                     runTest("compiler/testData/codegen/box/multiplatform/k2/javaMethodWithTypeParameter.kt");
+                }
+
+                @Test
+                @TestMetadata("jvmDeclarationsUpdatedMembersInCommonModule.kt")
+                public void testJvmDeclarationsUpdatedMembersInCommonModule() throws Exception {
+                    runTest("compiler/testData/codegen/box/multiplatform/k2/jvmDeclarationsUpdatedMembersInCommonModule.kt");
                 }
 
                 @Nested
@@ -35977,6 +36025,12 @@ public class AbiConsistencyTestGenerated extends AbstractAbiConsistencyTest {
             }
 
             @Test
+            @TestMetadata("kt62017.kt")
+            public void testKt62017() throws Exception {
+                runTest("compiler/testData/codegen/box/package/kt62017.kt");
+            }
+
+            @Test
             @TestMetadata("mainInFiles.kt")
             public void testMainInFiles() throws Exception {
                 runTest("compiler/testData/codegen/box/package/mainInFiles.kt");
@@ -37668,6 +37722,12 @@ public class AbiConsistencyTestGenerated extends AbstractAbiConsistencyTest {
             @TestMetadata("privatePropertyWithoutBackingField.kt")
             public void testPrivatePropertyWithoutBackingField() throws Exception {
                 runTest("compiler/testData/codegen/box/properties/privatePropertyWithoutBackingField.kt");
+            }
+
+            @Test
+            @TestMetadata("propertyInUpperCaseWithJava.kt")
+            public void testPropertyInUpperCaseWithJava() throws Exception {
+                runTest("compiler/testData/codegen/box/properties/propertyInUpperCaseWithJava.kt");
             }
 
             @Test
@@ -45103,6 +45163,12 @@ public class AbiConsistencyTestGenerated extends AbstractAbiConsistencyTest {
                 @TestMetadata("jvmStaticInObject.kt")
                 public void testJvmStaticInObject() throws Exception {
                     runTest("compiler/testData/codegen/box/reflection/callBy/jvmStaticInObject.kt");
+                }
+
+                @Test
+                @TestMetadata("kt60709.kt")
+                public void testKt60709() throws Exception {
+                    runTest("compiler/testData/codegen/box/reflection/callBy/kt60709.kt");
                 }
 
                 @Test
@@ -52543,6 +52609,12 @@ public class AbiConsistencyTestGenerated extends AbstractAbiConsistencyTest {
             }
 
             @Test
+            @TestMetadata("deserializedAbbreviationWithRedundantArgument.kt")
+            public void testDeserializedAbbreviationWithRedundantArgument() throws Exception {
+                runTest("compiler/testData/codegen/box/typealias/deserializedAbbreviationWithRedundantArgument.kt");
+            }
+
+            @Test
             @TestMetadata("enumEntryQualifier.kt")
             public void testEnumEntryQualifier() throws Exception {
                 runTest("compiler/testData/codegen/box/typealias/enumEntryQualifier.kt");
@@ -53954,6 +54026,12 @@ public class AbiConsistencyTestGenerated extends AbstractAbiConsistencyTest {
             @TestMetadata("noElseNoMatch.kt")
             public void testNoElseNoMatch() throws Exception {
                 runTest("compiler/testData/codegen/box/when/noElseNoMatch.kt");
+            }
+
+            @Test
+            @TestMetadata("nothingTyped.kt")
+            public void testNothingTyped() throws Exception {
+                runTest("compiler/testData/codegen/box/when/nothingTyped.kt");
             }
 
             @Test
