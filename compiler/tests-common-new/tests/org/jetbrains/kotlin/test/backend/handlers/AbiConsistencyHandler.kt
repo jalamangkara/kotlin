@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.test.backend.codegenSuppressionChecker
 import org.jetbrains.kotlin.test.directives.CodegenTestDirectives.IGNORE_BACKEND_K1
 import org.jetbrains.kotlin.test.directives.CodegenTestDirectives.IGNORE_BACKEND_K2
 import org.jetbrains.kotlin.test.model.*
+import org.jetbrains.kotlin.test.runners.AbiConsistencyTestGenerated
 import org.jetbrains.kotlin.test.services.TestServices
 import org.jetbrains.kotlin.test.services.testInfo
 import org.jetbrains.org.objectweb.asm.ClassReader
@@ -75,6 +76,18 @@ class AbiConsistencyHandler(testServices: TestServices) : AnalysisHandler<Binary
         return path
     }
 
+    private val filePath: String
+        get() {
+            val prefix = "compiler/testData/codegen"
+            val path =
+                testServices.testInfo.className.substring(AbiConsistencyTestGenerated::class.qualifiedName!!.length)
+                    .lowercase()
+                    .replace('$', '/')
+            val methodName = testServices.testInfo.methodName
+            val fileName = methodName.substring("test".length).let { it.substring(0, 1).lowercase() + it.substring(1) } + ".kt"
+            return "$prefix$path/$fileName"
+        }
+
     private fun ClassReport.asHtmlReport(): String {
         val outputStream = ByteArrayOutputStream()
         PrintWriter(outputStream, true).use { out ->
@@ -83,6 +96,7 @@ class AbiConsistencyHandler(testServices: TestServices) : AnalysisHandler<Binary
                     out.tag("style", REPORT_CSS)
                 }
                 out.tag("body") {
+                    out.println(filePath)
                     write(out)
                 }
             }
