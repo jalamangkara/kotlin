@@ -2,6 +2,7 @@
 // Note: works accidentally via backing field access
 // Field VS property: case 4.2
 // More or less duplicates the case in KT-34943/KT-54393
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-62483
 
 // FILE: BaseJava.java
 public class BaseJava {
