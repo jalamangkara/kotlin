@@ -1,3 +1,5 @@
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-57268
+
 class A : Map<String, String> {
     override val size: Int get() = 56
 

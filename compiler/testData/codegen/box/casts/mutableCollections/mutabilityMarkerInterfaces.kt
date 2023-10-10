@@ -1,5 +1,5 @@
 // TARGET_BACKEND: JVM
-
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-57268
 // WITH_STDLIB
 
 abstract class Itr : Iterator<String>

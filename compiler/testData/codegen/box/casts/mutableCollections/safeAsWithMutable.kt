@@ -1,4 +1,5 @@
 // WITH_STDLIB
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-57268
 
 class Itr : Iterator<String> by ArrayList<String>().iterator()
 class MItr : MutableIterator<String> by ArrayList<String>().iterator()

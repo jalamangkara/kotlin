@@ -1,6 +1,7 @@
 // WITH_STDLIB
 // WORKS_WHEN_VALUE_CLASS
 // LANGUAGE: +ValueClasses, +GenericInlineClassParameter
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-57268
 
 OPTIONAL_JVM_INLINE_ANNOTATION
 value class Z<T: Int>(val x: T)

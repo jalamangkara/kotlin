@@ -1,3 +1,5 @@
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-57268
+
 var result = ""
 
 public abstract class AbstractFoo<K, V> : Map<K, V> {

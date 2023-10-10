@@ -1,4 +1,6 @@
 // TARGET_BACKEND: JVM
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-57268
+
 // FILE: removeOverriddenInJava_Map.kt
 
 open class MapA : Map<String, String> {

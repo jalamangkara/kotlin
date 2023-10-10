@@ -1,4 +1,5 @@
 // TARGET_BACKEND: JVM
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-57268
 
 import java.util.AbstractMap
 import java.util.Collections

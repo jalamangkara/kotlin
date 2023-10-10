@@ -1,6 +1,7 @@
 // TARGET_BACKEND: JVM
 // WITH_STDLIB
 // FULL_JDK
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-57268
 
 abstract class AMap1<K1, V1>(private val m: Map<K1, V1>) : Map<K1, V1> by m
 
