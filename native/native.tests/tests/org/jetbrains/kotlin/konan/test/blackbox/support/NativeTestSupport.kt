@@ -339,7 +339,8 @@ private object NativeTestSupport {
     private fun computeXCTestRunner(enforcedProperties: EnforcedProperties) = XCTestRunner(
         ClassLevelProperty.XCTEST_FRAMEWORK.readValue(
             enforcedProperties,
-            { File(it).absolutePath },
+            // The property is always set, it can be empty or contain a path
+            { if (it.isNotEmpty()) File(it).absolutePath else "" },
             default = ""
         )
     )
