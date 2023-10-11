@@ -15,7 +15,7 @@ import java.io.File
 
 open class KonanKlibInstallTask : DefaultTask() {
     @get:InputFile
-    var klib: Provider<File> = project.provider { project.buildDir }
+    var klib: Provider<File> = project.layout.buildDirectory.asFile
 
     @get:Internal
     var repo: File = project.rootDir
