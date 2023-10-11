@@ -129,12 +129,10 @@ internal class TestRunProvider(
         testCaseId: TestCaseId,
         settings: Settings,
         action: (TestCase, TestExecutable) -> T
-    ): T {
-        return if (settings.get<XCTestRunner>().isEnabled) {
-            withTestBundle(testCaseId, settings, action)
-        } else {
-            withTestExecutable(testCaseId, settings, action)
-        }
+    ): T = if (settings.get<XCTestRunner>().isEnabled) {
+        withTestBundle(testCaseId, settings, action)
+    } else {
+        withTestExecutable(testCaseId, settings, action)
     }
 
     private fun <T> withTestExecutable(
@@ -223,7 +221,7 @@ internal class TestRunProvider(
         }
 
         val compilationResult = testCompilation.result.assertSuccess() // <-- Compilation happens here.
-        // FIXME: temp adapter.
+        // FIXME: temp adapter: need to refactor TestRun and TestExecutable to be less artifact specific
         val adapter = TestCompilationResult.Success(Executable(compilationResult.resultingArtifact.bundleDir), compilationResult.loggedData)
         val executable = TestExecutable.fromCompilationResult(testCase, adapter)
 
