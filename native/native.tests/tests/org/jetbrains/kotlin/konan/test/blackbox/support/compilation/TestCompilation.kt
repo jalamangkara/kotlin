@@ -533,7 +533,8 @@ internal class TestBundleCompilation(
         add(
             "-produce", "test_bundle",
             "-linker-option", "-F" + settings.get<XCTestRunner>().frameworksPath,
-            "-output", expectedArtifact.bundleDir.path
+            "-output", expectedArtifact.bundleDir.path,
+            "-Xbinary=bundleId=${expectedArtifact.bundleDir.name}"
         )
         when (extras) {
             is NoTestRunnerExtras -> error("XCTest supports only TestRunner extras")
