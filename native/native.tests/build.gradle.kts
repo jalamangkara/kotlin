@@ -58,6 +58,13 @@ val klibTest = nativeTest("klibTest", "klib")
 // xctest tasks
 val xcTestRunnerEnabled = (kotlinBuildProperties.isKotlinNativeEnabled && HostManager.hostIsMac)
 
+val codegenBoxK2TestWithXCTest = nativeTest(
+    "codegenBoxK2Test",
+    "codegen & frontend-fir", // & xctest
+    requirePlatformLibs = true,
+    xcTestRunner = true
+)
+
 val stdlibTestWithXCTest = nativeTest(
     "stdlibTestWithXCTest",
     "stdlib & !frontend-fir & xctest",
