@@ -60,7 +60,7 @@ val xcTestRunnerEnabled = (kotlinBuildProperties.isKotlinNativeEnabled && HostMa
 
 val codegenBoxK2TestWithXCTest = nativeTest(
     "codegenBoxK2Test",
-    "codegen & frontend-fir", // & xctest
+    "codegen & frontend-fir & xctest",
     requirePlatformLibs = true,
     xcTestRunner = true
 )
@@ -93,7 +93,8 @@ val kotlinTestLibraryK2TestWithXCTest = nativeTest(
 val testTags = findProperty("kotlin.native.tests.tags")?.toString()
 // Note: arbitrary JUnit tag expressions can be used in this property.
 // See https://junit.org/junit5/docs/current/user-guide/#running-tests-tag-expressions
-val test by nativeTest("test", testTags)
+val runWithXCTest = testTags?.contains("xctest") ?: false
+val test by nativeTest("test", testTags, requirePlatformLibs = runWithXCTest, xcTestRunner = xcTestRunnerEnabled && runWithXCTest)
 
 val generateTests by generator("org.jetbrains.kotlin.generators.tests.GenerateNativeTestsKt") {
     javaLauncher.set(project.getToolchainLauncherFor(JdkMajorVersion.JDK_11_0))

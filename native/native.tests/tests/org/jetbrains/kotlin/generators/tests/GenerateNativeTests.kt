@@ -66,6 +66,17 @@ fun main() {
                 model("codegen/boxInline", targetBackend = TargetBackend.NATIVE)
             }
             testClass<AbstractNativeCodegenBoxTest>(
+                suiteTestClassName = "FirNativeCodegenBoxTestWithXCTestGenerated",
+                annotations = listOf(
+                    *frontendFir(),
+                    xctest(),
+                    provider<UseExtTestCaseGroupProvider>()
+                )
+            ) {
+                model("codegen/box", targetBackend = TargetBackend.NATIVE)
+                model("codegen/boxInline", targetBackend = TargetBackend.NATIVE)
+            }
+            testClass<AbstractNativeCodegenBoxTest>(
                 suiteTestClassName = "FirNativeCodegenBoxTestNoPLGenerated",
                 annotations = listOf(
                     *frontendFir(),
@@ -427,7 +438,7 @@ private fun frontendFir() = arrayOf(
     annotation(Tag::class.java, "frontend-fir"),
     annotation(FirPipeline::class.java)
 )
-
+private fun xctest() = annotation(Tag::class.java, "xctest")
 private fun debugger() = annotation(Tag::class.java, "debugger")
 private fun infrastructure() = annotation(Tag::class.java, "infrastructure")
 private fun k1libContents() = annotation(Tag::class.java, "k1libContents")
