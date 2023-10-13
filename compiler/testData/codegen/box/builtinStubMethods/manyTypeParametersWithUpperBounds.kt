@@ -1,5 +1,6 @@
 // TARGET_BACKEND: JVM
 // WITH_STDLIB
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-62550
 
 class A<U : Number, V : U, W : V> : Set<W> {
     override val size: Int get() = 0

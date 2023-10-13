@@ -1,4 +1,5 @@
 // TARGET_BACKEND: JVM
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-62550
 
 class MyList: List<String> {
     override val size: Int get() = 0
