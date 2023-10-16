@@ -185,8 +185,8 @@ class JsPerFileCache(private val moduleArtifacts: List<ModuleArtifact>) : JsMult
             CachedFileInfo(moduleArtifact, moduleHeader) {
             var mainFunctionTag: String? = null
             var suiteFunctionTag: String? = null
-            var packagesToItsTestFunctions: CachedTestFunctionsWithTheirPackage? = null
-            val testFunctionsHash: ICHash? get() = packagesToItsTestFunctions?.testFunctionsHashForIC()
+            var packagesToItsTestFunctions: CachedTestFunctionsWithTheirPackage = emptyMap()
+            val testFunctionsHash: ICHash get() = packagesToItsTestFunctions.testFunctionsHashForIC()
 
             val jsFileArtifact by lazy(LazyThreadSafetyMode.NONE) { getArtifactWithName(CACHED_FILE_JS) }
             val dtsFileArtifact by lazy(LazyThreadSafetyMode.NONE) { getArtifactWithName(CACHED_FILE_D_TS) }
@@ -200,7 +200,7 @@ class JsPerFileCache(private val moduleArtifacts: List<ModuleArtifact>) : JsMult
                     jsIrHeader.externalModuleName,
                     mainFunctionTag,
                     suiteFunctionTag,
-                    packagesToItsTestFunctions ?: emptyMap(),
+                    packagesToItsTestFunctions,
                     jsIrHeader.importedWithEffectInModuleWithName
                 )
             }
@@ -288,13 +288,15 @@ class JsPerFileCache(private val moduleArtifacts: List<ModuleArtifact>) : JsMult
         cachedFileInfo.crossFileReferencesHash.toProtoStream(this)
         when (cachedFileInfo) {
             is CachedFileInfo.MainFileCachedInfo -> {
+                ifNotNull(cachedFileInfo.mainFunctionTag, ::writeStringNoTag)
                 ifNotNull(cachedFileInfo.testFunctionTag, ::writeStringNoTag)
                 ifNotNull(cachedFileInfo.suiteFunctionTag, ::writeStringNoTag)
             }
             is CachedFileInfo.ExportFileCachedInfo -> ifNotNull(cachedFileInfo.tsDeclarationsHash, ::writeInt64NoTag)
             is CachedFileInfo.ModuleProxyFileCachedInfo -> {
+                ifNotNull(cachedFileInfo.mainFunctionTag, ::writeStringNoTag)
                 ifNotNull(cachedFileInfo.suiteFunctionTag, ::writeStringNoTag)
-                ifNotNull(cachedFileInfo.packagesToItsTestFunctions) { writeTestFunctions(it) }
+                writeTestFunctions(cachedFileInfo.packagesToItsTestFunctions)
             }
         }
         ifNotNull(cachedFileInfo.jsIrHeader.importedWithEffectInModuleWithName) { writeStringNoTag(it) }
@@ -314,13 +316,11 @@ class JsPerFileCache(private val moduleArtifacts: List<ModuleArtifact>) : JsMult
         is CachedFileInfo.MainFileCachedInfo -> {
             moduleHeaderArtifact?.useCodedOutput {
                 ifNotNull(exportFileCachedInfo) { commitSingleFileInfo(it) }
-                ifNotNull(mainFunctionTag) { writeStringNoTag(it) }
                 commitSingleFileInfo(this@commitFileInfo)
             }
         }
         is CachedFileInfo.ModuleProxyFileCachedInfo -> {
             moduleHeaderArtifact?.useCodedOutput {
-                ifNotNull(mainFunctionTag) { writeStringNoTag(it) }
                 commitSingleFileInfo(this@commitFileInfo)
             }
         }
@@ -445,7 +445,7 @@ class JsPerFileCache(private val moduleArtifacts: List<ModuleArtifact>) : JsMult
                 testFunctions: CachedTestFunctionsWithTheirPackage,
                 moduleNameForEffects: String?
             ) = fetchModuleProxyFileInfo()?.takeIf {
-                it.mainFunction == mainFunctionTag
+                it.mainFunctionTag == mainFunctionTag
                         && it.jsIrHeader.importedWithEffectInModuleWithName == moduleNameForEffects
                         && suiteFunctionTag == it.suiteFunctionTag &&
                         it.testFunctionsHash == testFunctions.testFunctionsHashForIC() &&

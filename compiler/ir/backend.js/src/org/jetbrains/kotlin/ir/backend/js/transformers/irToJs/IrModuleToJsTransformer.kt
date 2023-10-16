@@ -57,6 +57,7 @@ fun generateProxyIrModuleWith(
 ): JsIrModule {
     val programFragment = JsIrProgramFragment(safeName, "<proxy-file>").apply {
         mainFunctionTag?.let {
+            this.mainFunctionTag = it
             nameBindings[it] = JsName("main", true)
         }
         cachedTestFunctionsWithTheirPackage.takeIf { it.isNotEmpty() }?.let {
