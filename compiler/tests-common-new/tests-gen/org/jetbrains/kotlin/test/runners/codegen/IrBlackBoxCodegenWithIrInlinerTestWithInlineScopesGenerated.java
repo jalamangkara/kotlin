@@ -354,6 +354,12 @@ public class IrBlackBoxCodegenWithIrInlinerTestWithInlineScopesGenerated extends
         }
 
         @Test
+        @TestMetadata("platformDependent.kt")
+        public void testPlatformDependent() throws Exception {
+            runTest("compiler/testData/codegen/box/annotations/platformDependent.kt");
+        }
+
+        @Test
         @TestMetadata("propertyWithPropertyInInitializerAsParameter.kt")
         public void testPropertyWithPropertyInInitializerAsParameter() throws Exception {
             runTest("compiler/testData/codegen/box/annotations/propertyWithPropertyInInitializerAsParameter.kt");
@@ -7653,6 +7659,18 @@ public class IrBlackBoxCodegenWithIrInlinerTestWithInlineScopesGenerated extends
         @TestMetadata("removeAtInt.kt")
         public void testRemoveAtInt() throws Exception {
             runTest("compiler/testData/codegen/box/collections/removeAtInt.kt");
+        }
+
+        @Test
+        @TestMetadata("removeAtIntOverrideInJava.kt")
+        public void testRemoveAtIntOverrideInJava() throws Exception {
+            runTest("compiler/testData/codegen/box/collections/removeAtIntOverrideInJava.kt");
+        }
+
+        @Test
+        @TestMetadata("removeAtIntOverrideInJava2.kt")
+        public void testRemoveAtIntOverrideInJava2() throws Exception {
+            runTest("compiler/testData/codegen/box/collections/removeAtIntOverrideInJava2.kt");
         }
 
         @Test
@@ -18352,6 +18370,12 @@ public class IrBlackBoxCodegenWithIrInlinerTestWithInlineScopesGenerated extends
                 runTest("compiler/testData/codegen/box/extensionFunctions/contextReceivers/useFromAnotherModuleWithDefaultParameterValues.kt");
             }
 
+            @Test
+            @TestMetadata("withTwoContextReceivers.kt")
+            public void testWithTwoContextReceivers() throws Exception {
+                runTest("compiler/testData/codegen/box/extensionFunctions/contextReceivers/withTwoContextReceivers.kt");
+            }
+
             @Nested
             @TestMetadata("compiler/testData/codegen/box/extensionFunctions/contextReceivers/fromKEEP")
             @TestDataPath("$PROJECT_ROOT")
@@ -19024,6 +19048,12 @@ public class IrBlackBoxCodegenWithIrInlinerTestWithInlineScopesGenerated extends
         }
 
         @Test
+        @TestMetadata("intersectionWithCapturedTypeWithRawUpperBound.kt")
+        public void testIntersectionWithCapturedTypeWithRawUpperBound() throws Exception {
+            runTest("compiler/testData/codegen/box/fir/intersectionWithCapturedTypeWithRawUpperBound.kt");
+        }
+
+        @Test
         @TestMetadata("IrBuiltIns.kt")
         public void testIrBuiltIns() throws Exception {
             runTest("compiler/testData/codegen/box/fir/IrBuiltIns.kt");
@@ -19051,6 +19081,12 @@ public class IrBlackBoxCodegenWithIrInlinerTestWithInlineScopesGenerated extends
         @TestMetadata("KotlinDocumentationProvider.kt")
         public void testKotlinDocumentationProvider() throws Exception {
             runTest("compiler/testData/codegen/box/fir/KotlinDocumentationProvider.kt");
+        }
+
+        @Test
+        @TestMetadata("kt61856.kt")
+        public void testKt61856() throws Exception {
+            runTest("compiler/testData/codegen/box/fir/kt61856.kt");
         }
 
         @Test
@@ -22133,6 +22169,12 @@ public class IrBlackBoxCodegenWithIrInlinerTestWithInlineScopesGenerated extends
         @TestMetadata("defaultWithInlineClassArgumentGeneric.kt")
         public void testDefaultWithInlineClassArgumentGeneric() throws Exception {
             runTest("compiler/testData/codegen/box/inlineClasses/defaultWithInlineClassArgumentGeneric.kt", TransformersFunctions.getReplaceOptionalJvmInlineAnnotationWithReal());
+        }
+
+        @Test
+        @TestMetadata("delegateFromDifferentPackage.kt")
+        public void testDelegateFromDifferentPackage() throws Exception {
+            runTest("compiler/testData/codegen/box/inlineClasses/delegateFromDifferentPackage.kt");
         }
 
         @Test
@@ -34045,6 +34087,18 @@ public class IrBlackBoxCodegenWithIrInlinerTestWithInlineScopesGenerated extends
             }
 
             @Test
+            @TestMetadata("expectValInInlineClass.kt")
+            public void testExpectValInInlineClass() throws Exception {
+                runTest("compiler/testData/codegen/box/multiplatform/k2/expectValInInlineClass.kt");
+            }
+
+            @Test
+            @TestMetadata("expectValInInlineClassJVM.kt")
+            public void testExpectValInInlineClassJVM() throws Exception {
+                runTest("compiler/testData/codegen/box/multiplatform/k2/expectValInInlineClassJVM.kt");
+            }
+
+            @Test
             @TestMetadata("javaMethodWithTypeParameter.kt")
             public void testJavaMethodWithTypeParameter() throws Exception {
                 runTest("compiler/testData/codegen/box/multiplatform/k2/javaMethodWithTypeParameter.kt");
@@ -45133,6 +45187,12 @@ public class IrBlackBoxCodegenWithIrInlinerTestWithInlineScopesGenerated extends
             }
 
             @Test
+            @TestMetadata("kt60709.kt")
+            public void testKt60709() throws Exception {
+                runTest("compiler/testData/codegen/box/reflection/callBy/kt60709.kt");
+            }
+
+            @Test
             @TestMetadata("kt61304.kt")
             public void testKt61304() throws Exception {
                 runTest("compiler/testData/codegen/box/reflection/callBy/kt61304.kt");
@@ -52570,6 +52630,12 @@ public class IrBlackBoxCodegenWithIrInlinerTestWithInlineScopesGenerated extends
         }
 
         @Test
+        @TestMetadata("deserializedAbbreviationWithRedundantArgument.kt")
+        public void testDeserializedAbbreviationWithRedundantArgument() throws Exception {
+            runTest("compiler/testData/codegen/box/typealias/deserializedAbbreviationWithRedundantArgument.kt");
+        }
+
+        @Test
         @TestMetadata("enumEntryQualifier.kt")
         public void testEnumEntryQualifier() throws Exception {
             runTest("compiler/testData/codegen/box/typealias/enumEntryQualifier.kt");
@@ -53981,6 +54047,12 @@ public class IrBlackBoxCodegenWithIrInlinerTestWithInlineScopesGenerated extends
         @TestMetadata("noElseNoMatch.kt")
         public void testNoElseNoMatch() throws Exception {
             runTest("compiler/testData/codegen/box/when/noElseNoMatch.kt");
+        }
+
+        @Test
+        @TestMetadata("nothingTyped.kt")
+        public void testNothingTyped() throws Exception {
+            runTest("compiler/testData/codegen/box/when/nothingTyped.kt");
         }
 
         @Test
