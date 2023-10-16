@@ -1,13 +1,10 @@
 import org.jetbrains.kotlin.*
-import org.jetbrains.kotlin.bitcode.CompileToBitcodeExtension
-import org.jetbrains.kotlin.cpp.CppUsage
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinUsages
 import org.jetbrains.kotlin.gradle.tasks.CInteropProcess
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
 import org.jetbrains.kotlin.konan.target.*
 import java.io.ByteArrayOutputStream
-import java.util.*
 
 plugins {
     id("kotlin.native.build-tools-conventions")
@@ -128,7 +125,7 @@ if (!project.isIdeaActive) {
     }
 }
 
-val xcTestArtifactsConfig by configurations.creating {
+val XCTestRunnerArtifacts by configurations.creating {
     attributes {
         attribute(Usage.USAGE_ATTRIBUTE, objects.named(KotlinUsages.KOTLIN_API))
         // Native target-specific
@@ -138,17 +135,19 @@ val xcTestArtifactsConfig by configurations.creating {
 
 targets.forEach { target ->
     val targetName = target.name
-
-    val outputKlib = tasks.named<KotlinNativeCompile>("compileKotlin${targetName.capitalize()}").get().outputFile
+    val outputKlibTask = tasks.named<KotlinNativeCompile>("compileKotlin${targetName.capitalize()}")
+    val cinteropKlibTask = tasks.named<CInteropProcess>("cinteropXCTest${targetName.capitalize()}")
 
     artifacts {
-        add(xcTestArtifactsConfig.name, outputKlib) {
+        add(XCTestRunnerArtifacts.name, outputKlibTask.flatMap { it.outputFile }) {
             classifier = targetName
+            builtBy(outputKlibTask)
         }
-        add(xcTestArtifactsConfig.name, tasks.named<CInteropProcess>("cinteropXCTest${targetName.capitalize()}")) {
+        add(XCTestRunnerArtifacts.name, cinteropKlibTask.flatMap { it.outputFileProvider }) {
             classifier = targetName
+            builtBy(cinteropKlibTask)
         }
-        add(xcTestArtifactsConfig.name, File(target.getDeveloperFramework())) {
+        add(XCTestRunnerArtifacts.name, File(target.getDeveloperFramework())) {
             classifier = "${targetName}Frameworks"
         }
     }

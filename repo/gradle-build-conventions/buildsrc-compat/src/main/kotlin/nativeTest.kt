@@ -177,7 +177,7 @@ fun Project.nativeTest(
 
             val xcTestConfiguration = if (xcTestRunner) {
                 configurations.detachedConfiguration(
-                    dependencies.project(path = ":kotlin-native:utilities:xctest-runner", configuration = "xcTestArtifactsConfig")
+                    dependencies.project(path = ":kotlin-native:utilities:xctest-runner", configuration = "XCTestRunnerArtifacts")
                 )
             } else null
 

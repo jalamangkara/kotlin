@@ -62,7 +62,7 @@ val codegenBoxK2TestWithXCTest = nativeTest(
     "codegenBoxK2Test",
     "codegen & frontend-fir & xctest",
     requirePlatformLibs = true,
-    xcTestRunner = true
+    xcTestRunner = xcTestRunnerEnabled
 )
 
 val stdlibTestWithXCTest = nativeTest(
