@@ -17,7 +17,7 @@ extern "C" OBJ_GETTER0(Konan_create_testSuite);
 /**
  * Test suites factory.
  *
- * This is a starting point for XCTest to get the test suites with test cases.
+ * This is a starting point for XCTest to get test suites with test cases.
  * K/N dynamically adds test suites for Kotlin tests.
  * See `setupXCTestSuite` Kotlin method.
  */
