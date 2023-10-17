@@ -16,8 +16,8 @@ open class FirSymbolRenderer {
 
     open fun printReference(symbol: FirBasedSymbol<*>) {
         when (symbol) {
-            is FirCallableSymbol<*> -> printer.print(symbol.callableId.toString())
-            is FirClassLikeSymbol<*> -> printer.print(symbol.classId.toString())
+            is FirCallableSymbol<*> -> components.idRenderer.renderCallableId(symbol.callableId)
+            is FirClassLikeSymbol<*> -> components.idRenderer.renderClassId(symbol.classId)
             else -> printer.print("?")
         }
     }
