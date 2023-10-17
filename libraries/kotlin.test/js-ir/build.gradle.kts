@@ -68,11 +68,9 @@ tasks {
     }
     artifacts {
         val distJsKlib = configurations.create("distJsKlib")
-
         add(distJsKlib.name, jsJar)
-        add(jsLegacyRuntimeElements.name, jsLegacyJar)
     }
-    val jsSourcesJar by existing(Jar::class) {
+    val jsSourcesJar by existing(org.gradle.jvm.tasks.Jar::class) {
         archiveAppendix = null
     }
 }
