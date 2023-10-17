@@ -11,8 +11,13 @@ import org.jetbrains.kotlin.fir.symbols.impl.FirCallableSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirEnumEntrySymbol
 
 class FirSymbolRendererWithStaticFlag : FirSymbolRenderer() {
-    override fun renderReference(symbol: FirBasedSymbol<*>): String {
-        if (symbol !is FirCallableSymbol) return super.renderReference(symbol)
-        return symbol.callableId.toString() + if (symbol !is FirEnumEntrySymbol && symbol.isStatic) "*s" else ""
+
+    override fun printReference(symbol: FirBasedSymbol<*>) {
+        if (symbol !is FirCallableSymbol) {
+            super.printReference(symbol)
+            return
+        }
+        val s = symbol.callableId.toString() + if (symbol !is FirEnumEntrySymbol && symbol.isStatic) "*s" else ""
+        printer.print(s)
     }
 }

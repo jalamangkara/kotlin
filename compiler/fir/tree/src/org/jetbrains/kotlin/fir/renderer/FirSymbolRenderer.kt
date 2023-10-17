@@ -14,15 +14,11 @@ open class FirSymbolRenderer {
     internal lateinit var components: FirRendererComponents
     protected val printer get() = components.printer
 
-    fun printReference(symbol: FirBasedSymbol<*>) {
-        printer.print(renderReference(symbol))
-    }
-
-    protected open fun renderReference(symbol: FirBasedSymbol<*>): String {
-        return when (symbol) {
-            is FirCallableSymbol<*> -> symbol.callableId.toString()
-            is FirClassLikeSymbol<*> -> symbol.classId.toString()
-            else -> "?"
+    open fun printReference(symbol: FirBasedSymbol<*>) {
+        when (symbol) {
+            is FirCallableSymbol<*> -> printer.print(symbol.callableId.toString())
+            is FirClassLikeSymbol<*> -> printer.print(symbol.classId.toString())
+            else -> printer.print("?")
         }
     }
 }
