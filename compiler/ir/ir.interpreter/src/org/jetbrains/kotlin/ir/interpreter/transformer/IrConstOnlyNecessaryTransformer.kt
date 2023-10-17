@@ -11,7 +11,6 @@ import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.IrField
 import org.jetbrains.kotlin.ir.declarations.IrFile
-import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.interpreter.IrInterpreter
 import org.jetbrains.kotlin.ir.interpreter.checker.EvaluationMode
@@ -41,36 +40,41 @@ internal class IrConstOnlyNecessaryTransformer(
     private val jsCodeFqName = JsStandardClassIds.Callables.JsCode.asSingleFqName()
 
     override fun visitCall(expression: IrCall, data: Data): IrElement {
-        val isConstGetter = expression.symbol.owner.property.isConst
         val isJsCodeCall = expression.symbol.owner.fqNameWhenAvailable == jsCodeFqName
-        if (isJsCodeCall || (!data.inConstantExpression && !isConstGetter)) {
-            expression.transformChildren(this, data.copy(inConstantExpression = data.inConstantExpression || isJsCodeCall))
-            return expression
+        val isConstGetter = expression.symbol.owner.property.isConst
+        if (isJsCodeCall || data.mustBeEvaluated || isConstGetter) {
+            return super.visitCall(expression, data.copy(mustBeEvaluated = true))
         }
-        return super.visitCall(expression, data)
+
+        expression.transformChildren(this, data)
+        return expression
     }
 
     override fun visitGetField(expression: IrGetField, data: Data): IrExpression {
         val isConst = expression.symbol.owner.property.isConst
-        if (!data.inConstantExpression && !isConst) return expression
-        return super.visitGetField(expression, data)
+        if (data.mustBeEvaluated || isConst) {
+            return super.visitGetField(expression, data.copy(mustBeEvaluated = true))
+        }
+
+        return expression
     }
 
     override fun visitStringConcatenation(expression: IrStringConcatenation, data: Data): IrExpression {
-        if (!data.inConstantExpression) {
-            expression.transformChildren(this, data)
-            return expression
+        if (data.mustBeEvaluated) {
+            return super.visitStringConcatenation(expression, data.copy(mustBeEvaluated = true))
         }
-        return super.visitStringConcatenation(expression, data)
+
+        expression.transformChildren(this, data)
+        return expression
     }
 
     override fun visitField(declaration: IrField, data: Data): IrStatement {
         val isConst = declaration.property.isConst
-        if (!isConst) {
-            declaration.transformChildren(this, data)
-            return declaration
+        if (isConst) {
+            return super.visitField(declaration, data.copy(mustBeEvaluated = true))
         }
 
-        return super.visitField(declaration, data)
+        declaration.transformChildren(this, data)
+        return declaration
     }
 }

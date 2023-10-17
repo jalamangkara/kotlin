@@ -98,7 +98,7 @@ internal abstract class IrConstTransformer(
     private val onError: (IrFile, IrElement, IrErrorExpression) -> Unit,
     private val suppressExceptions: Boolean,
 ) : IrElementTransformer<IrConstTransformer.Data> {
-    internal data class Data(val inConstantExpression: Boolean = false)
+    internal data class Data(val mustBeEvaluated: Boolean = false)
 
     private fun IrExpression.warningIfError(original: IrExpression): IrExpression {
         if (this is IrErrorExpression) {

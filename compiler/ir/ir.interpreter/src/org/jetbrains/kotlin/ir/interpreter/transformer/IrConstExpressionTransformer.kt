@@ -34,6 +34,10 @@ internal abstract class IrConstExpressionTransformer(
 ) : IrConstTransformer(
     interpreter, irFile, mode, checker, evaluatedConstTracker, inlineConstTracker, onWarning, onError, suppressExceptions
 ) {
+    private fun IrExpression.mustBeInterpreted(data: Data): Boolean {
+        return data.mustBeEvaluated || canBeInterpreted()
+    }
+
     override fun visitFunction(declaration: IrFunction, data: Data): IrStatement {
         // It is useless to visit default accessor and if we do that we could render excess information for `IrGetField`
         if (declaration.origin == IrDeclarationOrigin.DEFAULT_PROPERTY_ACCESSOR) return declaration
@@ -42,14 +46,14 @@ internal abstract class IrConstExpressionTransformer(
 
     override fun visitClass(declaration: IrClass, data: Data): IrStatement {
         if (declaration.kind == ClassKind.ANNOTATION_CLASS) {
-            return super.visitClass(declaration, data.copy(inConstantExpression = true))
+            return super.visitClass(declaration, data.copy(mustBeEvaluated = true))
         }
         return super.visitClass(declaration, data)
     }
 
     override fun visitCall(expression: IrCall, data: Data): IrElement {
-        if (expression.canBeInterpreted()) {
-            return expression.interpret(failAsError = data.inConstantExpression)
+        if (expression.mustBeInterpreted(data)) {
+            return expression.interpret(failAsError = data.mustBeEvaluated)
         }
         return super.visitCall(expression, data)
     }
@@ -59,16 +63,16 @@ internal abstract class IrConstExpressionTransformer(
         val expression = initializer?.expression ?: return declaration
         val getField = declaration.createGetField()
 
-        if (getField.canBeInterpreted()) {
-            initializer.expression = expression.interpret(failAsError = true)
+        if (getField.mustBeInterpreted(data)) {
+            initializer.expression = expression.interpret(failAsError = data.mustBeEvaluated)
         }
 
         return super.visitField(declaration, data)
     }
 
     override fun visitGetField(expression: IrGetField, data: Data): IrExpression {
-        if (expression.canBeInterpreted()) {
-            return expression.interpret(failAsError = data.inConstantExpression)
+        if (expression.mustBeInterpreted(data)) {
+            return expression.interpret(failAsError = data.mustBeEvaluated)
         }
         return super.visitGetField(expression, data)
     }
@@ -78,7 +82,7 @@ internal abstract class IrConstExpressionTransformer(
             this.startOffset, this.endOffset, expression.type, listOf(this@wrapInStringConcat)
         )
 
-        fun IrExpression.wrapInToStringConcatAndInterpret(): IrExpression = wrapInStringConcat().interpret(failAsError = data.inConstantExpression)
+        fun IrExpression.wrapInToStringConcatAndInterpret(): IrExpression = wrapInStringConcat().interpret(failAsError = data.mustBeEvaluated)
         fun IrExpression.getConstStringOrEmpty(): String = if (this is IrConst<*>) value.toString() else ""
 
         // If we have some complex expression in arguments (like some `IrComposite`) we will skip it,
@@ -90,11 +94,11 @@ internal abstract class IrConstExpressionTransformer(
         for (next in transformed.arguments) {
             val last = folded.lastOrNull()
             when {
-                !next.wrapInStringConcat().canBeInterpreted() -> {
+                !next.wrapInStringConcat().mustBeInterpreted(data) -> {
                     folded += next
                     buildersList.add(StringBuilder(next.getConstStringOrEmpty()))
                 }
-                last == null || !last.wrapInStringConcat().canBeInterpreted() -> {
+                last == null || !last.wrapInStringConcat().mustBeInterpreted(data) -> {
                     val result = next.wrapInToStringConcatAndInterpret()
                     folded += result
                     buildersList.add(StringBuilder(result.getConstStringOrEmpty()))
