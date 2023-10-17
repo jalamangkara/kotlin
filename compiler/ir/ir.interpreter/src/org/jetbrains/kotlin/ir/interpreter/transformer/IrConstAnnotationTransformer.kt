@@ -17,8 +17,9 @@ import org.jetbrains.kotlin.ir.interpreter.IrInterpreter
 import org.jetbrains.kotlin.ir.interpreter.checker.EvaluationMode
 import org.jetbrains.kotlin.ir.interpreter.checker.IrInterpreterChecker
 import org.jetbrains.kotlin.ir.interpreter.isPrimitiveArray
-import org.jetbrains.kotlin.ir.util.toIrConst
 import org.jetbrains.kotlin.ir.types.*
+import org.jetbrains.kotlin.ir.util.isAnnotation
+import org.jetbrains.kotlin.ir.util.toIrConst
 
 internal abstract class IrConstAnnotationTransformer(
     interpreter: IrInterpreter,
@@ -67,12 +68,14 @@ internal abstract class IrConstAnnotationTransformer(
     }
 
     private fun IrExpression.transformSingleArg(expectedType: IrType): IrExpression {
-        if (this.canBeInterpreted()) {
-            return this.interpret(failAsError = true).convertToConstIfPossible(expectedType)
-        } else if (this is IrConstructorCall) {
-            transformAnnotation(this)
+        return when {
+            this is IrConstructorCall && this.type.isAnnotation() -> {
+                transformAnnotation(this)
+                this
+            }
+            this is IrGetEnumValue || this is IrClassReference -> this
+            else -> this.interpret(failAsError = true).convertToConstIfPossible(expectedType)
         }
-        return this
     }
 
     private fun IrExpression.convertToConstIfPossible(type: IrType): IrExpression {
