@@ -9,7 +9,6 @@ import java.io.ByteArrayOutputStream
 plugins {
     id("kotlin.native.build-tools-conventions")
     kotlin("multiplatform")
-    id("compile-to-bitcode")
 }
 
 val distDir: File by project

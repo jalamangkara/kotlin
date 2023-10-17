@@ -15,8 +15,8 @@ import platform.XCTest.*
 /**
  * Test execution observation.
  *
- * This is a bridge between XCTest execution and reporting bringing an ability to get the result test-by-test.
- * Logs tests and notifies listeners set with [testSettings].
+ * This is a bridge between XCTest execution and reporting that brings an ability to get results test-by-test.
+ * It logs tests and notifies listeners set with [testSettings].
  * See also [XCTestObservation on Apple documentation](https://developer.apple.com/documentation/xctest/xctestobservation)
  *
  * @see TestSettings

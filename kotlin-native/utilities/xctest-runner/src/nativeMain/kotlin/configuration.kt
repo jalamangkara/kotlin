@@ -18,14 +18,18 @@ internal const val TOP_LEVEL_SUITE = "Kotlin/Native test suite"
 // Name of the key that contains arguments used to set [TestSettings]
 private const val TEST_ARGUMENTS_KEY = "KotlinNativeTestArgs"
 
-// Test settings should be initialized by the setup method
-// It stores settings with the filtered test suites, loggers, and listeners.
+/**
+ * Stores current settings with the filtered test suites, loggers, and listeners.
+ * Test settings should be initialized by the setup method.
+ */
 private lateinit var testSettings: TestSettings
 
 /**
  * This is an entry-point of XCTestSuites and XCTestCases generation.
  * Function returns the XCTest's top level TestSuite that holds all the test cases
- * for K/N tests.
+ * with K/N tests.
+ * This test suite can be run by either native launcher compiled to bundle or
+ * by the other test suite (e.g. compiled as a framework).
  */
 @Suppress("unused")
 @kotlin.native.internal.ExportForCppRuntime("Konan_create_testSuite")
@@ -37,7 +41,7 @@ internal fun setupXCTestSuite(): XCTestSuite {
     testSettings = TestProcessor(GeneratedSuites.suites, args).process()
 
     check(::testSettings.isInitialized) {
-        "Test settings wasn't set. Check provided arguments and suites"
+        "Test settings wasn't set. Check provided arguments and test suites"
     }
 
     // Set test observer that will log test execution
@@ -88,12 +92,14 @@ private fun Collection<TestSuite>.generate(): List<XCTestSuite> {
     return this.map { suite ->
         val xcSuite = XCTestSuiteWrapper(suite)
         suite.testCases.values.map { testCase ->
+            // Produce test case wrapper from the test invocation
             testInvocations.filter {
                 it.selectorString() == testCase.fullName
             }.map { invocation ->
                 XCTestCaseWrapper(invocation, testCase)
             }.single()
         }.forEach {
+            // add test to its test suite wrappper
             xcSuite.addTest(it)
         }
         xcSuite

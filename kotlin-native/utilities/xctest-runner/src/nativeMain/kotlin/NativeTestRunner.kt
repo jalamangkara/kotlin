@@ -34,11 +34,12 @@ class XCTestCaseWrapper(invocation: NSInvocation, val testCase: TestCase) : XCTe
 
     fun run() {
         if (ignored) {
-            // FIXME: It is not possible to use XCTSkip() due to the KT-43719 and not implemented exception importing.
-            //  Using `_XCTSkipHandler(...)` fails with
+            // FIXME: to skip the test XCTSkip() shold be used.
+            //  But it is not possible to do that due to the KT-43719 and not implemented exception importing.
+            //  For example, `_XCTSkipHandler(testName, 0U, "Test $testName is ignored")` fails with
             //   Uncaught Kotlin exception: kotlinx.cinterop.ForeignException: _XCTSkipFailureException:: Test skipped
-            //  _XCTSkipHandler(testName, 0U, "Test $testName is ignored")
-            //  So, just skip the test. It will be seen as passed in XCode, but K/N TestListener should correctly process that.
+            //
+            //  So, just don't run the test. It will be seen as passed in XCode, but K/N TestListener should correctly process that.
             return
         }
         try {
@@ -46,7 +47,7 @@ class XCTestCaseWrapper(invocation: NSInvocation, val testCase: TestCase) : XCTe
         } catch (throwable: Throwable) {
             val stackTrace = throwable.getStackTrace()
             val failedStackLine = stackTrace.first {
-                // try to filter out kotlin.Exceptions and kotlin.test.Assertion inits
+                // try to filter out kotlin.Exceptions and kotlin.test.Assertion inits to poin to the failed stack and line
                 !it.contains("kfun:kotlin.")
             }
             // Find path and line number to create source location
@@ -59,8 +60,8 @@ class XCTestCaseWrapper(invocation: NSInvocation, val testCase: TestCase) : XCTe
                 XCTSourceCodeLocation(testCase.suite.name, 0L)
             }
 
-            // Make a stacktrace attachment, encoding it as source code attachment.
-            // This makes it appear as an attachment in the XCode test results.
+            // Make a stacktrace attachment, encoding it as source code.
+            // This makes it appear as an attachment in the XCode test results for the failed test.
             @Suppress("CAST_NEVER_SUCCEEDS")
             val stackAsPayload = (stackTrace.joinToString("\n") as? NSString)?.dataUsingEncoding(NSUTF8StringEncoding)
             val stackTraceAttachment = XCTAttachment.attachmentWithUniformTypeIdentifier(
@@ -126,8 +127,6 @@ class XCTestCaseWrapper(invocation: NSInvocation, val testCase: TestCase) : XCTe
             )
         }
 
-        // region Dynamic run methods creation
-
         /**
          * Creates and adds method to the metaclass with implementation block
          * that holds an XCTestCase instance to be run
@@ -146,7 +145,6 @@ class XCTestCaseWrapper(invocation: NSInvocation, val testCase: TestCase) : XCTe
 
         @Suppress("UNUSED_PARAMETER")
         private fun runner(testCaseWrapper: XCTestCaseWrapper, sel: SEL) = testCaseWrapper.run()
-        // endregion
 
         /**
          * Creates Test invocations for each test method to make them resolvable by the XCTest machinery.
@@ -155,12 +153,11 @@ class XCTestCaseWrapper(invocation: NSInvocation, val testCase: TestCase) : XCTe
             val selector = NSSelectorFromString(it)
             createRunMethod(selector)
             this.instanceMethodSignatureForSelector(selector)?.let { signature ->
-                // Those casts can never succeed ¯\_(ツ)_/¯
                 @Suppress("CAST_NEVER_SUCCEEDS")
                 val invocation = NSInvocation.invocationWithMethodSignature(signature as NSMethodSignature)
                 invocation.setSelector(selector)
                 invocation
-            } ?: error("Not able to create NSInvocation for method $it")
+            } ?: error("Was unable to create NSInvocation for method $it")
         }
     }
 }
