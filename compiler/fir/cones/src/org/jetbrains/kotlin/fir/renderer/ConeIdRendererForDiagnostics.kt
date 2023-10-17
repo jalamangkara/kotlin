@@ -9,11 +9,11 @@ import org.jetbrains.kotlin.name.CallableId
 import org.jetbrains.kotlin.name.ClassId
 
 class ConeIdRendererForDiagnostics : ConeIdRenderer() {
-    override fun renderClassId(classId: ClassId) {
+    override fun renderDeclarationClassId(classId: ClassId) {
         builder.append(classId.asFqNameString())
     }
 
-    override fun renderCallableId(callableId: CallableId) {
+    override fun renderDeclarationCallableId(callableId: CallableId) {
         builder.append(callableId.asSingleFqName().asString())
     }
 }

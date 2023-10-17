@@ -21,7 +21,7 @@ open class FirResolvedQualifierRenderer {
     protected open fun renderResolvedQualifierWithoutAnnotations(resolvedQualifier: FirResolvedQualifier) {
         val classId = resolvedQualifier.classId
         if (classId != null) {
-            components.idRenderer.renderClassId(classId)
+            components.idRenderer.renderDeclarationClassId(classId)
         } else {
             printer.print(resolvedQualifier.packageFqName.asString().replace(".", "/"))
         }

@@ -142,7 +142,7 @@ open class ConeTypeRenderer(
     }
 
     private fun ConeClassLikeType.render() {
-        idRenderer.renderClassId(lookupTag.classId)
+        idRenderer.renderDeclarationClassId(lookupTag.classId)
         if (typeArguments.isEmpty()) return
         builder.append("<")
         for ((index, typeArgument) in typeArguments.withIndex()) {

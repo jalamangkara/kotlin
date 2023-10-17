@@ -12,6 +12,8 @@ abstract class ConeIdRenderer {
 
     lateinit var builder: StringBuilder
 
-    abstract fun renderClassId(classId: ClassId)
-    abstract fun renderCallableId(callableId: CallableId)
+    abstract fun renderDeclarationClassId(classId: ClassId)
+    open fun renderReferenceClassId(classId: ClassId) = renderDeclarationClassId(classId)
+    abstract fun renderDeclarationCallableId(callableId: CallableId)
+    open fun renderReferenceCallableId(callableId: CallableId) = renderDeclarationCallableId(callableId)
 }

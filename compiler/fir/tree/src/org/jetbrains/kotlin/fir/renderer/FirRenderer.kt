@@ -18,8 +18,6 @@ import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.expressions.impl.*
 import org.jetbrains.kotlin.fir.references.*
 import org.jetbrains.kotlin.fir.symbols.ConeClassLikeLookupTag
-import org.jetbrains.kotlin.fir.symbols.FirBasedSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.*
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.fir.visitors.FirVisitorVoid
 import org.jetbrains.kotlin.name.StandardClassIds
@@ -268,10 +266,10 @@ class FirRenderer(
             }
             when (callableDeclaration) {
                 is FirSimpleFunction -> {
-                    idRenderer.renderCallableId(callableDeclaration.symbol.callableId)
+                    idRenderer.renderDeclarationCallableId(callableDeclaration.symbol.callableId)
                 }
                 is FirVariable -> {
-                    idRenderer.renderCallableId(callableDeclaration.symbol.callableId)
+                    idRenderer.renderDeclarationCallableId(callableDeclaration.symbol.callableId)
                 }
                 else -> {}
             }
