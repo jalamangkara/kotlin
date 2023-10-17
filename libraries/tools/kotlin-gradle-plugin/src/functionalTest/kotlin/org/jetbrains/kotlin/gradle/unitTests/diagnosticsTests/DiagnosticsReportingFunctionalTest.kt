@@ -118,10 +118,10 @@ class DiagnosticsReportingFunctionalTest {
 
     @Test
     fun testSuppressedWarnings() {
-        buildProject(configureProject = {
-            extraProperties.set(PropertiesProvider.PropertyNames.KOTLIN_SUPPRESS_GRADLE_PLUGIN_WARNINGS, "TEST_DIAGNOSTIC")
-        }).run {
+        buildProject().run {
             applyKotlinJvmPlugin()
+
+            extraProperties.set(PropertiesProvider.PropertyNames.KOTLIN_SUPPRESS_GRADLE_PLUGIN_WARNINGS, "TEST_DIAGNOSTIC")
             reportTestDiagnostic()
             evaluate()
             checkDiagnostics("suppressedWarnings")
@@ -130,10 +130,9 @@ class DiagnosticsReportingFunctionalTest {
 
     @Test
     fun testSuppressedErrors() {
-        buildProject(configureProject = {
-            extraProperties.set(PropertiesProvider.PropertyNames.KOTLIN_SUPPRESS_GRADLE_PLUGIN_ERRORS, "TEST_DIAGNOSTIC")
-        }).run {
+        buildProject().run {
             applyKotlinJvmPlugin()
+            extraProperties.set(PropertiesProvider.PropertyNames.KOTLIN_SUPPRESS_GRADLE_PLUGIN_ERRORS, "TEST_DIAGNOSTIC")
             reportTestDiagnostic(severity = ERROR)
             evaluate()
             checkDiagnostics("suppressedErrors")

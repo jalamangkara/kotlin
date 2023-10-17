@@ -67,13 +67,20 @@ private class PropertiesManager(private val project: Project, private val localP
         //   - Use a map to create only one Provider per property.
         //   - Use MemoizedCallable to resolve the Provider only once.
         return properties.computeIfAbsent(propertyName) {
-            project.provider(MemoizedCallable { computeValue(propertyName) })
+            project
+                .extraProperty(propertyName)
+                .orElse(
+                    project.provider(MemoizedCallable { computeValue(propertyName) })
+                )
         }
     }
 
+    private fun Project.extraProperty(propertyName: String): Provider<String> = project.providers.provider {
+        extraProperties.getOrNull(propertyName) as String?
+    }
+
     private fun computeValue(propertyName: String): String? {
-        return project.extraProperties.getOrNull(propertyName) as? String
-            ?: project.providers.gradleProperty(propertyName).usedAtConfigurationTime(configurationTimePropertiesAccessor).orNull
+        return project.providers.gradleProperty(propertyName).usedAtConfigurationTime(configurationTimePropertiesAccessor).orNull
             ?: localProperties[propertyName]
     }
 }
