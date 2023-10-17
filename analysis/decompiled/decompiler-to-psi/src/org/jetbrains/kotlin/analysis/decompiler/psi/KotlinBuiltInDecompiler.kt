@@ -3,6 +3,7 @@
 package org.jetbrains.kotlin.analysis.decompiler.psi
 
 import com.intellij.ide.highlighter.JavaClassFileType
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.analysis.decompiler.stub.file.KotlinMetadataStubBuilder
@@ -53,10 +54,11 @@ class BuiltInDefinitionFile(
     version: BuiltInsBinaryVersion,
     val packageDirectory: VirtualFile,
     val isMetadata: Boolean,
+    private val filterOutClassesExistingAsClassFiles: Boolean = true,
 ) : KotlinMetadataStubBuilder.FileWithMetadata.Compatible(proto, version, BuiltInSerializerProtocol) {
     override val classesToDecompile: List<ProtoBuf.Class>
         get() = super.classesToDecompile.let { classes ->
-            if (isMetadata || !FILTER_OUT_CLASSES_EXISTING_AS_JVM_CLASS_FILES) classes
+            if (isMetadata || !FILTER_OUT_CLASSES_EXISTING_AS_JVM_CLASS_FILES || !filterOutClassesExistingAsClassFiles) classes
             else classes.filter { classProto ->
                 shouldDecompileBuiltInClass(nameResolver.getClassId(classProto.fqName))
             }
@@ -71,6 +73,12 @@ class BuiltInDefinitionFile(
         var FILTER_OUT_CLASSES_EXISTING_AS_JVM_CLASS_FILES = true
             @TestOnly set
 
+        /**
+         * Put this marker into user data of a .kotlin_builtins [VirtualFile]
+         * to force deserialization of classes duplicated in a .class file in the same [packageDirectory].
+         */
+        val DECOMPILE_ALL_CLASSES_FILE_MARKER = Key.create<Unit>("DECOMPILE_ALL_CLASSES_FILE_MARKER")
+
         fun read(contents: ByteArray, file: VirtualFile): KotlinMetadataStubBuilder.FileWithMetadata? {
             val stream = ByteArrayInputStream(contents)
 
@@ -81,7 +89,11 @@ class BuiltInDefinitionFile(
 
             val proto = ProtoBuf.PackageFragment.parseFrom(stream, BuiltInSerializerProtocol.extensionRegistry)
             val result =
-                BuiltInDefinitionFile(proto, version, file.parent, file.extension == MetadataPackageFragment.METADATA_FILE_EXTENSION)
+                BuiltInDefinitionFile(
+                    proto, version, file.parent,
+                    file.extension == MetadataPackageFragment.METADATA_FILE_EXTENSION,
+                    filterOutClassesExistingAsClassFiles = file.getUserData(DECOMPILE_ALL_CLASSES_FILE_MARKER) == null
+                )
             val packageProto = result.proto.`package`
             if (result.classesToDecompile.isEmpty() &&
                 packageProto.typeAliasCount == 0 && packageProto.functionCount == 0 && packageProto.propertyCount == 0
