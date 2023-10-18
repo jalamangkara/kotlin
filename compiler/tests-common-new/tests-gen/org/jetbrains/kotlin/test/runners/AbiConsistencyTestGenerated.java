@@ -7665,6 +7665,18 @@ public class AbiConsistencyTestGenerated extends AbstractAbiConsistencyTest {
             }
 
             @Test
+            @TestMetadata("removeAtIntOverrideInJava.kt")
+            public void testRemoveAtIntOverrideInJava() throws Exception {
+                runTest("compiler/testData/codegen/box/collections/removeAtIntOverrideInJava.kt");
+            }
+
+            @Test
+            @TestMetadata("removeAtIntOverrideInJava2.kt")
+            public void testRemoveAtIntOverrideInJava2() throws Exception {
+                runTest("compiler/testData/codegen/box/collections/removeAtIntOverrideInJava2.kt");
+            }
+
+            @Test
             @TestMetadata("removeClash.kt")
             public void testRemoveClash() throws Exception {
                 runTest("compiler/testData/codegen/box/collections/removeClash.kt");
@@ -19039,6 +19051,12 @@ public class AbiConsistencyTestGenerated extends AbstractAbiConsistencyTest {
             }
 
             @Test
+            @TestMetadata("intersectionWithCapturedTypeWithRawUpperBound.kt")
+            public void testIntersectionWithCapturedTypeWithRawUpperBound() throws Exception {
+                runTest("compiler/testData/codegen/box/fir/intersectionWithCapturedTypeWithRawUpperBound.kt");
+            }
+
+            @Test
             @TestMetadata("IrBuiltIns.kt")
             public void testIrBuiltIns() throws Exception {
                 runTest("compiler/testData/codegen/box/fir/IrBuiltIns.kt");
@@ -19144,6 +19162,12 @@ public class AbiConsistencyTestGenerated extends AbstractAbiConsistencyTest {
             @TestMetadata("nestedClassTypeParameterDeserialization.kt")
             public void testNestedClassTypeParameterDeserialization() throws Exception {
                 runTest("compiler/testData/codegen/box/fir/nestedClassTypeParameterDeserialization.kt");
+            }
+
+            @Test
+            @TestMetadata("noInfer.kt")
+            public void testNoInfer() throws Exception {
+                runTest("compiler/testData/codegen/box/fir/noInfer.kt");
             }
 
             @Test
@@ -21002,6 +21026,12 @@ public class AbiConsistencyTestGenerated extends AbstractAbiConsistencyTest {
             @TestMetadata("intersectionTypeInArguments.kt")
             public void testIntersectionTypeInArguments() throws Exception {
                 runTest("compiler/testData/codegen/box/inference/intersectionTypeInArguments.kt");
+            }
+
+            @Test
+            @TestMetadata("intersectionWithInvisibleComponent.kt")
+            public void testIntersectionWithInvisibleComponent() throws Exception {
+                runTest("compiler/testData/codegen/box/inference/intersectionWithInvisibleComponent.kt");
             }
 
             @Test
@@ -57045,6 +57075,12 @@ public class AbiConsistencyTestGenerated extends AbstractAbiConsistencyTest {
             }
 
             @Test
+            @TestMetadata("kt62313.kt")
+            public void testKt62313() throws Exception {
+                runTest("compiler/testData/codegen/boxInline/inlineClasses/kt62313.kt");
+            }
+
+            @Test
             @TestMetadata("noReturnTypeManglingFun.kt")
             public void testNoReturnTypeManglingFun() throws Exception {
                 runTest("compiler/testData/codegen/boxInline/inlineClasses/noReturnTypeManglingFun.kt");
@@ -63466,6 +63502,12 @@ public class AbiConsistencyTestGenerated extends AbstractAbiConsistencyTest {
             @TestMetadata("enumEntriesMultiMapping.kt")
             public void testEnumEntriesMultiMapping() throws Exception {
                 runTest("compiler/testData/codegen/bytecodeText/enum/enumEntriesMultiMapping.kt");
+            }
+
+            @Test
+            @TestMetadata("enumEntriesNoMapping.kt")
+            public void testEnumEntriesNoMapping() throws Exception {
+                runTest("compiler/testData/codegen/bytecodeText/enum/enumEntriesNoMapping.kt");
             }
 
             @Test
