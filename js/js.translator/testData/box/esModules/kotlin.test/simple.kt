@@ -5,6 +5,7 @@
 // ES_MODULES
 
 // FILE: test.kt
+import common.call
 import kotlin.test.Test
 
 class Simple {

@@ -5,6 +5,7 @@
 // ES_MODULES
 
 // FILE: test.kt
+import common.call
 import kotlin.test.Test
 import kotlin.test.BeforeTest
 import kotlin.test.AfterTest

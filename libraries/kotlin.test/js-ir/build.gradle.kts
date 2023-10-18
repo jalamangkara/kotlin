@@ -66,10 +66,6 @@ tasks {
         archiveAppendix = null
         manifestAttributes(manifest, "Test")
     }
-    artifacts {
-        val distJsKlib = configurations.create("distJsKlib")
-        add(distJsKlib.name, jsJar)
-    }
     val jsSourcesJar by existing(org.gradle.jvm.tasks.Jar::class) {
         archiveAppendix = null
     }
