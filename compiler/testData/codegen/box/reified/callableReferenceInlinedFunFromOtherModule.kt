@@ -1,5 +1,4 @@
 // WITH_STDLIB
-// IGNORE_K1_K2_ABI_DIFFERENCE: KT-62464
 
 // MODULE: lib
 // FILE: lib.kt
