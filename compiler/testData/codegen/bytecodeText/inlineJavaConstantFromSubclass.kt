@@ -1,3 +1,5 @@
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-62558
+
 // FILE: first/JavaSuperclass.java
 
 package first;

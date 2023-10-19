@@ -1,4 +1,6 @@
 // TARGET_BACKEND: JVM
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-62558
+
 // FILE: A.java
 public interface A { public String ok = "OK"; }
 // FILE: B.java
