@@ -6646,6 +6646,28 @@ public class DiagnosticTestGenerated extends AbstractDiagnosticTest {
         }
 
         @Nested
+        @TestMetadata("compiler/testData/diagnostics/tests/contracts")
+        @TestDataPath("$PROJECT_ROOT")
+        public class Contracts {
+            @Test
+            @TestMetadata("14.kt")
+            public void test14() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/contracts/14.kt");
+            }
+
+            @Test
+            @TestMetadata("14UserDefined.kt")
+            public void test14UserDefined() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/contracts/14UserDefined.kt");
+            }
+
+            @Test
+            public void testAllFilesPresentInContracts() throws Exception {
+                KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/diagnostics/tests/contracts"), Pattern.compile("^(.*)\\.kts?$"), Pattern.compile("^(.+)\\.(reversed|fir|ll)\\.kts?$"), true);
+            }
+        }
+
+        @Nested
         @TestMetadata("compiler/testData/diagnostics/tests/controlFlowAnalysis")
         @TestDataPath("$PROJECT_ROOT")
         public class ControlFlowAnalysis {
