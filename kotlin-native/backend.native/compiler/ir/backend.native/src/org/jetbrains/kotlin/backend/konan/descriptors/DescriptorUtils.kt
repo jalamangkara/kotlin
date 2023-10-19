@@ -19,7 +19,11 @@ import org.jetbrains.kotlin.ir.declarations.IrSimpleFunction
 import org.jetbrains.kotlin.ir.symbols.IrClassifierSymbol
 import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
+import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
 import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.types.classOrFail
+import org.jetbrains.kotlin.ir.types.classifierOrFail
+import org.jetbrains.kotlin.ir.types.isSubtypeOfClass
 import org.jetbrains.kotlin.ir.util.*
 
 /**
@@ -75,18 +79,23 @@ internal val IrClass.isArrayWithFixedSizeItems: Boolean
 fun IrClass.isAbstract() = this.modality == Modality.SEALED || this.modality == Modality.ABSTRACT
 
 private enum class TypeKind {
-    ABSENT,
-    VOID,
+    NOTHING,
+    UNIT,
     VALUE_TYPE,
-    REFERENCE
+    REFERENCE,
+    GENERIC
 }
 
-private data class TypeWithKind(val irType: IrType?, val kind: TypeKind) {
+private data class TypeWithKind(val erasedUpperBound: IrClass?, val kind: TypeKind) {
     companion object {
-        fun fromType(irType: IrType?) = when {
-            irType == null -> TypeWithKind(null, TypeKind.ABSENT)
-            irType.isInlinedNative() -> TypeWithKind(irType, TypeKind.VALUE_TYPE)
-            else -> TypeWithKind(irType, TypeKind.REFERENCE)
+        fun fromType(irType: IrType?): TypeWithKind {
+            val erasedUpperBound = irType?.erasedUpperBound
+            return when {
+                irType == null -> TypeWithKind(null, TypeKind.NOTHING)
+                irType.isInlinedNative() -> TypeWithKind(erasedUpperBound, TypeKind.VALUE_TYPE)
+                irType.classifierOrFail is IrTypeParameterSymbol -> TypeWithKind(erasedUpperBound, TypeKind.GENERIC)
+                else -> TypeWithKind(erasedUpperBound, TypeKind.REFERENCE)
+            }
         }
     }
 }
@@ -94,7 +103,7 @@ private data class TypeWithKind(val irType: IrType?, val kind: TypeKind) {
 private fun IrFunction.typeWithKindAt(index: ParameterIndex) = when (index) {
     ParameterIndex.RETURN_INDEX -> when {
         isSuspend -> TypeWithKind(null, TypeKind.REFERENCE)
-        returnType.isVoidAsReturnType() -> TypeWithKind(returnType, TypeKind.VOID)
+        returnType.isVoidAsReturnType() -> TypeWithKind(returnType.classOrFail.owner, TypeKind.UNIT)
         else -> TypeWithKind.fromType(returnType)
     }
     ParameterIndex.DISPATCH_RECEIVER_INDEX -> TypeWithKind.fromType(dispatchReceiverParameter?.type)
@@ -133,28 +142,94 @@ internal fun IrFunction.needBridgeTo(target: IrFunction): Boolean {
 internal enum class BridgeDirectionKind {
     NONE,
     BOX,
-    UNBOX
+    UNBOX,
+    AS_IS,
+    CAST
 }
 
-internal data class BridgeDirection(val irClass: IrClass?, val kind: BridgeDirectionKind) {
+internal data class BridgeDirection(val erasedUpperBound: IrClass?, val kind: BridgeDirectionKind) {
     companion object {
         val NONE = BridgeDirection(null, BridgeDirectionKind.NONE)
+        val AS_IS = BridgeDirection(null, BridgeDirectionKind.AS_IS)
+        val BOX = BridgeDirection(null, BridgeDirectionKind.BOX)
     }
 }
 
-private fun IrFunction.bridgeDirectionToAt(overriddenFunction: IrFunction, index: ParameterIndex): BridgeDirection {
-    val kind = typeWithKindAt(index).kind
-    val (irClass, otherKind) = overriddenFunction.typeWithKindAt(index)
-    return if (otherKind == kind)
-        BridgeDirection.NONE
-    else when (kind) {
-        TypeKind.VOID, TypeKind.REFERENCE -> BridgeDirection(irClass?.erasedUpperBound, BridgeDirectionKind.UNBOX)
-        TypeKind.VALUE_TYPE -> BridgeDirection(
-                irClass?.erasedUpperBound.takeIf { otherKind == TypeKind.VOID } /* Otherwise erase to [Any?] */,
-                BridgeDirectionKind.BOX)
-        TypeKind.ABSENT -> error("TypeKind.ABSENT should be on both sides")
+/*
+ *   left to right : overridden
+ *   up to down    : function
+ *
+ *  +-----+-----+-----+-----+-----+-----+
+ *  |  \  |  ⊥  |  () | VAL | REF | <T> |
+ *  +-----+-----+-----+-----+-----+-----+
+ *  |  ⊥  |  N  |  E  |  E  |  E  |  E  |
+ *  +-----+-----+-----+-----+-----+-----+
+ *  |  () |  E  |  N  |  A  |  A  |  A  |
+ *  +-----+-----+-----+-----+-----+-----+
+ *  | VAL |  E  |  B  |  N  |  B  |  B  |
+ *  +-----+-----+-----+-----+-----+-----+
+ *  | REF |  E  |  N  |  U  |  N  | C^N |
+ *  +-----+-----+-----+-----+-----+-----+
+ *  | <T> |  E  |  N  |  U  | C^N |  N  |
+ *  +-----+-----+-----+-----+-----+-----+
+ */
+
+private typealias BridgeDirectionBuilder = (ParameterIndex, IrClass?, IrClass?) -> BridgeDirection
+
+private val None: BridgeDirectionBuilder = { _, _, _ -> BridgeDirection.NONE }
+private val AsIs: BridgeDirectionBuilder = { _, _, _ -> BridgeDirection.AS_IS }
+private val Box: BridgeDirectionBuilder = { _, _, _ -> BridgeDirection.BOX }
+private val Unbox: BridgeDirectionBuilder = { _, _, to -> BridgeDirection(to, BridgeDirectionKind.UNBOX) }
+private val Cast: BridgeDirectionBuilder = { index, from, to ->
+    if (index == ParameterIndex.RETURN_INDEX) {
+        // from as to
+        if (from == null || to == null || from.defaultType.isSubtypeOfClass(to.symbol))
+            BridgeDirection.NONE
+        else
+            BridgeDirection(from, BridgeDirectionKind.CAST)
+    } else {
+        // to as from
+        if (from == null || to == null || to.defaultType.isSubtypeOfClass(from.symbol))
+            BridgeDirection.NONE
+        else
+            BridgeDirection(to, BridgeDirectionKind.CAST)
     }
 }
+
+private val bridgeDirectionBuilders = arrayOf(
+        arrayOf(None, null, null, null, null),
+        arrayOf(null, None, AsIs, AsIs, AsIs),
+        arrayOf(null, Box, None, Box, Box),
+        arrayOf(null, None, Unbox, None, Cast),
+        arrayOf(null, None, Unbox, Cast, None),
+)
+
+private fun IrFunction.bridgeDirectionToAt(overriddenFunction: IrFunction, index: ParameterIndex): BridgeDirection {
+    val (fromErasedUpperBound, fromKind) = typeWithKindAt(index)
+    val (toErasedUpperBound, toKind) = overriddenFunction.typeWithKindAt(index)
+    val bridgeDirectionsBuilder = bridgeDirectionBuilders[fromKind.ordinal][toKind.ordinal]
+            ?: error("Invalid combination of (fromKind, toKind): ($fromKind, $toKind)\n" +
+                    "from = ${render()}\nto = ${overriddenFunction.render()}\n" +
+                    "from class = ${this.parentClassOrNull?.render()}\nto class = ${overriddenFunction.parentClassOrNull?.render()}")
+    return bridgeDirectionsBuilder(index, fromErasedUpperBound, toErasedUpperBound)
+}
+
+//private fun TypeKind.withoutGeneric() = if (this == TypeKind.GENERIC) TypeKind.REFERENCE else this
+//
+//private fun IrFunction.bridgeDirectionToAt(overriddenFunction: IrFunction, index: ParameterIndex): BridgeDirection {
+//    val kind = typeWithKindAt(index).kind.withoutGeneric()
+//    val (erasedUpperBound, otherKind) = overriddenFunction.typeWithKindAt(index)
+//    return if (otherKind.withoutGeneric() == kind)
+//        BridgeDirection.NONE
+//    else when (kind) {
+//        TypeKind.UNIT, TypeKind.REFERENCE -> BridgeDirection(erasedUpperBound, BridgeDirectionKind.UNBOX)
+//        TypeKind.VALUE_TYPE -> BridgeDirection(
+//                null,//erasedUpperBound.takeIf { otherKind == TypeKind.UNIT } /* Otherwise erase to [Any?] */,
+//                BridgeDirectionKind.BOX)
+//        TypeKind.NOTHING -> error("TypeKind.NOTHING should be on both sides")
+//        TypeKind.GENERIC -> error("unreachable")
+//    }
+//}
 
 internal class BridgeDirections(private val array: Array<BridgeDirection>) {
     constructor(irFunction: IrSimpleFunction, overriddenFunction: IrSimpleFunction)
@@ -177,6 +252,8 @@ internal class BridgeDirections(private val array: Array<BridgeDirection>) {
             result.append(when (it.kind) {
                 BridgeDirectionKind.BOX -> 'B'
                 BridgeDirectionKind.UNBOX -> 'U'
+                BridgeDirectionKind.AS_IS -> 'A'
+                BridgeDirectionKind.CAST -> 'C' // TODO: Actually, there might be different casts here.
                 BridgeDirectionKind.NONE -> 'N'
             })
         }

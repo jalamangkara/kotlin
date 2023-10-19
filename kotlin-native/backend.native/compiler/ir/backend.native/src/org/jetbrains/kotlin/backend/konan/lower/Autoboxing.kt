@@ -147,6 +147,9 @@ private class AutoboxingTransformer(val context: Context) : AbstractValueUsageTr
     override fun IrExpression.useAsValueArgument(expression: IrFunctionAccessExpression,
                                                  parameter: IrValueParameter): IrExpression {
 
+//        if (currentFunction?.file?.path?.endsWith("z1.kt") == true)
+//            println("QZZ: ${expression.dump()}")
+
         return this.useAsArgument(expression.target.valueParameters[parameter.index])
     }
 
@@ -166,7 +169,7 @@ private class AutoboxingTransformer(val context: Context) : AbstractValueUsageTr
      */
 
     private fun IrExpression.adaptIfNecessary(actualType: IrType, expectedType: IrType): IrExpression {
-//        if (currentFunction?.file?.path?.endsWith("z6.kt") == true)
+//        if (currentFunction?.file?.path?.endsWith("z1.kt") == true)
 //            println("ZZZ: ${actualType.render()} ${expectedType.render()}")
         val conversion = context.getTypeConversion(actualType, expectedType)
         return if (conversion == null) {

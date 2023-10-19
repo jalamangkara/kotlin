@@ -55,7 +55,7 @@ internal class BridgesSupport(mapping: NativeMapping, val irBuiltIns: IrBuiltIns
     private fun BridgeDirection.type() =
             if (this.kind == BridgeDirectionKind.NONE)
                 null
-            else this.irClass?.defaultType ?: irBuiltIns.anyNType
+            else this.erasedUpperBound?.defaultType ?: irBuiltIns.anyNType
 
     private fun createBridge(key: NativeMapping.BridgeKey): IrSimpleFunction {
         val (function, bridgeDirections) = key
@@ -290,39 +290,52 @@ private fun IrBlockBodyBuilder.buildTypeSafeBarrier(function: IrFunction,
 private fun Context.buildBridge(startOffset: Int, endOffset: Int,
                                 overriddenFunction: OverriddenFunctionInfo, targetSymbol: IrSimpleFunctionSymbol,
                                 superQualifierSymbol: IrClassSymbol? = null): IrFunction {
-
+    val target = targetSymbol.owner
     val bridge = bridgesSupport.getBridge(overriddenFunction)
 
     if (bridge.modality == Modality.ABSTRACT) {
         return bridge
     }
 
+    val bridgeDirections = overriddenFunction.bridgeDirections
     val irBuilder = createIrBuilder(bridge.symbol, startOffset, endOffset)
     bridge.body = irBuilder.irBlockBody(bridge) {
         val typeSafeBarrierDescription = overriddenFunction.overriddenFunction.getDefaultValueForOverriddenBuiltinFunction()
         typeSafeBarrierDescription?.let { buildTypeSafeBarrier(bridge, overriddenFunction.function, it) }
 
+        fun castIfNeeded(parameter: IrValueParameter, expectedType: IrType, bridgeDirection: BridgeDirection) =
+                if (bridgeDirection.kind == BridgeDirectionKind.CAST)
+                    irAs(irGet(parameter), expectedType)
+                else irGet(parameter)
+
         val delegatingCall = IrCallImpl.fromSymbolOwner(
                 startOffset,
                 endOffset,
-                targetSymbol.owner.returnType,
+                target.returnType,
                 targetSymbol,
-                typeArgumentsCount = targetSymbol.owner.typeParameters.size,
-                valueArgumentsCount = targetSymbol.owner.valueParameters.size,
+                typeArgumentsCount = target.typeParameters.size,
+                valueArgumentsCount = target.valueParameters.size,
                 superQualifierSymbol = superQualifierSymbol /* Call non-virtually */
         ).apply {
             bridge.dispatchReceiverParameter?.let {
-                dispatchReceiver = irGet(it)
+                dispatchReceiver = castIfNeeded(
+                        it, target.dispatchReceiverParameter!!.type, bridgeDirections.dispatchReceiverDirection)
             }
             bridge.extensionReceiverParameter?.let {
-                extensionReceiver = irGet(it)
+                extensionReceiver = castIfNeeded(
+                        it, target.extensionReceiverParameter!!.type, bridgeDirections.extensionReceiverDirection)
             }
             bridge.valueParameters.forEachIndexed { index, parameter ->
-                this.putValueArgument(index, irGet(parameter))
+                putValueArgument(index, castIfNeeded(
+                        parameter, target.valueParameters[index].type, bridgeDirections.parameterDirectionAt(index))
+                )
             }
         }
 
         +irReturn(delegatingCall)
+    }
+    require(bridgeDirections.returnDirection.kind != BridgeDirectionKind.CAST) {
+        "A bridge should never cast the return value: ${bridge.render()}"
     }
     return bridge
 }
