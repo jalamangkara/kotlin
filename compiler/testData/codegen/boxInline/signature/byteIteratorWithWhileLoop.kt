@@ -1,5 +1,6 @@
 // TARGET_BACKEND: JVM
 // ALLOW_KOTLIN_PACKAGE
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-62750
 // Note: order of files is important
 
 // MODULE: kotlin_stdlib
