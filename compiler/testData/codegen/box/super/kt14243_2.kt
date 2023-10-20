@@ -1,3 +1,5 @@
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-62781
+
 interface Z<T> {
     fun test(p: T): T {
         return p
