@@ -173,9 +173,9 @@ class IncrementalK2JavaChangeBuildToolsApiInProcessIT : IncrementalJavaChangeDef
     }
 }
 
-@DisplayName("Default incremental compilation with precise compilation outputs backup")
+@DisplayName("Default incremental compilation with disabled precise compilation outputs backup")
 abstract class IncrementalJavaChangePreciseCompilationBackupIT : IncrementalJavaChangeDefaultIT() {
-    override val defaultBuildOptions = super.defaultBuildOptions.copy(usePreciseOutputsBackup = true, keepIncrementalCompilationCachesInMemory = true)
+    override val defaultBuildOptions = super.defaultBuildOptions.copy(usePreciseOutputsBackup = false, keepIncrementalCompilationCachesInMemory = false)
 }
 
 @DisplayName("Default incremental compilation with precise compilation outputs backup on K1")
