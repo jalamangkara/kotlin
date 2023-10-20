@@ -58,6 +58,12 @@ public class DiagnosticCompilerFirMultiplatformTestdataTestGenerated extends Abs
         }
 
         @Test
+        @TestMetadata("annotationArgumentsLazyResolve.kt")
+        public void testAnnotationArgumentsLazyResolve() throws Exception {
+            runTest("compiler/testData/diagnostics/tests/multiplatform/withLazyResolve/actualAnnotationsNotMatchExpect/annotationArgumentsLazyResolve.kt");
+        }
+
+        @Test
         @TestMetadata("annotationMatching_oldLanguageVersion.kt")
         public void testAnnotationMatching_oldLanguageVersion() throws Exception {
             runTest("compiler/testData/diagnostics/tests/multiplatform/withLazyResolve/actualAnnotationsNotMatchExpect/annotationMatching_oldLanguageVersion.kt");

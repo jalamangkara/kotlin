@@ -22893,12 +22893,6 @@ public class DiagnosticTestGenerated extends AbstractDiagnosticTest {
             }
 
             @Test
-            @TestMetadata("expectActualAnnotationsWithLazyResolve.kt")
-            public void testExpectActualAnnotationsWithLazyResolve() throws Exception {
-                runTest("compiler/testData/diagnostics/tests/multimodule/expectActualAnnotationsWithLazyResolve.kt");
-            }
-
-            @Test
             @TestMetadata("friendModule.kt")
             public void testFriendModule() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/multimodule/friendModule.kt");
@@ -24992,6 +24986,12 @@ public class DiagnosticTestGenerated extends AbstractDiagnosticTest {
                     @TestMetadata("annotationArgumentsDefaults.kt")
                     public void testAnnotationArgumentsDefaults() throws Exception {
                         runTest("compiler/testData/diagnostics/tests/multiplatform/withLazyResolve/actualAnnotationsNotMatchExpect/annotationArgumentsDefaults.kt");
+                    }
+
+                    @Test
+                    @TestMetadata("annotationArgumentsLazyResolve.kt")
+                    public void testAnnotationArgumentsLazyResolve() throws Exception {
+                        runTest("compiler/testData/diagnostics/tests/multiplatform/withLazyResolve/actualAnnotationsNotMatchExpect/annotationArgumentsLazyResolve.kt");
                     }
 
                     @Test
