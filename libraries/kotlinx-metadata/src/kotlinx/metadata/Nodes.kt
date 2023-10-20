@@ -225,6 +225,8 @@ public class KmClass : KmClassVisitor(), KmDeclarationContainer {
         extensions.forEach { visitor.visitExtensions(it.type)?.let(it::accept) }
         visitor.visitEnd()
     }
+
+    internal var writeDisallowed: Boolean = false
 }
 
 /**
@@ -281,6 +283,8 @@ public class KmPackage : KmPackageVisitor(), KmDeclarationContainer {
         extensions.forEach { visitor.visitExtensions(it.type)?.let(it::accept) }
         visitor.visitEnd()
     }
+
+    internal var writeDisallowed: Boolean = false
 }
 
 /**
@@ -307,6 +311,8 @@ public class KmLambda : KmLambdaVisitor() {
         visitor.visitFunction(function.flags, function.name)?.let(function::accept)
         visitor.visitEnd()
     }
+
+    internal var writeDisallowed: Boolean = false
 }
 
 /**

@@ -22,6 +22,7 @@ class JarContentTest {
     fun testJarContents() {
         val jars = File("build/libs").walk().filter { it.name.endsWith(".jar") }.toList()
         assertTrue(jars.isNotEmpty())
+        println(jars.joinToString())
         jars.forEach(::checkClassesHasNoSpecificStringConstants)
     }
 

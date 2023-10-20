@@ -138,3 +138,6 @@ val module = metadata.kmModule
 val bytes = KotlinModuleMetadata.write(module)
 File("META-INF/main.kotlin_module").writeBytes(bytes)
 ```
+
+## Working with different versions
+
