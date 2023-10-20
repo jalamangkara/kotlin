@@ -3,6 +3,8 @@
 // TARGET_BACKEND: JVM_IR
 // ISSUE: KT-58008
 
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-62793
+
 import kotlin.coroutines.*
 
 fun <T> runBlocking(c: suspend () -> T): T {
