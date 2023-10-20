@@ -320,6 +320,12 @@ public class JsIrInvalidationPerModuleTestGenerated extends AbstractJsIrInvalida
     }
 
     @Test
+    @TestMetadata("jsModuleAnnotationOnObjectWithUsage")
+    public void testJsModuleAnnotationOnObjectWithUsage() throws Exception {
+        runTest("js/js.translator/testData/incremental/invalidation/jsModuleAnnotationOnObjectWithUsage/");
+    }
+
+    @Test
     @TestMetadata("languageVersionSettings")
     public void testLanguageVersionSettings() throws Exception {
         runTest("js/js.translator/testData/incremental/invalidation/languageVersionSettings/");
