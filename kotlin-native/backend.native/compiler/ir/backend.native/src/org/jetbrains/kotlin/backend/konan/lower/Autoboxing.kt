@@ -70,13 +70,6 @@ private class AutoboxingTransformer(val context: Context) : AbstractValueUsageTr
     private var currentFunction: IrFunction? = null
     private val irBuilders = mutableListOf<DeclarationIrBuilder>()
 
-//    override fun visitDeclaration(declaration: IrDeclarationBase): IrStatement {
-//        irBuilders.push(context.createIrBuilder(declaration.symbol))
-//        val result = super.visitDeclaration(declaration)
-//        irBuilders.pop()
-//        return result
-//    }
-
     override fun visitField(declaration: IrField): IrStatement {
         irBuilders.push(context.createIrBuilder(declaration.symbol))
         val result = super.visitField(declaration)
@@ -146,65 +139,33 @@ private class AutoboxingTransformer(val context: Context) : AbstractValueUsageTr
 
     override fun IrExpression.useAsValueArgument(expression: IrFunctionAccessExpression,
                                                  parameter: IrValueParameter): IrExpression {
-
-//        if (currentFunction?.file?.path?.endsWith("z1.kt") == true)
-//            println("QZZ: ${expression.dump()}")
-
         return this.useAsArgument(expression.target.valueParameters[parameter.index])
     }
 
-    var index = 0
-    /*
-    1000 -
-    500 +
-    750 +
-    875 -
-    810 +
-    842 +
-    858 -
-    850 +
-    854 +
-    856 +
-    857 -
-     */
-
     private fun IrExpression.adaptIfNecessary(actualType: IrType, expectedType: IrType): IrExpression {
-//        if (currentFunction?.file?.path?.endsWith("z1.kt") == true)
-//            println("ZZZ: ${actualType.render()} ${expectedType.render()}")
         val conversion = context.getTypeConversion(actualType, expectedType)
         return if (conversion == null) {
             val expectedClass = expectedType.classOrNull?.owner
-            ++index
-//            if (index == 856 && currentFunction?.file?.path?.endsWith("smoke.kt") == true) {
-//                println("ZZZ: ${actualType.render()} ${expectedType.render()}")
-//                println(currentFunction?.dump())
-//            }
-            if (expectedClass != null && actualType.classifierOrFail is IrTypeParameterSymbol
-                    && expectedType.getInlinedClassNative() == null
-                    && !expectedClass.isObjCForwardDeclaration()
-                    && !expectedClass.isObjCMetaClass()
-                    //&& currentFunction?.file?.path?.endsWith("smoke.kt") == true
-                    /*&& index < 857*/) {
-//                if (actualClass == irBuiltIns.byteClass.owner)
-//                    println("ZZZ: actualType = ${actualType.render()}, expectedType = ${expectedType.render()}")
-                val irBuilder = irBuilders.peek()!!
-                if (expectedType == irBuiltIns.unitType)
-                    irBuilder.at(this).irImplicitCoercionToUnit(this)
-//                else irBuilder.run { irAs(irImplicitCast(this@adaptIfNecessary, actualType), expectedType) }
-                else if (expectedType.isNullable())
-                    irBuilder.run { irAs(irImplicitCast(this@adaptIfNecessary, actualType), expectedType) }
-                else irBuilder.run { irImplicitCast(irAs(irImplicitCast(this@adaptIfNecessary, actualType), expectedType.makeNullable()), expectedType) }
-//                else irBuilder.irBlock(this) {
-//                    val temp = irTemporary(irImplicitCast(this@adaptIfNecessary, actualType))
-//                    temp.parent = scope.scopeOwnerSymbol.owner.let { it as? IrDeclarationParent ?: (it as IrDeclaration).parent }
-//                    +irIfThenElse(expectedType,
-//                            condition = irEqeqeq(irGet(temp), irNull()),
-//                            thenPart = irNull(),
-//                            elsePart = irAs(irGet(temp), expectedType)
-//                    )
-//                }
-            } else
+            if (expectedClass == null
+                    || actualType.classifierOrFail !is IrTypeParameterSymbol
+                    || expectedType.getInlinedClassNative() != null
+                    || expectedClass.isObjCForwardDeclaration()
+                    || expectedClass.isObjCMetaClass()
+            ) {
                 this
+            } else {
+                irBuilders.peek()!!.at(this).run {
+                    val expression = this@adaptIfNecessary
+                    when {
+                        expectedType == irBuiltIns.unitType ->
+                            irImplicitCoercionToUnit(expression)
+                        expectedType.isNullable() ->
+                            irAs(irImplicitCast(expression, actualType), expectedType)
+                        else ->
+                            irImplicitCast(irAs(irImplicitCast(expression, actualType), expectedType.makeNullable()), expectedType)
+                    }
+                }
+            }
         } else {
             when (this) {
                 is IrConst<*> -> IrConstantPrimitiveImpl(this.startOffset, this.endOffset, this)
