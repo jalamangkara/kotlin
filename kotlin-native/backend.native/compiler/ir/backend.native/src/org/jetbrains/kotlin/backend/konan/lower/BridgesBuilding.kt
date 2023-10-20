@@ -30,7 +30,9 @@ import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.impl.IrSimpleFunctionSymbolImpl
 import org.jetbrains.kotlin.ir.symbols.impl.IrValueParameterSymbolImpl
 import org.jetbrains.kotlin.ir.types.IrType
+import org.jetbrains.kotlin.ir.types.isNullable
 import org.jetbrains.kotlin.ir.types.isNullableAny
+import org.jetbrains.kotlin.ir.types.makeNullable
 import org.jetbrains.kotlin.ir.util.*
 import org.jetbrains.kotlin.ir.visitors.IrElementTransformerVoid
 import org.jetbrains.kotlin.ir.visitors.transformChildrenVoid
@@ -55,7 +57,7 @@ internal class BridgesSupport(mapping: NativeMapping, val irBuiltIns: IrBuiltIns
     private fun BridgeDirection.type() =
             if (this.kind == BridgeDirectionKind.NONE)
                 null
-            else this.erasedUpperBound?.defaultType ?: irBuiltIns.anyNType
+            else this.erasedType ?: irBuiltIns.anyNType
 
     private fun createBridge(key: NativeMapping.BridgeKey): IrSimpleFunction {
         val (function, bridgeDirections) = key
@@ -303,10 +305,14 @@ private fun Context.buildBridge(startOffset: Int, endOffset: Int,
         val typeSafeBarrierDescription = overriddenFunction.overriddenFunction.getDefaultValueForOverriddenBuiltinFunction()
         typeSafeBarrierDescription?.let { buildTypeSafeBarrier(bridge, overriddenFunction.function, it) }
 
-        fun castIfNeeded(parameter: IrValueParameter, expectedType: IrType, bridgeDirection: BridgeDirection) =
-                if (bridgeDirection.kind == BridgeDirectionKind.CAST)
-                    irAs(irGet(parameter), expectedType)
-                else irGet(parameter)
+        fun castIfNeeded(value: IrExpression, expectedType: IrType, bridgeDirection: BridgeDirection) =
+                if (bridgeDirection.kind != BridgeDirectionKind.CAST)
+                    value
+                else {
+                    if (expectedType.isNullable())
+                        irAs(value, expectedType)
+                    else irImplicitCast(irAs(value, expectedType.makeNullable()), expectedType)
+                }
 
         val delegatingCall = IrCallImpl.fromSymbolOwner(
                 startOffset,
@@ -319,23 +325,20 @@ private fun Context.buildBridge(startOffset: Int, endOffset: Int,
         ).apply {
             bridge.dispatchReceiverParameter?.let {
                 dispatchReceiver = castIfNeeded(
-                        it, target.dispatchReceiverParameter!!.type, bridgeDirections.dispatchReceiverDirection)
+                        irGet(it), target.dispatchReceiverParameter!!.type, bridgeDirections.dispatchReceiverDirection)
             }
             bridge.extensionReceiverParameter?.let {
                 extensionReceiver = castIfNeeded(
-                        it, target.extensionReceiverParameter!!.type, bridgeDirections.extensionReceiverDirection)
+                        irGet(it), target.extensionReceiverParameter!!.type, bridgeDirections.extensionReceiverDirection)
             }
             bridge.valueParameters.forEachIndexed { index, parameter ->
                 putValueArgument(index, castIfNeeded(
-                        parameter, target.valueParameters[index].type, bridgeDirections.parameterDirectionAt(index))
+                        irGet(parameter), target.valueParameters[index].type, bridgeDirections.parameterDirectionAt(index))
                 )
             }
         }
 
-        +irReturn(delegatingCall)
-    }
-    require(bridgeDirections.returnDirection.kind != BridgeDirectionKind.CAST) {
-        "A bridge should never cast the return value: ${bridge.render()}"
+        +irReturn(castIfNeeded(delegatingCall, bridge.returnType, bridgeDirections.returnDirection))
     }
     return bridge
 }

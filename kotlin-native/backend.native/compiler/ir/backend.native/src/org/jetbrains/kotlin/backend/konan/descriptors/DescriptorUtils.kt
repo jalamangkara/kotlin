@@ -8,6 +8,7 @@ package org.jetbrains.kotlin.backend.konan.descriptors
 import org.jetbrains.kotlin.backend.konan.*
 import org.jetbrains.kotlin.backend.konan.ir.getSuperClassNotAny
 import org.jetbrains.kotlin.backend.konan.ir.getSuperInterfaces
+import org.jetbrains.kotlin.backend.konan.ir.isNothing
 import org.jetbrains.kotlin.backend.konan.llvm.isVoidAsReturnType
 import org.jetbrains.kotlin.backend.konan.lower.erasedUpperBound
 import org.jetbrains.kotlin.descriptors.Modality
@@ -20,10 +21,7 @@ import org.jetbrains.kotlin.ir.symbols.IrClassifierSymbol
 import org.jetbrains.kotlin.ir.symbols.IrFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
 import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
-import org.jetbrains.kotlin.ir.types.IrType
-import org.jetbrains.kotlin.ir.types.classOrFail
-import org.jetbrains.kotlin.ir.types.classifierOrFail
-import org.jetbrains.kotlin.ir.types.isSubtypeOfClass
+import org.jetbrains.kotlin.ir.types.*
 import org.jetbrains.kotlin.ir.util.*
 
 /**
@@ -86,15 +84,18 @@ private enum class TypeKind {
     GENERIC
 }
 
-private data class TypeWithKind(val erasedUpperBound: IrClass?, val kind: TypeKind) {
+private data class TypeWithKind(val erasedType: IrType?, val kind: TypeKind) {
     companion object {
         fun fromType(irType: IrType?): TypeWithKind {
             val erasedUpperBound = irType?.erasedUpperBound
+            val erasedType = erasedUpperBound?.defaultType?.let {
+                if (irType.isNullable()) it.makeNullable() else it
+            }
             return when {
                 irType == null -> TypeWithKind(null, TypeKind.NOTHING)
-                irType.isInlinedNative() -> TypeWithKind(erasedUpperBound, TypeKind.VALUE_TYPE)
-                irType.classifierOrFail is IrTypeParameterSymbol -> TypeWithKind(erasedUpperBound, TypeKind.GENERIC)
-                else -> TypeWithKind(erasedUpperBound, TypeKind.REFERENCE)
+                irType.isInlinedNative() -> TypeWithKind(erasedType, TypeKind.VALUE_TYPE)
+                irType.classifierOrFail is IrTypeParameterSymbol -> TypeWithKind(erasedType, TypeKind.GENERIC)
+                else -> TypeWithKind(erasedType, TypeKind.REFERENCE)
             }
         }
     }
@@ -103,7 +104,7 @@ private data class TypeWithKind(val erasedUpperBound: IrClass?, val kind: TypeKi
 private fun IrFunction.typeWithKindAt(index: ParameterIndex) = when (index) {
     ParameterIndex.RETURN_INDEX -> when {
         isSuspend -> TypeWithKind(null, TypeKind.REFERENCE)
-        returnType.isVoidAsReturnType() -> TypeWithKind(returnType.classOrFail.owner, TypeKind.UNIT)
+        returnType.isVoidAsReturnType() -> TypeWithKind(returnType, TypeKind.UNIT)
         else -> TypeWithKind.fromType(returnType)
     }
     ParameterIndex.DISPATCH_RECEIVER_INDEX -> TypeWithKind.fromType(dispatchReceiverParameter?.type)
@@ -147,7 +148,7 @@ internal enum class BridgeDirectionKind {
     CAST
 }
 
-internal data class BridgeDirection(val erasedUpperBound: IrClass?, val kind: BridgeDirectionKind) {
+internal data class BridgeDirection(val erasedType: IrType?, val kind: BridgeDirectionKind) {
     companion object {
         val NONE = BridgeDirection(null, BridgeDirectionKind.NONE)
         val AS_IS = BridgeDirection(null, BridgeDirectionKind.AS_IS)
@@ -174,7 +175,7 @@ internal data class BridgeDirection(val erasedUpperBound: IrClass?, val kind: Br
  *  +-----+-----+-----+-----+-----+-----+
  */
 
-private typealias BridgeDirectionBuilder = (ParameterIndex, IrClass?, IrClass?) -> BridgeDirection
+private typealias BridgeDirectionBuilder = (ParameterIndex, IrType?, IrType?) -> BridgeDirection
 
 private val None: BridgeDirectionBuilder = { _, _, _ -> BridgeDirection.NONE }
 private val AsIs: BridgeDirectionBuilder = { _, _, _ -> BridgeDirection.AS_IS }
@@ -183,13 +184,13 @@ private val Unbox: BridgeDirectionBuilder = { _, _, to -> BridgeDirection(to, Br
 private val Cast: BridgeDirectionBuilder = { index, from, to ->
     if (index == ParameterIndex.RETURN_INDEX) {
         // from as to
-        if (from == null || to == null || from.defaultType.isSubtypeOfClass(to.symbol))
+        if (from == null || to == null || from.classOrFail.owner.isNothing() || from.isSubtypeOfClass(to.classOrFail))
             BridgeDirection.NONE
         else
-            BridgeDirection(from, BridgeDirectionKind.CAST)
+            BridgeDirection(to, BridgeDirectionKind.CAST)
     } else {
         // to as from
-        if (from == null || to == null || to.defaultType.isSubtypeOfClass(from.symbol))
+        if (from == null || to == null || from.classOrFail.let { it.owner.isNothing() || to.isSubtypeOfClass(it) })
             BridgeDirection.NONE
         else
             BridgeDirection(to, BridgeDirectionKind.CAST)
@@ -205,13 +206,23 @@ private val bridgeDirectionBuilders = arrayOf(
 )
 
 private fun IrFunction.bridgeDirectionToAt(overriddenFunction: IrFunction, index: ParameterIndex): BridgeDirection {
-    val (fromErasedUpperBound, fromKind) = typeWithKindAt(index)
-    val (toErasedUpperBound, toKind) = overriddenFunction.typeWithKindAt(index)
+    val (fromErasedType, fromKind) = typeWithKindAt(index)
+    val (toErasedType, toKind) = overriddenFunction.typeWithKindAt(index)
     val bridgeDirectionsBuilder = bridgeDirectionBuilders[fromKind.ordinal][toKind.ordinal]
             ?: error("Invalid combination of (fromKind, toKind): ($fromKind, $toKind)\n" +
                     "from = ${render()}\nto = ${overriddenFunction.render()}\n" +
                     "from class = ${this.parentClassOrNull?.render()}\nto class = ${overriddenFunction.parentClassOrNull?.render()}")
-    return bridgeDirectionsBuilder(index, fromErasedUpperBound, toErasedUpperBound)
+    return bridgeDirectionsBuilder(index, fromErasedType, toErasedType)/*.also {
+        if (index == ParameterIndex.RETURN_INDEX && it.kind == BridgeDirectionKind.CAST) {
+            val t = IllegalStateException()
+            t.printStackTrace()
+            println("ZZZ from = ${render()}\n    to = ${overriddenFunction.render()}")
+            println("    from class = ${this.parentClassOrNull?.render()}\n" +
+                    "    to class = ${overriddenFunction.parentClassOrNull?.render()}")
+            println("    fromErasedType = ${fromErasedType?.render()}")
+            println("    toErasedType = ${toErasedType?.render()}")
+        }
+    }*/
 }
 
 //private fun TypeKind.withoutGeneric() = if (this == TypeKind.GENERIC) TypeKind.REFERENCE else this
