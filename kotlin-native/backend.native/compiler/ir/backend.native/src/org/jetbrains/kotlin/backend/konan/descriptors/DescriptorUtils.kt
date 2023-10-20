@@ -212,35 +212,8 @@ private fun IrFunction.bridgeDirectionToAt(overriddenFunction: IrFunction, index
             ?: error("Invalid combination of (fromKind, toKind): ($fromKind, $toKind)\n" +
                     "from = ${render()}\nto = ${overriddenFunction.render()}\n" +
                     "from class = ${this.parentClassOrNull?.render()}\nto class = ${overriddenFunction.parentClassOrNull?.render()}")
-    return bridgeDirectionsBuilder(index, fromErasedType, toErasedType)/*.also {
-        if (index == ParameterIndex.RETURN_INDEX && it.kind == BridgeDirectionKind.CAST) {
-            val t = IllegalStateException()
-            t.printStackTrace()
-            println("ZZZ from = ${render()}\n    to = ${overriddenFunction.render()}")
-            println("    from class = ${this.parentClassOrNull?.render()}\n" +
-                    "    to class = ${overriddenFunction.parentClassOrNull?.render()}")
-            println("    fromErasedType = ${fromErasedType?.render()}")
-            println("    toErasedType = ${toErasedType?.render()}")
-        }
-    }*/
+    return bridgeDirectionsBuilder(index, fromErasedType, toErasedType)
 }
-
-//private fun TypeKind.withoutGeneric() = if (this == TypeKind.GENERIC) TypeKind.REFERENCE else this
-//
-//private fun IrFunction.bridgeDirectionToAt(overriddenFunction: IrFunction, index: ParameterIndex): BridgeDirection {
-//    val kind = typeWithKindAt(index).kind.withoutGeneric()
-//    val (erasedUpperBound, otherKind) = overriddenFunction.typeWithKindAt(index)
-//    return if (otherKind.withoutGeneric() == kind)
-//        BridgeDirection.NONE
-//    else when (kind) {
-//        TypeKind.UNIT, TypeKind.REFERENCE -> BridgeDirection(erasedUpperBound, BridgeDirectionKind.UNBOX)
-//        TypeKind.VALUE_TYPE -> BridgeDirection(
-//                null,//erasedUpperBound.takeIf { otherKind == TypeKind.UNIT } /* Otherwise erase to [Any?] */,
-//                BridgeDirectionKind.BOX)
-//        TypeKind.NOTHING -> error("TypeKind.NOTHING should be on both sides")
-//        TypeKind.GENERIC -> error("unreachable")
-//    }
-//}
 
 internal class BridgeDirections(private val array: Array<BridgeDirection>) {
     constructor(irFunction: IrSimpleFunction, overriddenFunction: IrSimpleFunction)
