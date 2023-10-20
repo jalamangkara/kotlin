@@ -92,6 +92,24 @@ public class FirOldFrontendMPPDiagnosticsWithPsiTestGenerated extends AbstractFi
     }
 
     @Test
+    @TestMetadata("annotationArgArrayVsOutArray.kt")
+    public void testAnnotationArgArrayVsOutArray() throws Exception {
+        runTest("compiler/testData/diagnostics/tests/multiplatform/annotationArgArrayVsOutArray.kt");
+    }
+
+    @Test
+    @TestMetadata("annotationArgArrayVsVararg.kt")
+    public void testAnnotationArgArrayVsVararg() throws Exception {
+        runTest("compiler/testData/diagnostics/tests/multiplatform/annotationArgArrayVsVararg.kt");
+    }
+
+    @Test
+    @TestMetadata("annotationArgTypeAliasWithArray.kt")
+    public void testAnnotationArgTypeAliasWithArray() throws Exception {
+        runTest("compiler/testData/diagnostics/tests/multiplatform/annotationArgTypeAliasWithArray.kt");
+    }
+
+    @Test
     @TestMetadata("arraySort.kt")
     public void testArraySort() throws Exception {
         runTest("compiler/testData/diagnostics/tests/multiplatform/arraySort.kt");
@@ -807,18 +825,6 @@ public class FirOldFrontendMPPDiagnosticsWithPsiTestGenerated extends AbstractFi
         }
 
         @Test
-        @TestMetadata("arrayVsOutArray.kt")
-        public void testArrayVsOutArray() throws Exception {
-            runTest("compiler/testData/diagnostics/tests/multiplatform/annotationMatching/arrayVsOutArray.kt");
-        }
-
-        @Test
-        @TestMetadata("arrayVsVararg.kt")
-        public void testArrayVsVararg() throws Exception {
-            runTest("compiler/testData/diagnostics/tests/multiplatform/annotationMatching/arrayVsVararg.kt");
-        }
-
-        @Test
         @TestMetadata("basicOnDeclaration.kt")
         public void testBasicOnDeclaration() throws Exception {
             runTest("compiler/testData/diagnostics/tests/multiplatform/annotationMatching/basicOnDeclaration.kt");
@@ -942,12 +948,6 @@ public class FirOldFrontendMPPDiagnosticsWithPsiTestGenerated extends AbstractFi
         @TestMetadata("twoActualTypealiasesToSameClass.kt")
         public void testTwoActualTypealiasesToSameClass() throws Exception {
             runTest("compiler/testData/diagnostics/tests/multiplatform/annotationMatching/twoActualTypealiasesToSameClass.kt");
-        }
-
-        @Test
-        @TestMetadata("typeAliasWithArray.kt")
-        public void testTypeAliasWithArray() throws Exception {
-            runTest("compiler/testData/diagnostics/tests/multiplatform/annotationMatching/typeAliasWithArray.kt");
         }
 
         @Test
