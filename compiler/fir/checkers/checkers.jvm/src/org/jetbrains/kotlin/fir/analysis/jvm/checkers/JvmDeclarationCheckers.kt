@@ -46,6 +46,7 @@ object JvmDeclarationCheckers : DeclarationCheckers() {
         get() = setOf(
             FirSynchronizedAnnotationChecker,
             FirOverloadsChecker,
+            FirFunctionJavaNullabilityWarningChecker,
         )
 
     override val typeParameterCheckers: Set<FirTypeParameterChecker>
