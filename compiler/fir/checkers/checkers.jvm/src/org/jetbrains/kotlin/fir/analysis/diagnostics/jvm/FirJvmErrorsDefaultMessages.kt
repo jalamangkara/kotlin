@@ -88,8 +88,6 @@ import org.jetbrains.kotlin.fir.analysis.diagnostics.jvm.FirJvmErrors.WRONG_NULL
 object FirJvmErrorsDefaultMessages : BaseDiagnosticRendererFactory() {
 
     override val MAP = KtDiagnosticFactoryToRendererMap("FIR").also { map ->
-        map.put(CONFLICTING_JVM_DECLARATIONS, "Platform declaration clash.")
-
         map.put(JAVA_TYPE_MISMATCH, "Java type mismatch: expected ''{0}'' but found ''{1}''. Use explicit cast.", RENDER_TYPE, RENDER_TYPE)
 
         map.put(
