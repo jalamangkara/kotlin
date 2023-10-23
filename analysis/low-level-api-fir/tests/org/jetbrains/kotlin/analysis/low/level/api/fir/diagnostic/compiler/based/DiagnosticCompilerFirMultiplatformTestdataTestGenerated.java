@@ -250,6 +250,12 @@ public class DiagnosticCompilerFirMultiplatformTestdataTestGenerated extends Abs
         }
 
         @Test
+        @TestMetadata("typealiasToJavaWithAnnotationArgument.kt")
+        public void testTypealiasToJavaWithAnnotationArgument() throws Exception {
+            runTest("compiler/testData/diagnostics/tests/multiplatform/withLazyResolve/actualAnnotationsNotMatchExpect/typealiasToJavaWithAnnotationArgument.kt");
+        }
+
+        @Test
         @TestMetadata("typealiasToKtLibrary.kt")
         public void testTypealiasToKtLibrary() throws Exception {
             runTest("compiler/testData/diagnostics/tests/multiplatform/withLazyResolve/actualAnnotationsNotMatchExpect/typealiasToKtLibrary.kt");

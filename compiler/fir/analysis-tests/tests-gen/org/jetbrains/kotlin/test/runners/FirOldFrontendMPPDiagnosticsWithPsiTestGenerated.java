@@ -1433,12 +1433,6 @@ public class FirOldFrontendMPPDiagnosticsWithPsiTestGenerated extends AbstractFi
                 }
 
                 @Test
-                @TestMetadata("typealiasToJavaWithAnnotationArgument.kt")
-                public void testTypealiasToJavaWithAnnotationArgument() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/multiplatform/hmpp/multiplatformCompositeAnalysis/annotationMatching/typealiasToJavaWithAnnotationArgument.kt");
-                }
-
-                @Test
                 @TestMetadata("typealiasedAnnotation.kt")
                 public void testTypealiasedAnnotation() throws Exception {
                     runTest("compiler/testData/diagnostics/tests/multiplatform/hmpp/multiplatformCompositeAnalysis/annotationMatching/typealiasedAnnotation.kt");
@@ -1931,6 +1925,12 @@ public class FirOldFrontendMPPDiagnosticsWithPsiTestGenerated extends AbstractFi
             @TestMetadata("typealiasToJavaLibrary.kt")
             public void testTypealiasToJavaLibrary() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/multiplatform/withLazyResolve/actualAnnotationsNotMatchExpect/typealiasToJavaLibrary.kt");
+            }
+
+            @Test
+            @TestMetadata("typealiasToJavaWithAnnotationArgument.kt")
+            public void testTypealiasToJavaWithAnnotationArgument() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/multiplatform/withLazyResolve/actualAnnotationsNotMatchExpect/typealiasToJavaWithAnnotationArgument.kt");
             }
 
             @Test
