@@ -22,6 +22,9 @@ class EnhancedTypeForWarningAttribute(
 
     override val key: KClass<out EnhancedTypeForWarningAttribute>
         get() = EnhancedTypeForWarningAttribute::class
+
+    override val keepInInferredDeclarationType: Boolean
+        get() = true
 }
 
 val ConeAttributes.enhancedTypeForWarning: EnhancedTypeForWarningAttribute? by ConeAttributes.attributeAccessor<EnhancedTypeForWarningAttribute>()

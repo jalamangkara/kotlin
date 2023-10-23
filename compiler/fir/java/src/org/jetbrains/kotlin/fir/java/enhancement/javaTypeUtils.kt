@@ -92,8 +92,7 @@ private fun ConeSimpleKotlinType.enhanceInflexibleType(
     val effectiveQualifiers = qualifiers(index)
     val enhancedTag = lookupTag.enhanceMutability(effectiveQualifiers, position)
 
-    val nullabilityFromQualifiers = effectiveQualifiers.nullability
-        .takeIf { shouldEnhance }
+    val nullabilityFromQualifiers = effectiveQualifiers.nullability.takeIf { shouldEnhance }
 
     val enhanced = enhanceInflexibleType(
         session,
