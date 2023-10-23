@@ -411,7 +411,7 @@ internal abstract class IrExpectActualMatchingContext(
 
         private fun substituteOrNull(type: IrType): IrType? {
             if (type !is IrSimpleTypeImpl) return null
-            val newClassifier = (type.classifier.owner as? IrClass)?.let { actualClassesMap[it.classIdOrFail] }
+            val newClassifier = (type.classifier.owner as? IrClass)?.let { getActualClassSymbolForClassId(it.classIdOrFail) }
             val newArguments = ArrayList<IrTypeArgument>(type.arguments.size)
             var argumentsChanged = false
             for (argument in type.arguments) {
@@ -433,6 +433,44 @@ internal abstract class IrExpectActualMatchingContext(
                 type.annotations,
                 type.abbreviation
             )
+        }
+
+        private fun getActualClassSymbolForClassId(classId: ClassId): IrClassSymbol? {
+            return actualClassesMap[classId]
+                ?: getActualClassSymbolForNestedClassId(classId)
+        }
+
+        /**
+         * In case of nested classes we can't simply find symbol in [actualClassesMap] by expect ClassId, if outermost
+         * class was actualized via typealias. This is because actual ClassId of nested class is different.
+         * We have to first find mapping for outermost class, and then find mapping for nested class.
+         *
+         * **Example**:
+         *
+         * ```kotlin
+         * expect class Foo {
+         *   class Nested
+         * }
+         *
+         * actual typealias Foo = another.package.FooImpl
+         * ```
+         *
+         * In such case in [actualClassesMap] we have:
+         * - `Foo -> another.package.FooImpl`
+         * - `another.package.FooImpl -> another.package.FooImpl`
+         * - `another.package.FooImpl.Nested` -> `another.package.FooImpl.Nested`
+         *
+         * but not `Foo.Nested` -> `another.package.FooImpl.Nested`.
+         */
+        private fun getActualClassSymbolForNestedClassId(classId: ClassId): IrClassSymbol? {
+            if (!classId.isNestedClass) {
+                return null
+            }
+            val expectOutermostClassId = classId.outermostClassId
+            val actualOutermostClassId = actualClassesMap[expectOutermostClassId]?.owner?.classIdOrFail ?: return null
+            val actualClassId =
+                ClassId.fromString(classId.asString().replace(expectOutermostClassId.asString(), actualOutermostClassId.asString()))
+            return actualClassesMap[actualClassId]
         }
 
         private fun substituteArgumentOrNull(argument: IrTypeArgument): IrTypeArgument? {
