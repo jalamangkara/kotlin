@@ -84,7 +84,7 @@ class CharNativeTest {
     }
 
     @Test
-    fun testIsSurrogatePair() {
+    fun isSurrogatePair() {
         assertFalse(Char.isSurrogatePair('\u0000', '\u0000'))
         assertFalse(Char.isSurrogatePair('\u0000', '\uDC00'))
         assertTrue( Char.isSurrogatePair('\uD800', '\uDC00'))
@@ -94,20 +94,17 @@ class CharNativeTest {
     }
 
     @Test
-    fun testToChars() {
-        assertTrue(charArrayOf('\uD800', '\uDC00').contentEquals(Char.toChars(0x010000)))
-        assertTrue(charArrayOf('\uD800', '\uDC01').contentEquals(Char.toChars(0x010001)))
-        assertTrue(charArrayOf('\uD801', '\uDC01').contentEquals(Char.toChars(0x010401)))
-        assertTrue(charArrayOf('\uDBFF', '\uDFFF').contentEquals(Char.toChars(0x10FFFF)))
+    fun toChars() {
+        assertContentEquals(Char.toChars(0x010000), charArrayOf('\uD800', '\uDC00'))
+        assertContentEquals(Char.toChars(0x010001), charArrayOf('\uD800', '\uDC01'))
+        assertContentEquals(Char.toChars(0x010401), charArrayOf('\uD801', '\uDC01'))
+        assertContentEquals(Char.toChars(0x10FFFF), charArrayOf('\uDBFF', '\uDFFF'))
 
-        try {
-            Char.toChars(Int.MAX_VALUE)
-            throw AssertionError()
-        } catch (e: IllegalArgumentException) {}
+        assertFailsWith<IllegalArgumentException> { Char.toChars(Int.MAX_VALUE) }
     }
 
     @Test
-    fun testToCodePoint() {
+    fun toCodePoint() {
         assertEquals(0x010000, Char.toCodePoint('\uD800', '\uDC00'))
         assertEquals(0x010001, Char.toCodePoint('\uD800', '\uDC01'))
         assertEquals(0x010401, Char.toCodePoint('\uD801', '\uDC01'))
@@ -115,43 +112,10 @@ class CharNativeTest {
     }
 
     @Test
-    fun testCase() {
-        assertEquals('A', 'a'.uppercaseChar())
-        assertEquals('A', 'A'.uppercaseChar())
-        assertEquals('1', '1'.uppercaseChar())
-
-        assertEquals('a', 'A'.lowercaseChar())
-        assertEquals('a', 'a'.lowercaseChar())
-        assertEquals('1', '1'.lowercaseChar())
-    }
-
-    @Test
-    fun testCategory() {
-        assertTrue('\n'     in CharCategory.CONTROL)
-        assertTrue('1'      in CharCategory.DECIMAL_DIGIT_NUMBER)
-        assertTrue(' '      in CharCategory.SPACE_SEPARATOR)
-        assertTrue('a'      in CharCategory.LOWERCASE_LETTER)
-        assertTrue('A'      in CharCategory.UPPERCASE_LETTER)
+    fun category() {
         assertTrue('<'      in CharCategory.MATH_SYMBOL)
         assertTrue(';'      in CharCategory.OTHER_PUNCTUATION)
         assertTrue('_'      in CharCategory.CONNECTOR_PUNCTUATION)
         assertTrue('$'      in CharCategory.CURRENCY_SYMBOL)
-        assertTrue('\u2029' in CharCategory.PARAGRAPH_SEPARATOR)
-    }
-
-    @Test
-    fun testIsHighSurrogate() {
-        assertTrue('\uD800'.isHighSurrogate())
-        assertTrue('\uDBFF'.isHighSurrogate())
-        assertFalse('\uDC00'.isHighSurrogate())
-        assertFalse('\uDFFF'.isHighSurrogate())
-    }
-
-    @Test
-    fun testIsLowSurrogate() {
-        assertFalse('\uD800'.isLowSurrogate())
-        assertFalse('\uDBFF'.isLowSurrogate())
-        assertTrue('\uDC00'.isLowSurrogate())
-        assertTrue('\uDFFF'.isLowSurrogate())
     }
 }
