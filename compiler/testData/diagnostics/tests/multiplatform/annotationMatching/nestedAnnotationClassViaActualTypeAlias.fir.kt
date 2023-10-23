@@ -16,5 +16,5 @@ annotation class AnnImpl {
 
 actual typealias Ann = AnnImpl
 
-<!ACTUAL_ANNOTATIONS_NOT_MATCH_EXPECT!>@AnnImpl.Nested
-actual fun <!ACTUAL_ANNOTATIONS_NOT_MATCH_EXPECT!>foo<!>() {}<!>
+@AnnImpl.Nested
+actual fun <!ACTUAL_ANNOTATIONS_NOT_MATCH_EXPECT!>foo<!>() {}

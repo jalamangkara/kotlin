@@ -558,8 +558,8 @@ internal abstract class IrExpectActualMatchingContext(
         )
     }
 
-    internal fun getClassIdAfterActualization(classId: ClassId): ClassId {
-        return actualClassesMap[classId]?.classId ?: classId
+    internal fun getTypeClassIdAfterActualization(irType: IrType): ClassId {
+        return irType.actualize().classOrFail.classId
     }
 
     private inner class AnnotationCallInfoImpl(val irElement: IrConstructorCall) : AnnotationCallInfo {
@@ -574,10 +574,7 @@ internal abstract class IrExpectActualMatchingContext(
         override val isOptIn: Boolean
             get() = getAnnotationClass()?.hasAnnotation(OptInNames.REQUIRES_OPT_IN_FQ_NAME) ?: false
 
-        private fun getAnnotationClass(): IrClass? {
-            val annotationClass = irElement.type.getClass() ?: return null
-            return actualClassesMap[annotationClass.classId]?.owner ?: annotationClass
-        }
+        private fun getAnnotationClass(): IrClass? = irElement.type.actualize().getClass()
     }
 
     override val DeclarationSymbolMarker.hasSourceAnnotationsErased: Boolean

@@ -8,7 +8,6 @@ package org.jetbrains.kotlin.backend.common.actualizer.checker
 import org.jetbrains.kotlin.backend.common.actualizer.IrExpectActualMatchingContext
 import org.jetbrains.kotlin.ir.IrElement
 import org.jetbrains.kotlin.ir.expressions.*
-import org.jetbrains.kotlin.ir.types.classOrFail
 import org.jetbrains.kotlin.resolve.calls.mpp.ExpectActualCollectionArgumentsCompatibilityCheckStrategy
 
 internal fun IrExpectActualMatchingContext.areIrExpressionConstValuesEqual(
@@ -24,8 +23,8 @@ internal fun IrExpectActualMatchingContext.areIrExpressionConstValuesEqual(
         a is IrConst<*> && b is IrConst<*> -> a.value == b.value
 
         a is IrClassReference && b is IrClassReference -> equalBy(a, b) {
-            val classId = it.classType.classOrFail.classId
-            getClassIdAfterActualization(classId)
+            // TODO(KT-62850): check type arguments for the case with Array<..> class reference
+            getTypeClassIdAfterActualization(it.classType)
         }
 
         a is IrGetEnumValue && b is IrGetEnumValue ->
