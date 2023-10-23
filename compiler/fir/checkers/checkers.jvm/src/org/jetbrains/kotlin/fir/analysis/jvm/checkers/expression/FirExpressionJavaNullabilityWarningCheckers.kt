@@ -28,7 +28,7 @@ object FirQualifiedAccessJavaNullabilityWarningChecker : FirQualifiedAccessExpre
         val substitutor = buildSubstitutor(expression, symbol, context.session)
 
         expression.dispatchReceiver?.checkExpressionForEnhancedTypeMismatch(
-            expectedType = symbol.dispatchReceiverType?.let(substitutor::substituteOrSelf),
+            expectedType = symbol.dispatchReceiverType,
             reporter,
             context,
             FirJvmErrors.RECEIVER_NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS
