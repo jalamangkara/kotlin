@@ -63,10 +63,10 @@ fun checkCasting(
     if (lhsNullable && rhsNullable) return CastingType.Possible
     val lhsClassSymbol = lhsLowerType.toRegularClassSymbol(context.session)
     val rhsClassSymbol = rhsLowerType.toRegularClassSymbol(context.session)
-    if (isRelated(lhsLowerType, rhsLowerType, lhsClassSymbol, rhsClassSymbol, context)) return CastingType.Possible
     // This is an oversimplification (which does not render the method incomplete):
     // we consider any type parameter capable of taking any value, which may be made more precise if we considered bounds
     if (lhsLowerType is ConeTypeParameterType || rhsLowerType is ConeTypeParameterType) return CastingType.Possible
+    if (isRelated(lhsLowerType, rhsLowerType, lhsClassSymbol, rhsClassSymbol, context)) return CastingType.Possible
 
     if (isFinal(lhsLowerType, session) || isFinal(rhsLowerType, session)) return CastingType.Impossible
     if (lhsClassSymbol?.isInterface == true || rhsClassSymbol?.isInterface == true) return CastingType.Possible
@@ -83,8 +83,8 @@ fun checkCasting(
  * (i.e. java.lang.String -> kotlin.String) and ignore mappings that go the other way.
  */
 private fun isRelated(
-    aType: ConeSimpleKotlinType,
-    bType: ConeSimpleKotlinType,
+    aType: ConeKotlinType,
+    bType: ConeKotlinType,
     aClassSymbol: FirRegularClassSymbol?,
     bClassSymbol: FirRegularClassSymbol?,
     context: CheckerContext
@@ -97,15 +97,18 @@ private fun isRelated(
         return true
     }
 
-    fun getCorrespondingKotlinClass(type: ConeSimpleKotlinType): ConeKotlinType {
+    fun getCorrespondingKotlinClass(type: ConeClassLikeType): ConeClassLikeType {
         return context.session.platformClassMapper.getCorrespondingKotlinClass(type.classId)?.defaultType(listOf()) ?: type
     }
+
+    if (aType !is ConeClassLikeType || bType !is ConeClassLikeType) return false
 
     val aNormalizedType = getCorrespondingKotlinClass(aClassSymbol?.defaultType() ?: aType)
     val bNormalizedType = getCorrespondingKotlinClass(bClassSymbol?.defaultType() ?: bType)
 
-    return AbstractTypeChecker.isSubtypeOf(typeContext, aNormalizedType, bNormalizedType) ||
-            AbstractTypeChecker.isSubtypeOf(typeContext, bNormalizedType, aNormalizedType)
+    val state = typeContext.newTypeCheckerState(errorTypesEqualToAnything = false, stubTypesEqualToAnything = false)
+    return AbstractTypeChecker.isSubtypeOfClass(state, aNormalizedType.lookupTag, bNormalizedType.lookupTag) ||
+            AbstractTypeChecker.isSubtypeOfClass(state, bNormalizedType.lookupTag, aNormalizedType.lookupTag)
 }
 
 private fun isFinal(type: ConeSimpleKotlinType, session: FirSession): Boolean {
