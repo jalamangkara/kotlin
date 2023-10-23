@@ -915,6 +915,12 @@ public class FirOldFrontendMPPDiagnosticsWithPsiTestGenerated extends AbstractFi
         }
 
         @Test
+        @TestMetadata("nestedAnnotationClassViaActualTypeAlias.kt")
+        public void testNestedAnnotationClassViaActualTypeAlias() throws Exception {
+            runTest("compiler/testData/diagnostics/tests/multiplatform/annotationMatching/nestedAnnotationClassViaActualTypeAlias.kt");
+        }
+
+        @Test
         @TestMetadata("repeatableNoArg.kt")
         public void testRepeatableNoArg() throws Exception {
             runTest("compiler/testData/diagnostics/tests/multiplatform/annotationMatching/repeatableNoArg.kt");
@@ -1064,6 +1070,12 @@ public class FirOldFrontendMPPDiagnosticsWithPsiTestGenerated extends AbstractFi
         @TestMetadata("annotationArgumentEquality.kt")
         public void testAnnotationArgumentEquality() throws Exception {
             runTest("compiler/testData/diagnostics/tests/multiplatform/defaultArguments/annotationArgumentEquality.kt");
+        }
+
+        @Test
+        @TestMetadata("annotationDefaultArgKclassWithNestedClassViaActualTypeAlias.kt")
+        public void testAnnotationDefaultArgKclassWithNestedClassViaActualTypeAlias() throws Exception {
+            runTest("compiler/testData/diagnostics/tests/multiplatform/defaultArguments/annotationDefaultArgKclassWithNestedClassViaActualTypeAlias.kt");
         }
 
         @Test
