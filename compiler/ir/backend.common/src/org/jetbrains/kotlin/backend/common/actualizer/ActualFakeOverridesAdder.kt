@@ -34,7 +34,7 @@ import org.jetbrains.kotlin.resolve.OverridingUtil
  */
 internal class ActualFakeOverridesAdder(
     private val expectActualMap: Map<IrSymbol, IrSymbol>,
-    private val expectToActualClassMap: Map<ClassId, IrClassSymbol>,
+    private val actualClassesMap: Map<ClassId, IrClassSymbol>,
     private val diagnosticsReporter: KtDiagnosticReporterWithImplicitIrBasedContext,
     private val typeSystemContext: IrTypeSystemContext
 ) : IrElementVisitorVoid {
@@ -115,7 +115,7 @@ internal class ActualFakeOverridesAdder(
             val matchingFakeOverrides = collectActualCallablesMatchingToSpecificExpect(
                 newMember.symbol,
                 fakeOverrideInfo.getMembersForActual(newMember),
-                expectToActualClassMap,
+                actualClassesMap,
                 typeSystemContext
             )
             if (matchingFakeOverrides.isEmpty()) {

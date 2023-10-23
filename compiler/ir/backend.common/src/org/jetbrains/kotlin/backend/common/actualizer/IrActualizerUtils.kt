@@ -30,12 +30,12 @@ import org.jetbrains.kotlin.utils.addToStdlib.shouldNotBeCalled
 internal fun collectActualCallablesMatchingToSpecificExpect(
     expectSymbol: IrSymbol,
     actualSymbols: List<IrSymbol>,
-    expectToActualClassMap: Map<ClassId, IrClassSymbol>,
+    actualClassesMap: Map<ClassId, IrClassSymbol>,
     typeSystemContext: IrTypeSystemContext,
 ): List<IrSymbol> {
     val baseExpectSymbol = expectSymbol
     val matchingActuals = mutableListOf<IrSymbol>()
-    val context = object : IrExpectActualMatchingContext(typeSystemContext, expectToActualClassMap) {
+    val context = object : IrExpectActualMatchingContext(typeSystemContext, actualClassesMap) {
         override fun onMatchedClasses(expectClassSymbol: IrClassSymbol, actualClassSymbol: IrClassSymbol) {
             shouldNotBeCalled()
         }

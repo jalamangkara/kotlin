@@ -40,7 +40,7 @@ import org.jetbrains.kotlin.utils.addToStdlib.shouldNotBeCalled
 
 internal abstract class IrExpectActualMatchingContext(
     val typeContext: IrTypeSystemContext,
-    val expectToActualClassMap: Map<ClassId, IrClassSymbol>
+    val actualClassesMap: Map<ClassId, IrClassSymbol>
 ) : ExpectActualMatchingContext<IrSymbol>, TypeSystemContext by typeContext {
     override val allowClassActualizationWithWiderVisibility: Boolean
         get() = true
@@ -411,7 +411,7 @@ internal abstract class IrExpectActualMatchingContext(
 
         private fun substituteOrNull(type: IrType): IrType? {
             if (type !is IrSimpleTypeImpl) return null
-            val newClassifier = (type.classifier.owner as? IrClass)?.let { expectToActualClassMap[it.classIdOrFail] }
+            val newClassifier = (type.classifier.owner as? IrClass)?.let { actualClassesMap[it.classIdOrFail] }
             val newArguments = ArrayList<IrTypeArgument>(type.arguments.size)
             var argumentsChanged = false
             for (argument in type.arguments) {
@@ -521,7 +521,7 @@ internal abstract class IrExpectActualMatchingContext(
     }
 
     internal fun getClassIdAfterActualization(classId: ClassId): ClassId {
-        return expectToActualClassMap[classId]?.classId ?: classId
+        return actualClassesMap[classId]?.classId ?: classId
     }
 
     private inner class AnnotationCallInfoImpl(val irElement: IrConstructorCall) : AnnotationCallInfo {
@@ -538,7 +538,7 @@ internal abstract class IrExpectActualMatchingContext(
 
         private fun getAnnotationClass(): IrClass? {
             val annotationClass = irElement.type.getClass() ?: return null
-            return expectToActualClassMap[annotationClass.classId]?.owner ?: annotationClass
+            return actualClassesMap[annotationClass.classId]?.owner ?: annotationClass
         }
     }
 
