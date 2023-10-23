@@ -147,23 +147,23 @@ internal fun FirExpression.checkExpressionForEnhancedTypeMismatch(
     if (expectedType == null) return
     val actualType = resolvedType
 
-    withEnhancedForWarningTypesIfApplicable(actualType, expectedType, context) { actualTypeForComparison, expectedTypeForComparison ->
-        if (!actualTypeForComparison.isSubtypeOf(context.session.typeContext, expectedTypeForComparison)) {
-            reporter.reportOn(source, factory, actualTypeForComparison, expectedTypeForComparison, context)
-        }
+    val (actualTypeForComparison, expectedTypeForComparison) = getEnhancedTypesForComparison(actualType, expectedType, context)
+        ?: return
+
+    if (!actualTypeForComparison.isSubtypeOf(context.session.typeContext, expectedTypeForComparison)) {
+        reporter.reportOn(source, factory, actualTypeForComparison, expectedTypeForComparison, context)
     }
 }
 
 private val samResolverCache: WeakHashMap<FirSession, FirSamResolver> = WeakHashMap()
 
-private inline fun withEnhancedForWarningTypesIfApplicable(
+private fun getEnhancedTypesForComparison(
     actualType: ConeKotlinType?,
     expectedType: ConeKotlinType?,
     context: CheckerContext,
-    block: (actualTypeForComparison: ConeKotlinType, expectedTypeForComparison: ConeKotlinType) -> Unit,
-) {
-    if (actualType == null || expectedType == null) return
-    if (actualType is ConeErrorType || expectedType is ConeErrorType) return
+): Pair<ConeKotlinType, ConeKotlinType>? {
+    if (actualType == null || expectedType == null) return null
+    if (actualType is ConeErrorType || expectedType is ConeErrorType) return null
 
     val substitutor = EnhancedForWarningConeSubstitutor(context.session.typeContext)
 
@@ -171,7 +171,7 @@ private inline fun withEnhancedForWarningTypesIfApplicable(
     val enhancedExpectedType = substitutor.substituteOrNull(expectedType)
 
     // No enhancement on either side, nothing to check.
-    if (enhancedActualType == null && enhancedExpectedType == null) return
+    if (enhancedActualType == null && enhancedExpectedType == null) return null
 
     val actualTypeForComparison = enhancedActualType ?: actualType
     val expectedTypeForComparison = enhancedExpectedType ?: expectedType
@@ -183,5 +183,5 @@ private inline fun withEnhancedForWarningTypesIfApplicable(
         expectedTypeForComparison
     }
 
-    block(actualTypeForComparison, expectedTypeAsFunctionTypeIfSam)
+    return actualTypeForComparison to expectedTypeAsFunctionTypeIfSam
 }
