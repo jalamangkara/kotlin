@@ -164,7 +164,10 @@ class ConeAttributes private constructor(attributes: List<ConeAttribute<*>>) : A
         for ((i, attr) in this.withIndex()) {
             if (attr !is ConeAttributeWithConeType) continue
             val substitutedAttribute = attr.transformOrNull(transform) ?: continue
-            (newList ?: this.toMutableList().also { newList = it })[i] = substitutedAttribute
+            if (newList == null) {
+                newList = this.toMutableList()
+            }
+            newList[i] = substitutedAttribute
         }
 
         return newList?.let(Companion::create)
