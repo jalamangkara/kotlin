@@ -65,7 +65,7 @@ class WrongReturnTypes : IntermediateClass() {
         return null
     }
 
-    override fun intermediateNotNull(): Foo? {
+    <!WRONG_NULLABILITY_FOR_JAVA_OVERRIDE!>override<!> fun intermediateNotNull(): Foo? {
         return null
     }
 }

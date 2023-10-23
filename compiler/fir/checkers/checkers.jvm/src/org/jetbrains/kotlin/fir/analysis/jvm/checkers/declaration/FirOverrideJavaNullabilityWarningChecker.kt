@@ -101,7 +101,6 @@ private fun FirSimpleFunction.substituteOrNull(
     substitutor: EnhancedForWarningConeSubstitutor,
     session: FirSession,
 ): FirSimpleFunction? {
-    if (!isJavaOrEnhancement) return null
     symbol.lazyResolveToPhase(FirResolvePhase.TYPES)
     var isEnhanced = false
 
