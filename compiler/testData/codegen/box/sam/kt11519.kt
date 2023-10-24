@@ -2,6 +2,7 @@
 // SKIP_JDK6
 // SAM_CONVERSIONS: CLASS
 //   ^ test checks reflection for synthetic classes
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-62855
 // MODULE: lib
 // FILE: Custom.java
 
