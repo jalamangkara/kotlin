@@ -1,5 +1,6 @@
 // TARGET_BACKEND: JVM
 // IGNORE_BACKEND: ANDROID
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-62858
 //  ^ D8 merges method references with empty closure created by 'invokedynamic'
 
 fun checkNotEqual(marker: String, x: Any, y: Any) {
