@@ -528,7 +528,7 @@ class Fir2IrConverter(
                 ) {
                     // Note: we have to do it, because backend without the feature
                     // cannot process Enum.entries properly
-                    declarationStorage.getOrCreateIrProperty(declaration, parent, isLocal = isInLocalClass)
+                    declarationStorage.createAndCacheIrProperty(declaration, parent, isLocal = isInLocalClass)
                 }
             }
             is FirField -> {

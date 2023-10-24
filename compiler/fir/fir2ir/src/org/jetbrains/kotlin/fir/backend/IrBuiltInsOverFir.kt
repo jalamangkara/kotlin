@@ -710,6 +710,7 @@ class IrBuiltInsOverFir(
         propertySymbol.lazyResolveToPhase(FirResolvePhase.IMPLICIT_TYPES_BODY_RESOLVE)
 
         val irParent = findIrParent(propertySymbol)
+        @OptIn(GetOrCreateSensitiveAPI::class)
         return components.declarationStorage.getOrCreateIrProperty(propertySymbol.fir, irParent).symbol
     }
 

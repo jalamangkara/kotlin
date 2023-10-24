@@ -602,6 +602,7 @@ class Fir2IrCallableDeclarationsGenerator(val components: Fir2IrComponents) : Fi
         return factory(IrFieldSymbolImpl())
     }
 
+    @OptIn(GetOrCreateSensitiveAPI::class)
     fun createIrFieldAndDelegatedMembers(field: FirField, owner: FirClass, irClass: IrClass): IrField? {
         // Either take a corresponding constructor property backing field,
         // or create a separate delegate field

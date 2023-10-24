@@ -208,6 +208,7 @@ class Fir2IrLazyClass(
                         symbol.containingClassLookupTag() != ownerLookupTag -> {}
                         symbol !is FirPropertySymbol -> {}
                         else -> {
+                            @OptIn(GetOrCreateSensitiveAPI::class)
                             result += declarationStorage.getOrCreateIrProperty(symbol.fir, this, origin)
                         }
                     }

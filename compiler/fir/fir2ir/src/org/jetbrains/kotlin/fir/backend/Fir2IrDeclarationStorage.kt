@@ -457,6 +457,7 @@ class Fir2IrDeclarationStorage(
         return prepareProperty(symbol.fir).symbol
     }
 
+    @GetOrCreateSensitiveAPI
     fun getOrCreateIrProperty(
         property: FirProperty,
         irParent: IrDeclarationParent?,
@@ -467,6 +468,7 @@ class Fir2IrDeclarationStorage(
         return getOrCreateIrProperty(property, { irParent }, predefinedOrigin, isLocal, fakeOverrideOwnerLookupTag)
     }
 
+    @GetOrCreateSensitiveAPI
     private fun getOrCreateIrProperty(
         property: FirProperty,
         irParent: () -> IrDeclarationParent?,
@@ -499,7 +501,6 @@ class Fir2IrDeclarationStorage(
         }
     }
 
-    @LeakedDeclarationCaches
     fun createAndCacheIrProperty(
         property: FirProperty,
         irParent: IrDeclarationParent?,
@@ -570,6 +571,7 @@ class Fir2IrDeclarationStorage(
         if (firProperty.isLocal) {
             return localStorage.getDelegatedProperty(firProperty)?.symbol ?: getIrVariableSymbol(firProperty)
         }
+        @OptIn(GetOrCreateSensitiveAPI::class)
         val result = getOrCreateIrProperty(
             firProperty,
             { findIrParent(firProperty, fakeOverrideOwnerLookupTag) },
@@ -694,6 +696,7 @@ class Fir2IrDeclarationStorage(
         return fieldStaticOverrideCache[FieldStaticOverrideKey(ownerLookupTag, field.name)]
     }
 
+    @GetOrCreateSensitiveAPI
     internal fun getOrCreateDelegateIrField(field: FirField, owner: FirClass, irClass: IrClass): IrField {
         val initializer = field.initializer
         if (initializer is FirQualifiedAccessExpression && initializer.explicitReceiver == null) {
