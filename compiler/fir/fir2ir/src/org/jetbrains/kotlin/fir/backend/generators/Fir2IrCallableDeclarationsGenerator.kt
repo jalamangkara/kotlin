@@ -602,19 +602,6 @@ class Fir2IrCallableDeclarationsGenerator(val components: Fir2IrComponents) : Fi
         return factory(IrFieldSymbolImpl())
     }
 
-    @OptIn(GetOrCreateSensitiveAPI::class)
-    fun createIrFieldAndDelegatedMembers(field: FirField, owner: FirClass, irClass: IrClass): IrField? {
-        // Either take a corresponding constructor property backing field,
-        // or create a separate delegate field
-        val irField = declarationStorage.getOrCreateDelegateIrField(field, owner, irClass)
-        delegatedMemberGenerator.generate(irField, field, owner, irClass)
-        if (owner.isLocalClassOrAnonymousObject()) {
-            delegatedMemberGenerator.generateBodies()
-        }
-        // If it's a property backing field, it should not be added to the class in Fir2IrConverter, so it's not returned
-        return irField.takeIf { it.correspondingPropertySymbol == null }
-    }
-
     internal fun createIrField(
         field: FirField,
         irParent: IrDeclarationParent?,

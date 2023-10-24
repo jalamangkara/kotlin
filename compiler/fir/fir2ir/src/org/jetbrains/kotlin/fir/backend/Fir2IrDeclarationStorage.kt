@@ -468,7 +468,6 @@ class Fir2IrDeclarationStorage(
         return getOrCreateIrProperty(property, { irParent }, predefinedOrigin, isLocal, fakeOverrideOwnerLookupTag)
     }
 
-    @GetOrCreateSensitiveAPI
     private fun getOrCreateIrProperty(
         property: FirProperty,
         irParent: () -> IrDeclarationParent?,
@@ -571,7 +570,6 @@ class Fir2IrDeclarationStorage(
         if (firProperty.isLocal) {
             return localStorage.getDelegatedProperty(firProperty)?.symbol ?: getIrVariableSymbol(firProperty)
         }
-        @OptIn(GetOrCreateSensitiveAPI::class)
         val result = getOrCreateIrProperty(
             firProperty,
             { findIrParent(firProperty, fakeOverrideOwnerLookupTag) },
@@ -687,6 +685,10 @@ class Fir2IrDeclarationStorage(
         }
     }
 
+    fun cacheDelegateFieldWithCorrespondingProperty(firField: FirField, irField: IrField) {
+        fieldCache[firField] = irField.symbol
+    }
+
     fun getCachedIrDelegateOrBackingFieldSymbol(field: FirField): IrFieldSymbol? {
         return fieldCache[field]
     }
@@ -696,33 +698,7 @@ class Fir2IrDeclarationStorage(
         return fieldStaticOverrideCache[FieldStaticOverrideKey(ownerLookupTag, field.name)]
     }
 
-    @GetOrCreateSensitiveAPI
-    internal fun getOrCreateDelegateIrField(field: FirField, owner: FirClass, irClass: IrClass): IrField {
-        val initializer = field.initializer
-        if (initializer is FirQualifiedAccessExpression && initializer.explicitReceiver == null) {
-            val resolvedSymbol = initializer.calleeReference.toResolvedValueParameterSymbol()
-            if (resolvedSymbol is FirValueParameterSymbol) {
-                val name = resolvedSymbol.name
-                val constructorProperty = owner.declarations.filterIsInstance<FirProperty>().find {
-                    it.name == name && it.source?.kind is KtFakeSourceElementKind.PropertyFromParameter
-                }
-                if (constructorProperty != null) {
-                    val irProperty = getOrCreateIrProperty(constructorProperty, irClass)
-                    val backingField = irProperty.backingField!!
-                    fieldCache[field] = backingField.symbol
-                    return backingField
-                }
-            }
-        }
-        return createAndCacheIrField(
-            field,
-            irParent = irClass,
-            type = initializer?.resolvedType ?: field.returnTypeRef.coneType,
-            origin = IrDeclarationOrigin.DELEGATE
-        )
-    }
-
-    private fun createAndCacheIrField(
+    fun createAndCacheIrField(
         field: FirField,
         irParent: IrDeclarationParent?,
         type: ConeKotlinType = field.returnTypeRef.coneType,

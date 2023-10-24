@@ -34,7 +34,9 @@ import org.jetbrains.kotlin.fir.extensions.generatedNestedClassifiers
 import org.jetbrains.kotlin.fir.java.javaElementFinder
 import org.jetbrains.kotlin.fir.lazy.Fir2IrLazyClass
 import org.jetbrains.kotlin.fir.resolve.ScopeSession
+import org.jetbrains.kotlin.fir.resolve.dfa.cfg.isLocalClassOrAnonymousObject
 import org.jetbrains.kotlin.fir.symbols.lazyDeclarationResolver
+import org.jetbrains.kotlin.fir.types.coneType
 import org.jetbrains.kotlin.fir.types.resolvedType
 import org.jetbrains.kotlin.ir.IrBuiltIns
 import org.jetbrains.kotlin.ir.PsiIrFileEntry
@@ -243,8 +245,9 @@ class Fir2IrConverter(
             }
         }
         // At least on enum entry creation we may need a default constructor, so ctors should be converted first
+        val propertiesForDelegates = mutableSetOf<FirProperty>()
         for (declaration in syntheticPropertiesLast(allDeclarations)) {
-            processMemberDeclaration(declaration, klass, irClass)
+            processMemberDeclaration(declaration, klass, irClass, propertiesForDelegates)
         }
         // Add delegated members *before* fake override generations.
         // Otherwise, fake overrides for delegated members, which are redundant, will be added.
@@ -467,11 +470,14 @@ class Fir2IrConverter(
 
     /**
      * This function creates IR declarations for callable members without filling their body
+     *
+     * For understanding of [propertiesCreatedDuringDelegateProcessing] parameter please refer to the comment inside [processFieldForDelegate] function
      */
     private fun processMemberDeclaration(
         declaration: FirDeclaration,
         containingClass: FirClass?,
-        parent: IrDeclarationParent
+        parent: IrDeclarationParent,
+        propertiesCreatedDuringDelegateProcessing: MutableSet<FirProperty>? = null
     ) {
         /*
          * This function is needed to preserve the source order of declaration in file
@@ -526,17 +532,17 @@ class Fir2IrConverter(
                     !declaration.isEnumEntries(containingClass) ||
                     session.languageVersionSettings.supportsFeature(LanguageFeature.EnumEntries)
                 ) {
+                    if (propertiesCreatedDuringDelegateProcessing?.contains(declaration) == true) {
+                        // Property was already created during transformation corresponding delegated field
+                        return
+                    }
                     // Note: we have to do it, because backend without the feature
                     // cannot process Enum.entries properly
                     declarationStorage.createAndCacheIrProperty(declaration, parent, isLocal = isInLocalClass)
                 }
             }
             is FirField -> {
-                if (declaration.isSynthetic) {
-                    callablesGenerator.createIrFieldAndDelegatedMembers(declaration, containingClass!!, parent as IrClass)
-                } else {
-                    error("Unexpected non-synthetic field: ${declaration::class}")
-                }
+                processFieldForDelegate(declaration, containingClass!!, parent as IrClass, propertiesCreatedDuringDelegateProcessing!!)
             }
             is FirConstructor -> if (!declaration.isPrimary) {
                 // the primary constructor was already created in `processClassMembers` function
@@ -568,6 +574,59 @@ class Fir2IrConverter(
             else -> {
                 error("Unexpected member: ${declaration::class}")
             }
+        }
+    }
+
+    private fun processFieldForDelegate(
+        field: FirField,
+        containingFirClass: FirClass,
+        containingIrClass: IrClass,
+        propertiesCreatedDuringDelegateProcessing: MutableSet<FirProperty>,
+    ) {
+        if (!field.isSynthetic) {
+            error("Unexpected non-synthetic field: ${field::class}")
+        }
+        val irField = when (val correspondingFirProperty = field.correspondingPropertyForDelegate?.fir) {
+            null -> {
+                declarationStorage.createAndCacheIrField(
+                    field,
+                    irParent = containingIrClass,
+                    type = field.initializer?.resolvedType ?: field.returnTypeRef.coneType,
+                    origin = IrDeclarationOrigin.DELEGATE
+                )
+            }
+            else -> {
+                /*
+                 * This whole part for correspondingProperty is required for the case when the delegation was to some property
+                 *   of a class (like `class A(val x: B) : B by x`). In this case, we don't create separate IrField for the delegate
+                 *   but use the backing field of this property. And for now there is no other way to get backing field symbol
+                 *   without creating the property itself
+                 * So to avoid potential creation of the property in `declarationStorage.getOrCreateDelegateIrField` function
+                 *   we manually call `processMemberDeclaration`
+                 *
+                 * [propertiesForDelegates] set is needed to avoid duplicated creation of IR property (second time we can visit it
+                 *   in the main loop of [processClassMembers] method)
+                 * Note that this approach works because fields for delegates are always appear in declaration list before properties
+                 *
+                 * TODO: potentially we can drop this part with forward property creation after with KT-62856
+                 */
+                if (correspondingFirProperty !in propertiesCreatedDuringDelegateProcessing) {
+                    processMemberDeclaration(correspondingFirProperty, containingFirClass, containingIrClass)
+                }
+                propertiesCreatedDuringDelegateProcessing += correspondingFirProperty
+                val correspondingIrProperty = declarationStorage.getCachedIrPropertySymbol(
+                    correspondingFirProperty, containingFirClass.symbol.toLookupTag()
+                )!!
+                @OptIn(UnsafeDuringIrConstructionAPI::class)
+                correspondingIrProperty.owner.backingField!!.also {
+                    declarationStorage.cacheDelegateFieldWithCorrespondingProperty(field, it)
+                }
+            }
+        }
+
+        delegatedMemberGenerator.generate(irField, field, containingFirClass, containingIrClass)
+        if (containingFirClass.isLocalClassOrAnonymousObject()) {
+            delegatedMemberGenerator.generateBodies()
         }
     }
 
