@@ -488,8 +488,9 @@ internal open class GradleCompilerRunner(
             }
         }
 
-        private fun File.sessionFileFlagExists(log: Logger): File = also {
+        private fun File.sessionFileFlagExists(log: Logger): File {
             log.kotlinDebug { EXISTING_SESSION_FILE_PREFIX + absolutePath }
+            return this
         }
     }
 }
