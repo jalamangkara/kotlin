@@ -1,5 +1,7 @@
 // WITH_STDLIB
 // WITH_COROUTINES
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-62845
+
 import kotlin.contracts.*
 import kotlin.coroutines.*
 import helpers.*
