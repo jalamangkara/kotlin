@@ -17,7 +17,7 @@ import org.jetbrains.kotlin.compilerRunner.GradleCompilerRunner.Companion.normal
 import org.jetbrains.kotlin.gradle.incremental.IncrementalModuleInfoProvider
 import org.jetbrains.kotlin.gradle.utils.errorsDir
 import org.jetbrains.kotlin.gradle.utils.property
-import org.jetbrains.kotlin.gradle.utils.sessionsDir
+import org.jetbrains.kotlin.gradle.utils.kotlinSessionsDir
 import java.io.File
 import javax.inject.Inject
 
@@ -44,7 +44,7 @@ abstract class GradleCompileTaskProvider @Inject constructor(
 
     @get:Internal
     val sessionsDir: Provider<File> = objectFactory
-        .property(project.sessionsDir)
+        .property(project.kotlinSessionsDir)
 
     @get:Internal
     val projectName: Provider<String> = objectFactory

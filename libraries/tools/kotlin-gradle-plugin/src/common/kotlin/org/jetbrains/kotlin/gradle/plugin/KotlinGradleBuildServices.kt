@@ -13,7 +13,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.jetbrains.kotlin.gradle.logging.kotlinDebug
-import org.jetbrains.kotlin.gradle.utils.sessionsDir
+import org.jetbrains.kotlin.gradle.utils.kotlinSessionsDir
 import java.io.File
 
 internal abstract class KotlinGradleBuildServices : BuildService<KotlinGradleBuildServices.Parameters>, AutoCloseable {
@@ -76,7 +76,7 @@ internal abstract class KotlinGradleBuildServices : BuildService<KotlinGradleBui
                 "kotlin-build-service-${KotlinGradleBuildServices::class.java.canonicalName}_${KotlinGradleBuildServices::class.java.classLoader.hashCode()}",
                 KotlinGradleBuildServices::class.java
             ) { service ->
-                service.parameters.sessionsDir.set(gradle.rootProject.sessionsDir)
+                service.parameters.sessionsDir.set(gradle.rootProject.kotlinSessionsDir)
             }
 
     }

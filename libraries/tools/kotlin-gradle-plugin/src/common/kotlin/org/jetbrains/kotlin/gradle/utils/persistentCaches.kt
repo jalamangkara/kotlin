@@ -22,7 +22,7 @@ internal val Project.projectPersistentDir
     get() = kotlinPropertiesProvider.kotlinProjectPersistentDir?.let { File(it) }
         ?: rootDir.resolve(".kotlin")
 
-internal val Project.sessionsDir
+internal val Project.kotlinSessionsDir
     get() = projectPersistentDir.resolve(SESSIONS_DIR_NAME)
 
 internal val Project.metadataDir
