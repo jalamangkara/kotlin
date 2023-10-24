@@ -10,6 +10,14 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.file.Files
 
+/**
+ * Abstract class representing an executor for XCTest tests.
+ *
+ * This class is a composable executor that relies on the underlying [Executor].
+ *
+ * @property configurables The Apple target to be run on.
+ * @property executor The underlying executor to execute target specific operations.
+ */
 abstract class AbstractXCTestExecutor(
     private val configurables: AppleConfigurables,
     private val executor: Executor
@@ -17,6 +25,27 @@ abstract class AbstractXCTestExecutor(
     private val hostExecutor = HostExecutor()
 
     private val target by configurables::target
+
+    companion object {
+        fun availableFor(configurables: AppleConfigurables): Boolean =
+            HostManager.host is KonanTarget.MACOS_ARM64 && configurables.target is KonanTarget.MACOS_X64
+
+        fun supportedTargets(): List<KonanTarget> = when (HostManager.host) {
+            KonanTarget.MACOS_X64 -> listOf(KonanTarget.MACOS_X64, KonanTarget.IOS_X64)
+            KonanTarget.MACOS_ARM64 -> listOf(KonanTarget.MACOS_ARM64, KonanTarget.IOS_SIMULATOR_ARM64)
+            else -> error("${HostManager.host} isn't supported by XCTestExecutor")
+        }
+    }
+
+    init {
+        require(availableFor(configurables)) {
+            "$this executor isn't available for $configurables"
+        }
+
+        require(configurables.target in supportedTargets()) {
+            "$this executor is unable to run ${configurables.target}"
+        }
+    }
 
     private fun targetPlatform(): String {
         val xcodeTarget = when (target) {
@@ -92,7 +121,19 @@ abstract class AbstractXCTestExecutor(
     }
 }
 
+/**
+ * XCTest executor that runs tests on a host machine.
+ * It extends [AbstractXCTestExecutor] and uses [HostExecutor] to handle host-specific execution.
+ *
+ * @param configurables a test execution target.
+ */
 class XCTestHostExecutor(configurables: AppleConfigurables) : AbstractXCTestExecutor(configurables, HostExecutor())
 
+/**
+ * XCTest executor that runs tests on simulators on a host machine.
+ * It extends [AbstractXCTestExecutor] and uses [XcodeSimulatorExecutor] to handle simulator-specific operations.
+ *
+ * @param configurables a test execution target.
+ */
 class XCTestSimulatorExecutor(configurables: AppleConfigurables) :
     AbstractXCTestExecutor(configurables, XcodeSimulatorExecutor(configurables))
