@@ -1,4 +1,5 @@
 // TARGET_BACKEND: JVM
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-62858
 // FILE: test.kt
 
 fun checkNotEqual(x: Any, y: Any) {
