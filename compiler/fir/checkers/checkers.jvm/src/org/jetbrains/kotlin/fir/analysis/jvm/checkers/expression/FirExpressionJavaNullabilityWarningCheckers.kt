@@ -155,8 +155,6 @@ internal fun FirExpression.checkExpressionForEnhancedTypeMismatch(
     }
 }
 
-private val samResolverCache: WeakHashMap<FirSession, FirSamResolver> = WeakHashMap()
-
 private fun getEnhancedTypesForComparison(
     actualType: ConeKotlinType?,
     expectedType: ConeKotlinType?,
@@ -176,8 +174,12 @@ private fun getEnhancedTypesForComparison(
     val actualTypeForComparison = enhancedActualType ?: actualType
     val expectedTypeForComparison = enhancedExpectedType ?: expectedType
 
-    val expectedTypeAsFunctionTypeIfSam = if (actualTypeForComparison.isSomeFunctionType(context.session)) {
-        val samResolver = samResolverCache.getOrPut(context.session) { FirSamResolver(context.session, context.scopeSession) }
+    val expectedTypeAsFunctionTypeIfSam = if (
+        actualTypeForComparison.isSomeFunctionType(context.session) &&
+        !expectedTypeForComparison.isSomeFunctionType(context.session)
+    ) {
+        // TODO remove after KT-62847
+        val samResolver = FirSamResolver(context.session, context.scopeSession)
         samResolver.getFunctionTypeForPossibleSamType(expectedTypeForComparison) ?: expectedTypeForComparison
     } else {
         expectedTypeForComparison
