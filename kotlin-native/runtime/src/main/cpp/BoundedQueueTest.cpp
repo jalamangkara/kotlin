@@ -45,6 +45,8 @@ TEST(BoundedQueueTest, ConcurrentEnqueue) {
     constexpr auto kElemsPerThread = 1024;
     BoundedQueue<Element, kThreadCount * kElemsPerThread> queue;
 
+    EXPECT_THAT(queue.size(), 0);
+
     std::atomic<bool> start = false;
     std::list<ScopedThread> threads;
     for (int t = 0; t < kThreadCount; ++t) {
@@ -61,6 +63,8 @@ TEST(BoundedQueueTest, ConcurrentEnqueue) {
 
     threads.clear();
 
+    EXPECT_THAT(queue.size(), kThreadCount * kElemsPerThread);
+
     while (auto elem = queue.dequeue()) {
         EXPECT_TRUE(elem->isValid());
     }
@@ -75,6 +79,8 @@ TEST(BoundedQueueTest, ConcurrentDequeue) {
         queue.enqueue(Element(i));
     }
 
+    EXPECT_THAT(queue.size(), kThreadCount * kElemsPerThread);
+
     std::atomic<bool> start = false;
     std::list<ScopedThread> threads;
     for (int t = 0; t < kThreadCount; ++t) {
@@ -88,6 +94,9 @@ TEST(BoundedQueueTest, ConcurrentDequeue) {
         });
     }
     start = true;
+
+    threads.clear();
+    EXPECT_THAT(queue.size(), 0);
 }
 
 TEST(BoundedQueueTest, PingPongWithOverflow) {
