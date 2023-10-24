@@ -15,7 +15,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Internal
 import org.jetbrains.kotlin.compilerRunner.GradleCompilerRunner.Companion.normalizeForFlagFile
 import org.jetbrains.kotlin.gradle.incremental.IncrementalModuleInfoProvider
-import org.jetbrains.kotlin.gradle.utils.errorsDir
+import org.jetbrains.kotlin.gradle.utils.kotlinErrorsDir
 import org.jetbrains.kotlin.gradle.utils.property
 import org.jetbrains.kotlin.gradle.utils.kotlinSessionsDir
 import java.io.File
@@ -57,7 +57,7 @@ abstract class GradleCompileTaskProvider @Inject constructor(
     @get:Internal
     val errorsFile: Provider<File> = objectFactory
         .property(
-            project.errorsDir.also { it.mkdirs() }
+            project.kotlinErrorsDir.also { it.mkdirs() }
                 .resolve("errors-${System.currentTimeMillis()}.log")
         )
 }
