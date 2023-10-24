@@ -7,9 +7,8 @@ package org.jetbrains.kotlin.gradle.plugin.mpp
 
 import org.gradle.api.Project
 import org.gradle.api.file.ProjectLayout
-import org.jetbrains.kotlin.gradle.plugin.PropertiesProvider.Companion.kotlinPropertiesProvider
 import org.jetbrains.kotlin.gradle.utils.compositeBuildRootProject
-import org.jetbrains.kotlin.gradle.utils.metadataDir
+import org.jetbrains.kotlin.gradle.utils.kotlinMetadataDir
 import java.io.File
 
 private const val kotlinTransformedMetadataLibraries = "kotlinTransformedMetadataLibraries"
@@ -21,7 +20,7 @@ internal fun ProjectLayout.kotlinTransformedMetadataLibraryDirectoryForBuild(sou
 
 internal val Project.kotlinTransformedMetadataLibraryDirectoryForIde: File
     get() = compositeBuildRootProject.rootDir
-        .resolve(project.metadataDir)
+        .resolve(project.kotlinMetadataDir)
         .resolve(kotlinTransformedMetadataLibraries)
 
 internal fun ProjectLayout.kotlinTransformedCInteropMetadataLibraryDirectoryForBuild(sourceSetName: String): File =
@@ -29,10 +28,10 @@ internal fun ProjectLayout.kotlinTransformedCInteropMetadataLibraryDirectoryForB
 
 internal val Project.kotlinCInteropLibraryDirectoryForIde: File
     get() = compositeBuildRootProject.rootDir
-        .resolve(project.metadataDir)
+        .resolve(project.kotlinMetadataDir)
         .resolve(kotlinCInteropLibraries)
 
 internal val Project.kotlinTransformedCInteropMetadataLibraryDirectoryForIde: File
     get() = compositeBuildRootProject.rootDir
-        .resolve(project.metadataDir)
+        .resolve(project.kotlinMetadataDir)
         .resolve(kotlinTransformedCInteropMetadataLibraries)

@@ -25,7 +25,7 @@ internal val Project.projectPersistentDir
 internal val Project.kotlinSessionsDir
     get() = projectPersistentDir.resolve(SESSIONS_DIR_NAME)
 
-internal val Project.metadataDir
+internal val Project.kotlinMetadataDir
     get() = projectPersistentDir.resolve(METADATA_DIR_NAME)
 
 internal val Project.errorsDir
