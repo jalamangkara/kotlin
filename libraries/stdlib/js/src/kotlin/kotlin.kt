@@ -4,7 +4,6 @@
  */
 
 
-// File is a copy of stdlib/js/src/kotlin/kotlin.kt
 // TODO: Compile arrayPlusCollection
 // TODO: implement a copy of jsIsType for both JS backends
 
