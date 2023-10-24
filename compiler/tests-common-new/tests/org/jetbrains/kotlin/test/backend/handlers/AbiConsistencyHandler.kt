@@ -50,13 +50,12 @@ class AbiConsistencyHandler(testServices: TestServices) : AnalysisHandler<Binary
         if (module.ignored) return
         val classesFromK1 = info.fromClassicFrontend.classFileFactory.getClassFiles().associate { it.relativePath to it.asByteArray() }
         val classesFromK2 = info.fromFir.classFileFactory.getClassFiles().associate { it.relativePath to it.asByteArray() }
-        Sets.difference(classesFromK1.keys, classesFromK2.keys)
-            .also { if (it.isNotEmpty()) assertions.fail { "Missing classes in K2: ${assertions.renderCollectionToString(it)}" } }
-        Sets.difference(classesFromK2.keys, classesFromK1.keys)
-            .also { if (it.isNotEmpty()) assertions.fail { "Missing classes in K1: ${assertions.renderCollectionToString(it)}" } }
+        val missingInK2 = Sets.difference(classesFromK1.keys, classesFromK2.keys)
+        val missingInK1 = Sets.difference(classesFromK2.keys, classesFromK1.keys)
+        val commonClasses = Sets.intersection(classesFromK1.keys, classesFromK2.keys)
 
         val nonEmptyClassReports = mutableListOf<ClassReport>()
-        classesFromK1.keys.forEach { classInternalName ->
+        commonClasses.forEach { classInternalName ->
             val k1ClassNode = parseClassNode(classesFromK1[classInternalName]!!)
             val k2ClassNode = parseClassNode(classesFromK2[classInternalName]!!)
             val classReport = ClassReport(Location.Class("", classInternalName), classInternalName, "K1", "K2", DefectReport())
@@ -65,11 +64,11 @@ class AbiConsistencyHandler(testServices: TestServices) : AnalysisHandler<Binary
                 nonEmptyClassReports.add(classReport)
             }
         }
-        if (nonEmptyClassReports.isNotEmpty()) {
+        if (nonEmptyClassReports.isNotEmpty() || missingInK1.isNotEmpty() || missingInK2.isNotEmpty()) {
             if (testServices.mutedAbiChecking) {
                 assertions.fail { "ABI difference obtained." }
             } else {
-                val reportPath = reportToFile(nonEmptyClassReports.asHtmlReport())
+                val reportPath = reportToFile(nonEmptyClassReports.asHtmlReport(missingInK1, missingInK2))
                 assertions.fail { "ABI difference obtained, see the report: ${reportPath.toAbsolutePath()}" }
             }
         }
@@ -96,7 +95,17 @@ class AbiConsistencyHandler(testServices: TestServices) : AnalysisHandler<Binary
             return "$prefix$path/$fileName"
         }
 
-    private fun List<ClassReport>.asHtmlReport(): String {
+    private fun List<ClassReport>.asHtmlReport(missingInK1: Set<String>, missingInK2: Set<String>): String {
+
+        fun PrintWriter.reportMissing(frontendName: String, missing: Set<String>) {
+            if (missing.isEmpty()) return
+            println("Missing in $frontendName:")
+            tag("br")
+            println(missing.joinToString())
+            tag("br")
+            tag("br")
+        }
+
         val outputStream = ByteArrayOutputStream()
         PrintWriter(outputStream, true).use { out ->
             out.tag("html") {
@@ -105,6 +114,10 @@ class AbiConsistencyHandler(testServices: TestServices) : AnalysisHandler<Binary
                 }
                 out.tag("body") {
                     out.println(filePath)
+                    out.tag("br")
+                    out.tag("br")
+                    out.reportMissing("K1", missingInK1)
+                    out.reportMissing("K2", missingInK2)
                     forEach { it.write(out) }
                 }
             }
