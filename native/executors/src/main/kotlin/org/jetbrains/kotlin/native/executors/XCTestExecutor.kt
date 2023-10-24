@@ -9,7 +9,6 @@ import org.jetbrains.kotlin.konan.target.*
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.nio.file.Files
-import kotlin.io.path.exists
 
 abstract class AbstractXCTestExecutor(
     private val configurables: AppleConfigurables,
@@ -45,19 +44,19 @@ abstract class AbstractXCTestExecutor(
         get() = "${targetPlatform()}/Developer/Library/Xcode/Agents/xctest"
 
     override fun execute(request: ExecuteRequest): ExecuteResponse {
-        val bundlePath = if (request.args.isNotEmpty()) {
+        val originalBundle = File(request.executableAbsolutePath)
+        val bundleToExecute = if (request.args.isNotEmpty()) {
             // Copy the bundle to a temp dir
             val dir = Files.createTempDirectory("tmp-xctest-runner")
-            val newBundlePath = File(request.executableAbsolutePath).run {
+            val newBundleFile = originalBundle.run {
                 val newPath = dir.resolve(name)
                 copyRecursively(newPath.toFile())
-                newPath
+                newPath.toFile()
             }
-            check(newBundlePath.exists())
+            check(newBundleFile.exists())
 
             // Passing arguments to the XCTest-runner using Info.plist file.
-            val infoPlist = newBundlePath.toFile()
-                .walk()
+            val infoPlist = newBundleFile.walk()
                 .firstOrNull { it.name == "Info.plist" }
                 ?.absolutePath
             checkNotNull(infoPlist) { "Info.plist of xctest-bundle wasn't found. Check the bundle contents and location "}
@@ -69,20 +68,20 @@ abstract class AbstractXCTestExecutor(
             val writeResponse = hostExecutor.execute(writeArgsRequest)
             writeResponse.assertSuccess()
 
-            newBundlePath.toString()
+            newBundleFile
         } else {
-            request.executableAbsolutePath
+            originalBundle
         }
 
         val response = executor.execute(request.copying {
             environment["DYLD_FRAMEWORK_PATH"] = frameworkPath
             executableAbsolutePath = xcTestExecutablePath
             args.clear()
-            args.add(bundlePath)
+            args.add(bundleToExecute.absolutePath)
         })
 
-        if (request.executableAbsolutePath != bundlePath) {
-            File(bundlePath).apply {
+        if (bundleToExecute != originalBundle) {
+            bundleToExecute.apply {
                 // Remove the copied bundle after the run
                 deleteRecursively()
                 // Also remove the temp directory that contained this bundle
