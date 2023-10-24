@@ -479,8 +479,10 @@ internal open class GradleCompilerRunner(
                     return sessionFlagWrite.sessionFileFlagExists(log)
                 }
 
-                val sessionFilesDir = sessionsDir.apply { mkdirs() }
-                return newTmpFile(prefix = "kotlin-compiler-", suffix = ".salive", directory = sessionFilesDir)
+                return newTmpFile(
+                    prefix = "kotlin-compiler-",
+                    suffix = ".salive",
+                    directory = sessionsDir.apply { mkdirs() })
                     .also {
                         sessionFlagFile = it
                         log.kotlinDebug { CREATED_SESSION_FILE_PREFIX + it.absolutePath }
