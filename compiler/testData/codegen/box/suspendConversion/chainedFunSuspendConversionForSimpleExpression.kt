@@ -1,5 +1,6 @@
 // !LANGUAGE: +SuspendConversion
 // IGNORE_BACKEND: JVM
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-62855
 
 fun interface SuspendRunnable {
     suspend fun invoke()
