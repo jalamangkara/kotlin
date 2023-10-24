@@ -14,19 +14,19 @@ private const val METADATA_DIR_NAME = "metadata"
 private const val ERRORS_DIR_NAME = "errors"
 
 @Suppress("unused") // will be used in the followup KT-58223 issues
-internal val Project.userPersistentDir
+internal val Project.userKotlinPersistentDir
     get() = kotlinPropertiesProvider.kotlinUserHomeDir?.let { File(it) }
         ?: File(System.getProperty("user.home")).resolve(".kotlin")
 
-internal val Project.projectPersistentDir
+internal val Project.projectKotlinPersistentDir
     get() = kotlinPropertiesProvider.kotlinProjectPersistentDir?.let { File(it) }
         ?: rootDir.resolve(".kotlin")
 
 internal val Project.kotlinSessionsDir
-    get() = projectPersistentDir.resolve(SESSIONS_DIR_NAME)
+    get() = projectKotlinPersistentDir.resolve(SESSIONS_DIR_NAME)
 
 internal val Project.kotlinMetadataDir
-    get() = projectPersistentDir.resolve(METADATA_DIR_NAME)
+    get() = projectKotlinPersistentDir.resolve(METADATA_DIR_NAME)
 
 internal val Project.kotlinErrorsDir
-    get() = projectPersistentDir.resolve(ERRORS_DIR_NAME)
+    get() = projectKotlinPersistentDir.resolve(ERRORS_DIR_NAME)
