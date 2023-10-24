@@ -1,5 +1,6 @@
 // !LANGUAGE: +ReferencesToSyntheticJavaProperties
 // TARGET_BACKEND: JVM_IR
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-62849
 
 // FILE: J.java
 
