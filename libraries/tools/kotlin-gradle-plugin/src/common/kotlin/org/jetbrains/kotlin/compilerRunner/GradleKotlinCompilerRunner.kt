@@ -466,25 +466,25 @@ internal open class GradleCompilerRunner(
             log: Logger,
             sessionsDir: File,
         ): File {
-            return sessionFileLock.read {
+            sessionFileLock.read {
                 val sessionFlagRead = sessionFlagFile
                 if (sessionFlagRead != null && sessionFlagRead.exists()) {
-                    return@read sessionFlagRead.sessionFileFlagExists(log)
+                    return sessionFlagRead.sessionFileFlagExists(log)
+                }
+            }
+
+            sessionFileLock.write {
+                val sessionFlagWrite = sessionFlagFile
+                if (sessionFlagWrite != null && sessionFlagWrite.exists()) {
+                    return sessionFlagWrite.sessionFileFlagExists(log)
                 }
 
-                sessionFileLock.write {
-                    val sessionFlagWrite = sessionFlagFile
-                    if (sessionFlagWrite != null && sessionFlagWrite.exists()) {
-                        return@write sessionFlagWrite.sessionFileFlagExists(log)
+                val sessionFilesDir = sessionsDir.apply { mkdirs() }
+                return newTmpFile(prefix = "kotlin-compiler-", suffix = ".salive", directory = sessionFilesDir)
+                    .also {
+                        sessionFlagFile = it
+                        log.kotlinDebug { CREATED_SESSION_FILE_PREFIX + it.absolutePath }
                     }
-
-                    val sessionFilesDir = sessionsDir.apply { mkdirs() }
-                    newTmpFile(prefix = "kotlin-compiler-", suffix = ".salive", directory = sessionFilesDir)
-                        .also {
-                            sessionFlagFile = it
-                            log.kotlinDebug { CREATED_SESSION_FILE_PREFIX + it.absolutePath }
-                        }
-                }
             }
         }
 
