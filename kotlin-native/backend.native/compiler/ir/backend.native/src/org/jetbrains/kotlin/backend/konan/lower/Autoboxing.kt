@@ -171,7 +171,7 @@ private class AutoboxingTransformer(val context: Context) : AbstractValueUsageTr
             val expectedClass = expectedType.classOrNull?.owner
             return if (expectedClass == null
                     || actualType.classifierOrFail !is IrTypeParameterSymbol
-                    || expectedType.getInlinedClassNative() != null // TODO: Is this correct?
+                    || expectedClass.isInlined()
                     || expectedClass.isObjCForwardDeclaration()
                     || expectedClass.isObjCMetaClass()
             ) {
