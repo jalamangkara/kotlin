@@ -18,14 +18,13 @@ import platform.objc.*
 /**
  * An XCTest equivalent of the K/N TestCase.
  *
- * This is a wrapper around the `TestCase` that runs it.
- * For each test case, a special bridge method is created by adding it to a metaclass.
+ * Wraps the [TestCase] that runs it with a special bridge method created by adding it to a metaclass.
  * The idea is to make XCTest invoke them by the created invocation and show the selector as a test name.
- * A selector is created as `klass.method` that is than naturally represented in XCTest reports including XCode.
+ * This selector is created as `klass.method` that is than naturally represented in XCTest reports including XCode.
  */
 @ExportObjCClass(name = "Kotlin/Native::Test")
 class XCTestCaseWrapper(invocation: NSInvocation, val testCase: TestCase) : XCTestCase(invocation) {
-    // Sets XCTest to continue running after failure to match Kotlin Test
+    // Sets XCTest to continue running after failure to match Kotlin Test behaviour
     override fun continueAfterFailure(): Boolean = true
 
     private val ignored = testCase.ignored || testCase.suite.ignored
@@ -34,7 +33,7 @@ class XCTestCaseWrapper(invocation: NSInvocation, val testCase: TestCase) : XCTe
 
     fun run() {
         if (ignored) {
-            // FIXME: to skip the test XCTSkip() shold be used.
+            // FIXME: to skip the test XCTSkip() should be used.
             //  But it is not possible to do that due to the KT-43719 and not implemented exception importing.
             //  For example, `_XCTSkipHandler(testName, 0U, "Test $testName is ignored")` fails with
             //   Uncaught Kotlin exception: kotlinx.cinterop.ForeignException: _XCTSkipFailureException:: Test skipped
