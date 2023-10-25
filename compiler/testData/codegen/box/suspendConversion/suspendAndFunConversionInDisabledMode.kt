@@ -1,6 +1,7 @@
 // !LANGUAGE: +SuspendConversion
 // !DIAGNOSTICS: -UNUSED_PARAMETER -UNUSED_EXPRESSION
 // IGNORE_BACKEND: JVM
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-62904
 
 fun interface Runnable {
     fun run()
