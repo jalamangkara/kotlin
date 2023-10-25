@@ -23,7 +23,6 @@ import org.jetbrains.kotlin.ir.declarations.impl.IrPropertyImpl
 import org.jetbrains.kotlin.ir.expressions.*
 import org.jetbrains.kotlin.ir.expressions.impl.IrCallImpl
 import org.jetbrains.kotlin.ir.expressions.impl.IrConstantPrimitiveImpl
-import org.jetbrains.kotlin.ir.expressions.impl.IrTypeOperatorCallImpl
 import org.jetbrains.kotlin.ir.objcinterop.isObjCForwardDeclaration
 import org.jetbrains.kotlin.ir.objcinterop.isObjCMetaClass
 import org.jetbrains.kotlin.ir.symbols.*
@@ -142,29 +141,44 @@ private class AutoboxingTransformer(val context: Context) : AbstractValueUsageTr
         return this.useAsArgument(expression.target.valueParameters[parameter.index])
     }
 
+    /**
+     * Casts this expression to `type` without changing its representation in generated code.
+     */
+    private fun IrExpression.uncheckedCast(type: IrType) =
+            if (this.type == type)
+                this
+            else irBuilders.peek()!!.at(this).irImplicitCast(this, type)
+
+    /**
+     * Performs an actual type check operation.
+     */
+    private fun IrExpression.checkedCast(actualType: IrType, expectedType: IrType) =
+            irBuilders.peek()!!.at(this).run {
+                val expression = this@checkedCast
+                when {
+                    expectedType == irBuiltIns.unitType ->
+                        irImplicitCoercionToUnit(expression)
+                    expectedType.isNullable() ->
+                        irAs(irImplicitCast(expression, actualType), expectedType)
+                    else ->
+                        irImplicitCast(irAs(irImplicitCast(expression, actualType), expectedType.makeNullable()), expectedType)
+                }
+            }
+
     private fun IrExpression.adaptIfNecessary(actualType: IrType, expectedType: IrType): IrExpression {
         val conversion = context.getTypeConversion(actualType, expectedType)
         return if (conversion == null) {
             val expectedClass = expectedType.classOrNull?.owner
-            if (expectedClass == null
+            return if (expectedClass == null
                     || actualType.classifierOrFail !is IrTypeParameterSymbol
-                    || expectedType.getInlinedClassNative() != null
+                    || expectedType.getInlinedClassNative() != null // TODO: Is this correct?
                     || expectedClass.isObjCForwardDeclaration()
                     || expectedClass.isObjCMetaClass()
             ) {
                 this
             } else {
-                irBuilders.peek()!!.at(this).run {
-                    val expression = this@adaptIfNecessary
-                    when {
-                        expectedType == irBuiltIns.unitType ->
-                            irImplicitCoercionToUnit(expression)
-                        expectedType.isNullable() ->
-                            irAs(irImplicitCast(expression, actualType), expectedType)
-                        else ->
-                            irImplicitCast(irAs(irImplicitCast(expression, actualType), expectedType.makeNullable()), expectedType)
-                    }
-                }
+                this.checkedCast(actualType, expectedType)
+                        .uncheckedCast(this.type) // Try not to bring new type incompatibilities.
             }
         } else {
             when (this) {
@@ -177,7 +191,9 @@ private class AutoboxingTransformer(val context: Context) : AbstractValueUsageTr
                 return it
             }
             val parameter = conversion.owner.valueParameters.single()
-            val argument = this.uncheckedCast(parameter.type)
+            val argument = if (expectedType.isInlinedNative())
+                this.checkedCast(actualType, conversion.owner.returnType)
+            else this.uncheckedCast(parameter.type)
 
             IrCallImpl(startOffset, endOffset, conversion.owner.returnType, conversion,
                     conversion.owner.typeParameters.size, conversion.owner.valueParameters.size).apply {
@@ -190,15 +206,6 @@ private class AutoboxingTransformer(val context: Context) : AbstractValueUsageTr
         expression.transformChildrenVoid()
         assert(expression.getArgumentsWithIr().isEmpty())
         return expression
-    }
-
-    /**
-     * Casts this expression to `type` without changing its representation in generated code.
-     */
-    @Suppress("UNUSED_PARAMETER")
-    private fun IrExpression.uncheckedCast(type: IrType): IrExpression {
-        // TODO: apply some cast if types are incompatible; not required currently.
-        return this
     }
 
     override fun visitCall(expression: IrCall): IrExpression {
