@@ -74,7 +74,7 @@ sealed class ClangArgs(
         KonanTarget.LINUX_X64 -> "$absoluteTargetToolchain/bin"
         KonanTarget.MINGW_X64 -> "$absoluteTargetToolchain/bin"
         KonanTarget.MACOS_X64,
-        KonanTarget.MACOS_ARM64 -> "$absoluteTargetToolchain/usr/bin"
+        KonanTarget.MACOS_ARM64 -> "$absoluteTargetToolchain/bin"
         else -> throw TargetSupportException("Unexpected host platform")
     }
     // TODO: Use buildList
