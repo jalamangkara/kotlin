@@ -77,7 +77,7 @@ internal val IrClass.isArrayWithFixedSizeItems: Boolean
 fun IrClass.isAbstract() = this.modality == Modality.SEALED || this.modality == Modality.ABSTRACT
 
 private enum class TypeKind {
-    NOTHING,
+    NOTHING, // TODO: Think how to rename these.
     UNIT,
     VALUE_TYPE,
     REFERENCE,
@@ -152,7 +152,7 @@ internal data class BridgeDirection(val erasedType: IrType?, val kind: BridgeDir
     companion object {
         val NONE = BridgeDirection(null, BridgeDirectionKind.NONE)
         val AS_IS = BridgeDirection(null, BridgeDirectionKind.AS_IS)
-        val BOX = BridgeDirection(null, BridgeDirectionKind.BOX)
+        val UNBOX = BridgeDirection(null, BridgeDirectionKind.UNBOX)
     }
 }
 
@@ -167,11 +167,11 @@ internal data class BridgeDirection(val erasedType: IrType?, val kind: BridgeDir
  *  +-----+-----+-----+-----+-----+-----+
  *  |  () |  E  |  N  |  A  |  A  |  A  |
  *  +-----+-----+-----+-----+-----+-----+
- *  | VAL |  E  |  B  |  N  |  B  |  B  |
+ *  | VAL |  E  |  U  |  N  |  U  |  U  |
  *  +-----+-----+-----+-----+-----+-----+
- *  | REF |  E  |  N  |  U  |  N  | C^N |
+ *  | REF |  E  |  N  |  B  |  N  | C^N |
  *  +-----+-----+-----+-----+-----+-----+
- *  | <T> |  E  |  N  |  U  | C^N |  N  |
+ *  | <T> |  E  |  N  |  B  | C^N |  N  |
  *  +-----+-----+-----+-----+-----+-----+
  */
 
@@ -179,8 +179,8 @@ private typealias BridgeDirectionBuilder = (ParameterIndex, IrType?, IrType?) ->
 
 private val None: BridgeDirectionBuilder = { _, _, _ -> BridgeDirection.NONE }
 private val AsIs: BridgeDirectionBuilder = { _, _, _ -> BridgeDirection.AS_IS }
-private val Box: BridgeDirectionBuilder = { _, _, _ -> BridgeDirection.BOX }
-private val Unbox: BridgeDirectionBuilder = { _, _, to -> BridgeDirection(to, BridgeDirectionKind.UNBOX) }
+private val Box: BridgeDirectionBuilder = { _, _, to -> BridgeDirection(to, BridgeDirectionKind.BOX) }
+private val Unbox: BridgeDirectionBuilder = { _, _, _ -> BridgeDirection.UNBOX }
 private val Cast: BridgeDirectionBuilder = { index, from, to ->
     if (index == ParameterIndex.RETURN_INDEX) {
         // from as to
@@ -200,9 +200,9 @@ private val Cast: BridgeDirectionBuilder = { index, from, to ->
 private val bridgeDirectionBuilders = arrayOf(
         arrayOf(None, null, null, null, null),
         arrayOf(null, None, AsIs, AsIs, AsIs),
-        arrayOf(null, Box, None, Box, Box),
-        arrayOf(null, None, Unbox, None, Cast),
-        arrayOf(null, None, Unbox, Cast, None),
+        arrayOf(null, Unbox, None, Unbox, Unbox),
+        arrayOf(null, None, Box, None, Cast),
+        arrayOf(null, None, Box, Cast, None),
 )
 
 private fun IrFunction.bridgeDirectionToAt(overriddenFunction: IrFunction, index: ParameterIndex): BridgeDirection {
