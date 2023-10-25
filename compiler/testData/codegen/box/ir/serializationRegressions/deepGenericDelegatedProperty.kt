@@ -2,6 +2,7 @@
 // SKIP_MANGLE_VERIFICATION
 //For KT-6020
 // KT-24643: language version in K2 is >= 1.8
+// IGNORE_K1_K2_ABI_DIFFERENCE: KT-62884
 
 // MODULE: lib
 // FILE: lib.kt
