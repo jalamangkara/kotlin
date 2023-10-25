@@ -159,9 +159,9 @@ private class AutoboxingTransformer(val context: Context) : AbstractValueUsageTr
                     expectedType == irBuiltIns.unitType ->
                         irImplicitCoercionToUnit(expression)
                     expectedType.isNullable() ->
-                        irAs(irImplicitCast(expression, actualType), expectedType)
+                        irAs(expression.uncheckedCast(actualType), expectedType)
                     else ->
-                        irImplicitCast(irAs(irImplicitCast(expression, actualType), expectedType.makeNullable()), expectedType)
+                        irAs(expression.uncheckedCast(actualType), expectedType.makeNullable()).uncheckedCast(expectedType)
                 }
             }
 
