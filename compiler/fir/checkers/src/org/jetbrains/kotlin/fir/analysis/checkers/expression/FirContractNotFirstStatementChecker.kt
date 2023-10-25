@@ -5,21 +5,20 @@
 
 package org.jetbrains.kotlin.fir.analysis.checkers.expression
 
-import org.jetbrains.kotlin.KtLightSourceElement
-import org.jetbrains.kotlin.KtNodeTypes
-import org.jetbrains.kotlin.KtPsiSourceElement
 import org.jetbrains.kotlin.diagnostics.DiagnosticReporter
 import org.jetbrains.kotlin.diagnostics.reportOn
 import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors
+import org.jetbrains.kotlin.fir.contracts.FirContractDescription
+import org.jetbrains.kotlin.fir.contracts.FirResolvedContractDescription
+import org.jetbrains.kotlin.fir.declarations.FirContractDescriptionOwner
 import org.jetbrains.kotlin.fir.declarations.FirFunction
+import org.jetbrains.kotlin.fir.diagnostics.ConeContractShouldBeFirstStatement
 import org.jetbrains.kotlin.fir.expressions.FirFunctionCall
-import org.jetbrains.kotlin.fir.expressions.FirStatement
 import org.jetbrains.kotlin.fir.expressions.impl.FirContractCallBlock
 import org.jetbrains.kotlin.fir.expressions.impl.FirSingleExpressionBlock
 import org.jetbrains.kotlin.fir.expressions.toResolvedCallableSymbol
 import org.jetbrains.kotlin.name.StandardClassIds
-import org.jetbrains.kotlin.psi.KtParenthesizedExpression
 
 object FirContractNotFirstStatementChecker : FirFunctionCallChecker() {
     override fun check(expression: FirFunctionCall, context: CheckerContext, reporter: DiagnosticReporter) {
@@ -40,14 +39,9 @@ object FirContractNotFirstStatementChecker : FirFunctionCallChecker() {
     private fun FirFunctionCall.isCorrectlyPlacedIn(functionDeclaration: FirFunction): Boolean {
         val firstStatement = functionDeclaration.body?.statements?.first()
         return firstStatement is FirContractCallBlock && firstStatement.call == this
-                && !firstStatement.hasParenthesizedParent()
+                && !(functionDeclaration is FirContractDescriptionOwner && functionDeclaration.contractDescription.isNonFirstStatement)
     }
-}
 
-fun FirStatement.hasParenthesizedParent(): Boolean {
-    return when (val source = source) {
-        is KtPsiSourceElement -> source.psi.parent is KtParenthesizedExpression
-        is KtLightSourceElement -> source.treeStructure.getParent(source.lighterASTNode)?.tokenType == KtNodeTypes.PARENTHESIZED
-        else -> false
-    }
+    private val FirContractDescription.isNonFirstStatement: Boolean
+        get() = this is FirResolvedContractDescription && diagnostic == ConeContractShouldBeFirstStatement
 }

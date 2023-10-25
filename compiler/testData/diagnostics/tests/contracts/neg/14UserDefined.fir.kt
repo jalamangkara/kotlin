@@ -67,6 +67,15 @@ inline fun case_7(block: () -> Unit) {
     })
 }
 
+// TESTCASE NUMBER: 8
+val myProp = 8
+inline fun case_8(block: () -> Unit) {
+    myProp
+    contract {
+        callsInPlace(<!USAGE_IS_NOT_INLINABLE!>block<!>, InvocationKind.EXACTLY_ONCE)
+    }
+}
+
 // Copy-pasted from compiler/tests-spec/testData/diagnostics/helpers/functions.kt
 fun funWithAnyArg(value_1: Any): Int {
     return value_1.hashCode()

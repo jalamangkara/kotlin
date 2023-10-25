@@ -6650,20 +6650,46 @@ public class LLFirPreresolvedReversedDiagnosticCompilerFE10TestDataTestGenerated
         @TestDataPath("$PROJECT_ROOT")
         public class Contracts {
             @Test
-            @TestMetadata("14.kt")
-            public void test14() throws Exception {
-                runTest("compiler/testData/diagnostics/tests/contracts/14.kt");
-            }
-
-            @Test
-            @TestMetadata("14UserDefined.kt")
-            public void test14UserDefined() throws Exception {
-                runTest("compiler/testData/diagnostics/tests/contracts/14UserDefined.kt");
-            }
-
-            @Test
             public void testAllFilesPresentInContracts() throws Exception {
-                KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/diagnostics/tests/contracts"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.(reversed|fir|ll)\\.kts?$"), true, "multiplatform");
+                KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/diagnostics/tests/contracts"), Pattern.compile("^(.+)\\.(kt|kts)$"), Pattern.compile("^(.+)\\.(reversed|fir|ll)\\.kts?$"), true, "multiplatform");
+            }
+
+            @Nested
+            @TestMetadata("compiler/testData/diagnostics/tests/contracts/neg")
+            @TestDataPath("$PROJECT_ROOT")
+            public class Neg {
+                @Test
+                @TestMetadata("14.kt")
+                public void test14() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contracts/neg/14.kt");
+                }
+
+                @Test
+                @TestMetadata("14UserDefined.kt")
+                public void test14UserDefined() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contracts/neg/14UserDefined.kt");
+                }
+
+                @Test
+                public void testAllFilesPresentInNeg() throws Exception {
+                    KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/diagnostics/tests/contracts/neg"), Pattern.compile("^(.+)\\.(kt|kts)$"), Pattern.compile("^(.+)\\.(reversed|fir|ll)\\.kts?$"), true, "multiplatform");
+                }
+            }
+
+            @Nested
+            @TestMetadata("compiler/testData/diagnostics/tests/contracts/pos")
+            @TestDataPath("$PROJECT_ROOT")
+            public class Pos {
+                @Test
+                @TestMetadata("1.kt")
+                public void test1() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contracts/pos/1.kt");
+                }
+
+                @Test
+                public void testAllFilesPresentInPos() throws Exception {
+                    KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/diagnostics/tests/contracts/pos"), Pattern.compile("^(.+)\\.(kt|kts)$"), Pattern.compile("^(.+)\\.(reversed|fir|ll)\\.kts?$"), true, "multiplatform");
+                }
             }
         }
 

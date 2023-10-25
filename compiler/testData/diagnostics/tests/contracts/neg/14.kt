@@ -20,7 +20,7 @@ import kotlin.contracts.*
 // TESTCASE NUMBER: 1
 inline fun case_1(block: () -> Unit) {
     return <!CONTRACT_NOT_ALLOWED!>contract<!> {
-        callsInPlace(<!USAGE_IS_NOT_INLINABLE!>block<!>, InvocationKind.EXACTLY_ONCE)
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
 }
 
@@ -30,7 +30,7 @@ fun case_2() = <!CONTRACT_NOT_ALLOWED!>contract<!> { }
 // TESTCASE NUMBER: 3
 inline fun case_3(block: () -> Unit) {
     val value_1 = <!CONTRACT_NOT_ALLOWED!>contract<!> {
-        callsInPlace(<!USAGE_IS_NOT_INLINABLE!>block<!>, InvocationKind.EXACTLY_ONCE)
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
     block()
 }
@@ -45,7 +45,7 @@ inline fun case_4(block: () -> Unit) {
 
 // TESTCASE NUMBER: 5
 inline fun case_5(block: () -> Unit) {
-    test@ contract {
+    <!REDUNDANT_LABEL_WARNING!>test@<!> <!CONTRACT_NOT_ALLOWED!>contract<!> {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
     return block()
@@ -54,15 +54,24 @@ inline fun case_5(block: () -> Unit) {
 // TESTCASE NUMBER: 6
 inline fun case_6(block: () -> Unit) {
     throw Exception(<!CONTRACT_NOT_ALLOWED!>contract<!> {
-        callsInPlace(<!USAGE_IS_NOT_INLINABLE!>block<!>, InvocationKind.EXACTLY_ONCE)
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }.toString())
 }
 
 // TESTCASE NUMBER: 7
 inline fun case_7(block: () -> Unit) {
     funWithAnyArg(<!CONTRACT_NOT_ALLOWED!>contract<!> {
-        callsInPlace(<!USAGE_IS_NOT_INLINABLE!>block<!>, InvocationKind.EXACTLY_ONCE)
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     })
+}
+
+// TESTCASE NUMBER: 8
+val myProp = 8
+inline fun case_8(block: () -> Unit) {
+    myProp
+    <!CONTRACT_NOT_ALLOWED!>contract<!> {
+        callsInPlace(block, InvocationKind.EXACTLY_ONCE)
+    }
 }
 
 // Copy-pasted from compiler/tests-spec/testData/diagnostics/helpers/functions.kt
