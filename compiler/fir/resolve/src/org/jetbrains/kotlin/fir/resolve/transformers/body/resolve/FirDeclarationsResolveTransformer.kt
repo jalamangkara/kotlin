@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.fir.declarations.builder.buildValueParameter
 import org.jetbrains.kotlin.fir.declarations.impl.FirDefaultPropertyAccessor
 import org.jetbrains.kotlin.fir.declarations.impl.FirDefaultPropertyBackingField
 import org.jetbrains.kotlin.fir.declarations.synthetic.FirSyntheticProperty
+import org.jetbrains.kotlin.fir.declarations.utils.correspondingValueParameterFromPrimaryConstructor
 import org.jetbrains.kotlin.fir.declarations.utils.hasExplicitBackingField
 import org.jetbrains.kotlin.fir.declarations.utils.isInline
 import org.jetbrains.kotlin.fir.declarations.utils.isLocal
@@ -27,6 +28,7 @@ import org.jetbrains.kotlin.fir.diagnostics.DiagnosticKind
 import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.references.FirResolvedErrorReference
 import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
+import org.jetbrains.kotlin.fir.references.toResolvedValueParameterSymbol
 import org.jetbrains.kotlin.fir.resolve.*
 import org.jetbrains.kotlin.fir.resolve.calls.Candidate
 import org.jetbrains.kotlin.fir.resolve.calls.candidate
@@ -247,12 +249,25 @@ open class FirDeclarationsResolveTransformer(
             }
             if (field.initializer != null) {
                 storeVariableReturnType(field)
+                field.initializeCorrespondingPropertyForDelegateIfNeeded()
             }
             dataFlowAnalyzer.exitField(field)?.let {
                 field.replaceControlFlowGraphReference(FirControlFlowGraphReferenceImpl(it))
             }
             field
         }
+    }
+
+    private fun FirField.initializeCorrespondingPropertyForDelegateIfNeeded() {
+        if (origin != FirDeclarationOrigin.Synthetic.DelegateField) return
+        val initializer = initializer as? FirQualifiedAccessExpression ?: return
+        if (initializer.explicitReceiver != null) return
+        val resolvedSymbol = initializer.calleeReference.toResolvedValueParameterSymbol() ?: return
+        val owner = getContainingClass(session) ?: return
+        val correspondingProperty = owner.declarations.filterIsInstance<FirProperty>().find {
+            it.correspondingValueParameterFromPrimaryConstructor == resolvedSymbol
+        } ?: return
+        this.correspondingPropertyForDelegate = correspondingProperty.symbol
     }
 
     private fun FirFunctionCall.replacePropertyReferenceTypeInDelegateAccessors(property: FirProperty) {
