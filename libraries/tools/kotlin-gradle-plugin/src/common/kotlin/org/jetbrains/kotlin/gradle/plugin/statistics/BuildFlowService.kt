@@ -6,12 +6,14 @@
 package org.jetbrains.kotlin.gradle.plugin.statistics
 
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
+import org.gradle.api.tasks.Internal
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.tooling.events.task.TaskFailureResult
@@ -23,12 +25,21 @@ import org.jetbrains.kotlin.gradle.plugin.StatisticsBuildFlowManager
 import org.jetbrains.kotlin.gradle.plugin.internal.isConfigurationCacheRequested
 import org.jetbrains.kotlin.gradle.plugin.internal.isProjectIsolationEnabled
 import org.jetbrains.kotlin.gradle.report.BuildReportType
+import org.jetbrains.kotlin.gradle.report.UsesBuildMetricsService
 import org.jetbrains.kotlin.gradle.report.reportingSettings
+import org.jetbrains.kotlin.gradle.tasks.withType
+import org.jetbrains.kotlin.gradle.utils.SingleActionPerProject
 import org.jetbrains.kotlin.statistics.metrics.BooleanMetrics
 import org.jetbrains.kotlin.statistics.metrics.IStatisticsValuesConsumer
 import org.jetbrains.kotlin.statistics.metrics.NumericalMetrics
 import org.jetbrains.kotlin.statistics.metrics.StringMetrics
 import java.io.Serializable
+
+
+internal interface UsesBuildFlowService : Task {
+    @get:Internal
+    val buildFlowService: Property<BuildFlowService?>
+}
 
 internal abstract class BuildFlowService : BuildService<BuildFlowService.Parameters>, AutoCloseable, OperationCompletionListener {
     private var buildFailed: Boolean = false
@@ -42,6 +53,14 @@ internal abstract class BuildFlowService : BuildService<BuildFlowService.Paramet
         val configurationMetrics: ListProperty<MetricContainer>
         val fusStatisticsAvailable: Property<Boolean>
     }
+    internal val fusMetricsConsumer = NonSynchronizedMetricsContainer()
+
+    internal fun reportFusMetrics(reportAction: (IStatisticsValuesConsumer) -> Unit) {
+        if (parameters.fusStatisticsAvailable.getOrElse(false)) {
+            fusMetricsConsumer.also { reportAction.invoke(it) }
+        }
+    }
+
 
     companion object {
         private val serviceName = "${BuildFlowService::class.simpleName}_${BuildFlowService::class.java.classLoader.hashCode()}"
@@ -55,7 +74,17 @@ internal abstract class BuildFlowService : BuildService<BuildFlowService.Paramet
                 else -> !project.isConfigurationCacheRequested
             }
         }
-        fun registerIfAbsent(
+
+        fun registerIfAbsent(project: Project) = registerIfAbsentImpl(project)?.also { serviceProvider ->
+            SingleActionPerProject.run(project, UsesBuildMetricsService::class.java.name) {
+                project.tasks.withType<UsesBuildFlowService>().configureEach { task ->
+                    task.buildFlowService.value(serviceProvider).disallowChanges()
+                    task.usesService(serviceProvider)
+                }
+            }
+        }
+
+        private fun registerIfAbsentImpl(
             project: Project,
         ): Provider<BuildFlowService> {
 
@@ -65,10 +94,13 @@ internal abstract class BuildFlowService : BuildService<BuildFlowService.Paramet
                 @Suppress("UNCHECKED_CAST")
                 return (it.service as Provider<BuildFlowService>).also {
                     it.get().parameters.configurationMetrics.add(project.provider {
-                        KotlinBuildStatsService.getInstance()?.collectProjectConfigurationMetrics(project, isProjectIsolationEnabled)
+                        KotlinBuildStatHandler.collectProjectConfigurationTimeMetrics(project, isProjectIsolationEnabled)
                     })
                 }
             }
+
+            //init buildStatsService
+            KotlinBuildStatsService.getOrCreateInstance(project)
 
             val fusStatisticsAvailable = fusStatisticsAvailable(project)
             val buildReportOutputs = reportingSettings(project).buildReportOutputs
@@ -85,11 +117,11 @@ internal abstract class BuildFlowService : BuildService<BuildFlowService.Paramet
                 }
 
                 spec.parameters.configurationMetrics.add(project.provider {
-                    KotlinBuildStatsService.getInstance()?.collectGeneralConfigurationMetrics(project, isProjectIsolationEnabled, buildReportOutputs)
+                    KotlinBuildStatHandler.collectGeneralConfigurationTimeMetrics(project, isProjectIsolationEnabled, buildReportOutputs)
                 })
 
                 spec.parameters.configurationMetrics.add(project.provider {
-                    KotlinBuildStatsService.getInstance()?.collectProjectConfigurationMetrics(project, isProjectIsolationEnabled)
+                    KotlinBuildStatHandler.collectProjectConfigurationTimeMetrics(project, isProjectIsolationEnabled)
                 })
                 spec.parameters.fusStatisticsAvailable.set(fusStatisticsAvailable)
             }.also { buildService ->
@@ -123,8 +155,11 @@ internal abstract class BuildFlowService : BuildService<BuildFlowService.Paramet
     }
 
     internal fun recordBuildFinished(action: String?, buildFailed: Boolean) {
+        KotlinBuildStatHandler.reportGlobalMetrics(fusMetricsConsumer)
+        parameters.configurationMetrics.orElse(emptyList()).get().forEach { it.flush(fusMetricsConsumer) }
+
         KotlinBuildStatsService.applyIfInitialised {
-            it.recordBuildFinish(action, buildFailed, parameters.configurationMetrics.orElse(emptyList()).get())
+            it.recordBuildFinish(action, buildFailed, fusMetricsConsumer)
         }
     }
 }
@@ -134,15 +169,15 @@ internal class MetricContainer : Serializable {
     private val booleanMetrics = HashMap<BooleanMetrics, Boolean>()
     private val stringMetrics = HashMap<StringMetrics, String>()
 
-    fun report(sessionLogger: IStatisticsValuesConsumer) {
+    fun flush(metricsConsumer: IStatisticsValuesConsumer) {
         for ((key, value) in numericalMetrics) {
-            sessionLogger.report(key, value)
+            metricsConsumer.report(key, value)
         }
         for ((key, value) in booleanMetrics) {
-            sessionLogger.report(key, value)
+            metricsConsumer.report(key, value)
         }
         for ((key, value) in stringMetrics) {
-            sessionLogger.report(key, value)
+            metricsConsumer.report(key, value)
         }
     }
 

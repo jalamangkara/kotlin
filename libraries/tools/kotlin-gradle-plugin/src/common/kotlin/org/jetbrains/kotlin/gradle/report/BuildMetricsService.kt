@@ -42,7 +42,9 @@ import org.jetbrains.kotlin.statistics.metrics.NumericalMetrics
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+import org.jetbrains.kotlin.gradle.plugin.StatisticsBuildFlowManager
 import org.jetbrains.kotlin.gradle.plugin.internal.isConfigurationCacheRequested
+import org.jetbrains.kotlin.statistics.metrics.IStatisticsValuesConsumer
 import java.lang.management.ManagementFactory
 
 internal interface UsesBuildMetricsService : Task {
@@ -63,6 +65,8 @@ abstract class BuildMetricsService : BuildService<BuildMetricsService.Parameters
         val projectName: Property<String>
         val kotlinVersion: Property<String>
         val buildConfigurationTags: ListProperty<StatTag>
+
+        val fusMetricsConsumer: Property<IStatisticsValuesConsumer?>
     }
 
     private val log = Logging.getLogger(this.javaClass)
@@ -114,7 +118,7 @@ abstract class BuildMetricsService : BuildService<BuildMetricsService.Parameters
         taskExecutionResult?.buildMetrics?.also {
             buildMetrics.addAll(it)
 
-            KotlinBuildStatsService.applyIfInitialised { collector ->
+           parameters.fusMetricsConsumer.orNull?.also { collector ->
                 collector.report(NumericalMetrics.COMPILATION_DURATION, totalTimeMs)
                 collector.report(BooleanMetrics.KOTLIN_COMPILATION_FAILED, event.result is FailureResult)
                 val metricsMap = buildMetrics.buildPerformanceMetrics.asMap()

@@ -66,7 +66,9 @@ abstract class DefaultKotlinBasePlugin : KotlinBasePlugin {
         KotlinBuildStatsService.getOrCreateInstance(project)?.apply {
             report(StringMetrics.KOTLIN_COMPILER_VERSION, pluginVersion)
         }
-        BuildFlowService.registerIfAbsent(project)
+        BuildFlowService.registerIfAbsent(project).get().reportFusMetrics {
+            it.report(StringMetrics.KOTLIN_COMPILER_VERSION, pluginVersion)
+        }
 
         project.gradle.projectsEvaluated {
             whenBuildEvaluated(project)

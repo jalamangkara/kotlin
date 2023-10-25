@@ -47,10 +47,10 @@ internal abstract class StatisticsBuildFlowManager @Inject constructor(
 internal class BuildScanFlowAction : FlowAction<BuildScanFlowAction.Parameters> {
     interface Parameters : FlowParameters {
         @get:ServiceReference
-        val buildMetricService: Property<BuildMetricsService?>
+        val buildMetricService: Property<BuildMetricsService>
 
         @get: Input
-        val buildScanExtensionHolder: Property<BuildScanExtensionHolder?>
+        val buildScanExtensionHolder: Property<BuildScanExtensionHolder>
     }
 
     override fun execute(parameters: Parameters) {
@@ -72,7 +72,7 @@ internal class BuildFinishFlowAction : FlowAction<BuildFinishFlowAction.Paramete
     }
 
     override fun execute(parameters: Parameters) {
-        parameters.buildFlowServiceProperty.get().recordBuildFinished(
+        parameters.buildFlowServiceProperty.orNull?.recordBuildFinished(
             parameters.action.orNull, parameters.buildFailed.get()
         )
     }
