@@ -44056,6 +44056,12 @@ public class DiagnosticTestGenerated extends AbstractDiagnosticTest {
                 }
 
                 @Test
+                @TestMetadata("classLiteralCase.kt")
+                public void testClassLiteralCase() throws Exception {
+                    runTest("compiler/testData/diagnostics/testsWithStdLib/resolve/ambiguousTypeReferences/classLiteralCase.kt");
+                }
+
+                @Test
                 @TestMetadata("constructorCase.kt")
                 public void testConstructorCase() throws Exception {
                     runTest("compiler/testData/diagnostics/testsWithStdLib/resolve/ambiguousTypeReferences/constructorCase.kt");
