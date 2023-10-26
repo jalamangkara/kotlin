@@ -16,14 +16,13 @@ import org.jetbrains.kotlin.test.backend.ir.BothFrontendsJvmIrBackendFacade
 import org.jetbrains.kotlin.test.builders.TestConfigurationBuilder
 import org.jetbrains.kotlin.test.builders.configureTwoJvmArtifactHandlerStep
 import org.jetbrains.kotlin.test.builders.twoJvmArtifactsHandlersStep
-import org.jetbrains.kotlin.test.directives.CodegenTestDirectives
-import org.jetbrains.kotlin.test.directives.ConfigurationDirectives
-import org.jetbrains.kotlin.test.directives.FirDiagnosticsDirectives
-import org.jetbrains.kotlin.test.directives.JvmEnvironmentConfigurationDirectives
+import org.jetbrains.kotlin.test.directives.*
 import org.jetbrains.kotlin.test.frontend.Both2IrConverter
 import org.jetbrains.kotlin.test.frontend.BothFrontendsFacade
 import org.jetbrains.kotlin.test.model.FrontendKinds
 import org.jetbrains.kotlin.test.runners.codegen.commonServicesConfigurationForCodegenAndDebugTest
+import org.jetbrains.kotlin.test.services.configuration.JavaForeignAnnotationType
+import org.jetbrains.kotlin.test.services.configuration.JvmForeignAnnotationsConfigurator
 
 open class AbstractAbiConsistencyTest :
     AbstractKotlinCompilerWithTargetBackendTest(TargetBackend.JVM_IR),
@@ -64,6 +63,13 @@ open class AbstractAbiConsistencyTest :
                 JvmEnvironmentConfigurationDirectives.JDK_KIND with TestJdkKind.FULL_JDK_17
                 JvmEnvironmentConfigurationDirectives.JVM_TARGET with JvmTarget.JVM_17
             }
+        }
+
+        forTestsMatching("compiler/testData/codegen/box/javaInterop/foreignAnnotationsTests/tests/*") {
+            defaultDirectives {
+                ForeignAnnotationsDirectives.ANNOTATIONS_PATH with JavaForeignAnnotationType.Annotations
+            }
+            useConfigurators(::JvmForeignAnnotationsConfigurator)
         }
 
         useAfterAnalysisCheckers(

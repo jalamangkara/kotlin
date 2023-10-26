@@ -86,7 +86,11 @@ fun generateJUnit5CompilerTests(args: Array<String>, mainClassName: String?) {
                 model("codegen/boxModernJdk")
                 model("codegen/bytecodeText")
                 model("codegen/bytecodeListing")
-                model("codegen/script")
+                model("codegen/composeLike")
+                model("codegen/composeLikeBytecodeText")
+                model("codegen/defaultArguments")
+                model("codegen/dumpDeclarations")
+                model("codegen/script", pattern = "^(.*)\\.kts?$", excludedPattern = excludedCustomTestdataPattern)
             }
 
             testClass<AbstractIrBlackBoxCodegenWithIrInlinerTest> {
