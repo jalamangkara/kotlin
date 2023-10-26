@@ -22923,6 +22923,12 @@ public class FirLightTreeOldFrontendDiagnosticsTestGenerated extends AbstractFir
             }
 
             @Test
+            @TestMetadata("dependencyModule.kt")
+            public void testDependencyModule() throws Exception {
+                runTest("compiler/testData/diagnostics/tests/multimodule/dependencyModule.kt");
+            }
+
+            @Test
             @TestMetadata("dependsOnModule.kt")
             public void testDependsOnModule() throws Exception {
                 runTest("compiler/testData/diagnostics/tests/multimodule/dependsOnModule.kt");
