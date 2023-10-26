@@ -5,12 +5,96 @@
 
 package kotlin.jdk7.test
 
+import java.nio.charset.Charset
+import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 import kotlin.io.path.*
 import kotlin.random.Random
 import kotlin.test.*
 
 class PathReadWriteTest : AbstractPathTest() {
+
+    private fun Charset.encodeToByteArray(string: String): ByteArray =
+        encode(string).let { it.array().copyOf(it.limit()) }
+
+    private val hexFormat = HexFormat {
+        bytes.bytesPerLine = 32
+        bytes.bytesPerGroup = 8
+    }
+
+    private fun Path.testContentEquals(expectedContent: ByteArray, charset: Charset) {
+        val expected = expectedContent.toHexString(hexFormat)
+        val actualContent = readBytes()
+        val actual = actualContent.toHexString(hexFormat)
+        assertEquals(expected, actual, "$charset. Expected size is ${expectedContent.size}, actual size is ${actualContent.size}")
+    }
+
+    private fun Path.testWriteText(text: String, charset: Charset) {
+        val encodedText = charset.encodeToByteArray(text)
+
+        writeText(text, charset)
+        testContentEquals(encodedText, charset)
+
+        writeText(StringBuilder(text), charset)
+        testContentEquals(encodedText, charset)
+
+        val prefix = "_"
+        val encodedPrefix = charset.encodeToByteArray("_")
+
+        writeText(prefix, charset)
+        appendText(text, charset)
+        testContentEquals(encodedPrefix + encodedText, charset)
+
+        writeText(prefix, charset)
+        appendText(StringBuilder(text), charset)
+        testContentEquals(encodedPrefix + encodedText, charset)
+    }
+
+    @Test fun writeText() {
+        val charsets = listOf(
+            Charsets.UTF_8,
+            Charsets.UTF_16,
+            Charsets.UTF_32,
+            Charsets.ISO_8859_1,
+            Charsets.US_ASCII,
+        )
+
+        val highSurrogate = Char.MIN_HIGH_SURROGATE
+        val lowSurrogate = Char.MIN_LOW_SURROGATE
+
+        val smallString = "Hello"
+
+        val chunkSize = DEFAULT_BUFFER_SIZE
+        val string = "k".repeat(chunkSize - 1)
+
+        val path = createTempFile().cleanup()
+
+        for (charset in charsets) {
+            path.testWriteText("$highSurrogate", charset)
+
+            path.testWriteText("$lowSurrogate", charset)
+
+            path.testWriteText("$smallString$highSurrogate", charset)
+
+            path.testWriteText("$smallString$lowSurrogate", charset)
+
+            path.testWriteText("$string$highSurrogate", charset)
+
+            path.testWriteText("$string$lowSurrogate", charset)
+
+            path.testWriteText("$string$highSurrogate$lowSurrogate$string", charset)
+
+            path.testWriteText("$string$lowSurrogate$highSurrogate$string", charset)
+
+            path.testWriteText(
+                "$string$highSurrogate$lowSurrogate${string.substring(2)}$highSurrogate$lowSurrogate",
+                charset
+            )
+
+            path.testWriteText("$string$lowSurrogate$highSurrogate$lowSurrogate$string", charset)
+        }
+    }
+
     @Test
     fun appendText() {
         val file = createTempFile().cleanup()

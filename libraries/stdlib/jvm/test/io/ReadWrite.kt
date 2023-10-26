@@ -10,20 +10,98 @@ import java.io.File
 import java.io.Reader
 import java.io.StringReader
 import java.net.URL
+import java.nio.charset.Charset
 import java.util.ArrayList
 
 private fun sample(): Reader = StringReader("Hello\nWorld");
 
 class ReadWriteTest {
+
+    private fun createTempFileDeleteOnExit(): File =
+        File.createTempFile("temp", System.nanoTime().toString()).also { it.deleteOnExit() }
+
+    private fun Charset.encodeToByteArray(string: String): ByteArray =
+        encode(string).let { it.array().copyOf(it.limit()) }
+
+    private val hexFormat = HexFormat {
+        bytes.bytesPerLine = 32
+        bytes.bytesPerGroup = 8
+    }
+
+    private fun File.testContentEquals(expectedContent: ByteArray, charset: Charset) {
+        val expected = expectedContent.toHexString(hexFormat)
+        val actualContent = readBytes()
+        val actual = actualContent.toHexString(hexFormat)
+        assertEquals(expected, actual, "$charset. Expected size is ${expectedContent.size}, actual size is ${actualContent.size}")
+    }
+
+    private fun File.testWriteText(text: String, charset: Charset) {
+        val encodedText = charset.encodeToByteArray(text)
+
+        writeText(text, charset)
+        testContentEquals(encodedText, charset)
+
+        val prefix = "_"
+        val encodedPrefix = charset.encodeToByteArray("_")
+
+        writeText(prefix, charset)
+        appendText(text, charset)
+        testContentEquals(encodedPrefix + encodedText, charset)
+    }
+
+    @Test fun writeText() {
+        val charsets = listOf(
+            Charsets.UTF_8,
+            Charsets.UTF_16,
+            Charsets.UTF_32,
+            Charsets.ISO_8859_1,
+            Charsets.US_ASCII,
+        )
+
+        val highSurrogate = Char.MIN_HIGH_SURROGATE
+        val lowSurrogate = Char.MIN_LOW_SURROGATE
+
+        val smallString = "Hello"
+
+        val chunkSize = DEFAULT_BUFFER_SIZE
+        val string = "k".repeat(chunkSize - 1)
+
+        val file = createTempFileDeleteOnExit()
+
+        for (charset in charsets) {
+            file.testWriteText("$highSurrogate", charset)
+
+            file.testWriteText("$lowSurrogate", charset)
+
+            file.testWriteText("$smallString$highSurrogate", charset)
+
+            file.testWriteText("$smallString$lowSurrogate", charset)
+
+            file.testWriteText("$string$highSurrogate", charset)
+
+            file.testWriteText("$string$lowSurrogate", charset)
+
+            file.testWriteText("$string$highSurrogate$lowSurrogate$string", charset)
+
+            file.testWriteText("$string$lowSurrogate$highSurrogate$string", charset)
+
+            file.testWriteText(
+                "$string$highSurrogate$lowSurrogate${string.substring(2)}$highSurrogate$lowSurrogate",
+                charset
+            )
+
+            file.testWriteText("$string$lowSurrogate$highSurrogate$lowSurrogate$string", charset)
+        }
+    }
+
     @Test fun testAppendText() {
-        val file = File.createTempFile("temp", System.nanoTime().toString())
+        val file = createTempFileDeleteOnExit()
         file.writeText("Hello\n")
         file.appendText("World\n")
         file.appendText("Again")
 
         assertEquals("Hello\nWorld\nAgain", file.readText())
         assertEquals(listOf("Hello", "World", "Again"), file.readLines(Charsets.UTF_8))
-        file.deleteOnExit()
     }
 
     @Test fun reader() {
@@ -73,7 +151,7 @@ class ReadWriteTest {
     }
 
     @Test fun file() {
-        val file = File.createTempFile("temp", System.nanoTime().toString())
+        val file = createTempFileDeleteOnExit()
         val writer = file.outputStream().writer().buffered()
 
         writer.write("Hello")
@@ -120,8 +198,6 @@ class ReadWriteTest {
         c = 0
         file.forEachLine { c++ }
         assertEquals(2, c)
-
-        file.deleteOnExit()
     }
 
     @Test fun testURL() {

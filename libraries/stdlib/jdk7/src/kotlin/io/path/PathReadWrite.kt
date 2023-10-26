@@ -10,12 +10,16 @@
 package kotlin.io.path
 
 import java.io.*
+import java.nio.ByteBuffer
+import java.nio.CharBuffer
 import java.nio.charset.Charset
+import java.nio.charset.CodingErrorAction
 import java.nio.file.Files
 import java.nio.file.OpenOption
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 import kotlin.jvm.Throws
+import kotlin.math.ceil
 
 /**
  * Returns a new [InputStreamReader] for reading the content of this file.
@@ -168,7 +172,22 @@ public fun Path.readText(charset: Charset = Charsets.UTF_8): String =
 @WasExperimental(ExperimentalPathApi::class)
 @Throws(IOException::class)
 public fun Path.writeText(text: CharSequence, charset: Charset = Charsets.UTF_8, vararg options: OpenOption) {
-    Files.newOutputStream(this, *options).writer(charset).use { it.append(text) }
+    Files.newOutputStream(this, *options).use { out ->
+        if (text is String) {
+            out.writeTextImpl(text, charset)
+            return@use
+        }
+
+        val encoder = charset.newReplaceEncoder()
+        val charBuffer = if (text is CharBuffer) text else CharBuffer.wrap(text)
+        val byteBuffer = byteBufferForEncoding(chunkSize = DEFAULT_BUFFER_SIZE, encoder)
+
+        while (charBuffer.hasRemaining()) {
+            encoder.encode(charBuffer, byteBuffer, /*endOfInput = */true).also { check(!it.isError) }
+            out.write(byteBuffer.array(), 0, byteBuffer.position())
+            byteBuffer.clear()
+        }
+    }
 }
 
 /**
@@ -181,7 +200,7 @@ public fun Path.writeText(text: CharSequence, charset: Charset = Charsets.UTF_8,
 @WasExperimental(ExperimentalPathApi::class)
 @Throws(IOException::class)
 public fun Path.appendText(text: CharSequence, charset: Charset = Charsets.UTF_8) {
-    Files.newOutputStream(this, StandardOpenOption.APPEND).writer(charset).use { it.append(text) }
+    writeText(text, charset, StandardOpenOption.APPEND)
 }
 
 /**
