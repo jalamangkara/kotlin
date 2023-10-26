@@ -231,7 +231,7 @@ private class TranslationResultMap(
     icContext: IncrementalCompilationContext,
 ) : AbstractBasicMap<File, TranslationResultValue>(
     storageFile,
-    icContext.fileExternalizerForSourceFiles.toDescriptor(),
+    icContext.fileDescriptorForSourceFiles,
     TranslationResultValueExternalizer,
     icContext
 ) {
@@ -314,7 +314,7 @@ private class IrTranslationResultMap(
     icContext: IncrementalCompilationContext,
 ) : AbstractBasicMap<File, IrTranslationResultValue>(
     storageFile,
-    icContext.fileExternalizerForSourceFiles.toDescriptor(),
+    icContext.fileDescriptorForSourceFiles,
     IrTranslationResultValueExternalizer,
     icContext
 ) {
@@ -393,7 +393,7 @@ private class InlineFunctionsMap(
     icContext: IncrementalCompilationContext,
 ) : AbstractBasicMap<File, Map<String, Long>>(
     storageFile,
-    icContext.fileExternalizerForSourceFiles.toDescriptor(),
+    icContext.fileDescriptorForSourceFiles,
     StringToLongMapExternalizer,
     icContext
 ) {

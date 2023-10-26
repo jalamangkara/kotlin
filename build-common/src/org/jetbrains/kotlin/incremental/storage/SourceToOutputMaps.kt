@@ -40,7 +40,7 @@ internal abstract class AbstractSourceToOutputMap<Name>(
     icContext: IncrementalCompilationContext,
 ) : AppendableSetBasicMap<File, Name>(
     storageFile,
-    icContext.fileExternalizerForSourceFiles.toDescriptor(),
+    icContext.fileDescriptorForSourceFiles,
     NameExternalizer(nameTransformer),
     icContext
 ) {

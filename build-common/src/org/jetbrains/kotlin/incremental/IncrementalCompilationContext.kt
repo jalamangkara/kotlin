@@ -5,11 +5,12 @@
 
 package org.jetbrains.kotlin.incremental
 
+import com.intellij.util.io.KeyDescriptor
 import org.jetbrains.kotlin.build.report.DoNothingICReporter
 import org.jetbrains.kotlin.build.report.ICReporter
 import org.jetbrains.kotlin.incremental.storage.BasicFileToPathConverter
-import org.jetbrains.kotlin.incremental.storage.FileExternalizer
 import org.jetbrains.kotlin.incremental.storage.FileToPathConverter
+import java.io.File
 
 class IncrementalCompilationContext(
     // The root directories of source files and output files are different, so we need different `FileToPathConverter`s
@@ -47,6 +48,6 @@ class IncrementalCompilationContext(
         keepIncrementalCompilationCachesInMemory
     )
 
-    val fileExternalizerForSourceFiles = FileExternalizer(pathConverterForSourceFiles)
-    val fileExternalizerForOutputFiles = FileExternalizer(pathConverterForOutputFiles)
+    val fileDescriptorForSourceFiles: KeyDescriptor<File> = pathConverterForSourceFiles.getFileDescriptor()
+    val fileDescriptorForOutputFiles: KeyDescriptor<File> = pathConverterForOutputFiles.getFileDescriptor()
 }

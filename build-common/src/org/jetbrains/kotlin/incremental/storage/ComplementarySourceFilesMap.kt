@@ -13,7 +13,7 @@ class ComplementarySourceFilesMap(
     icContext: IncrementalCompilationContext,
 ) : AppendableSetBasicMap<File, File>(
     storageFile,
-    icContext.fileExternalizerForSourceFiles.toDescriptor(),
-    icContext.fileExternalizerForSourceFiles,
+    icContext.fileDescriptorForSourceFiles,
+    icContext.fileDescriptorForSourceFiles,
     icContext
 )

@@ -123,8 +123,12 @@ abstract class AppendableSetBasicMap<KEY, E>(
         storage.contains(key)
 
     @Synchronized
-    override fun get(key: KEY): Set<E>? =
-        storage[key]?.toSet()
+    override fun get(key: KEY): Set<E>? {
+        // Note: To optimize this getter, consider changing the type of `storage` from PersistentStorage<KEY, Collection<E>> to
+        // PersistentStorage<KEY, Set<E>> so that we don't have to call `toSet()`. The downside is that it will make the code more complex,
+        // so we'll do it only if it's necessary.
+        return storage[key]?.toSet()
+    }
 
     @Synchronized
     override fun set(key: KEY, value: Set<E>) {

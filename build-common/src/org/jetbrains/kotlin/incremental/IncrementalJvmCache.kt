@@ -531,7 +531,7 @@ open class IncrementalJvmCache(
     ) : AppendableBasicMap<String, File>(
         storageFile,
         StringExternalizer.toDescriptor(),
-        icContext.fileExternalizerForSourceFiles,
+        icContext.fileDescriptorForSourceFiles,
         icContext
     )
 

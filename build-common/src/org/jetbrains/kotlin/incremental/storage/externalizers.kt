@@ -225,17 +225,6 @@ object StringExternalizer : DataExternalizer<String> {
     override fun read(input: DataInput): String = IOUtil.readString(input)
 }
 
-class FileExternalizer(private val pathConverter: FileToPathConverter) : DataExternalizer<File> {
-
-    override fun save(output: DataOutput, file: File) {
-        StringExternalizer.save(output, pathConverter.toPath(file))
-    }
-
-    override fun read(input: DataInput): File {
-        return pathConverter.toFile(StringExternalizer.read(input))
-    }
-}
-
 /** [DataExternalizer] that delegates to another [DataExternalizer] depending on the type of the object to externalize. */
 class DelegateDataExternalizer<T>(
     val types: List<Class<out T>>,

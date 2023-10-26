@@ -38,11 +38,12 @@ internal class IdToFileMap(
 private val LegacyIntExternalizer = ExternalIntegerKeyDescriptor.INSTANCE
 
 /**
- * Use [LegacyFqNameExternalizer] instead of [FileExternalizer] for [IdToFileMap] for now because they internally use different types of
- * `Externalizer<String>`, and the `compiler-reference-index` module in the Kotlin IDEA plugin currently can only read the old data format
- * (see KTIJ-27258).
+ * Use [LegacyFqNameExternalizer] instead of [org.jetbrains.kotlin.incremental.IncrementalCompilationContext.fileDescriptorForOutputFiles]
+ * for [IdToFileMap] for now because they internally use different types of `DataExternalizer<String>`, and the `compiler-reference-index`
+ * module in the Kotlin IDEA plugin currently can only read the old data format (see KTIJ-27258).
  *
- * Once we fix that bug, we can remove this class and use [FileExternalizer].
+ * Once we fix that bug, we can remove this class and use
+ * [org.jetbrains.kotlin.incremental.IncrementalCompilationContext.fileDescriptorForOutputFiles].
  */
 private class LegacyFileExternalizer(private val pathConverter: FileToPathConverter) : DataExternalizer<File> {
 

@@ -65,8 +65,8 @@ internal class SupertypesMap(
 
 /**
  * Use [LegacyFqNameExternalizer] instead of [FqNameExternalizer] for [SubtypesMap] for now because they internally use different types of
- * `Externalizer<String>`, and the `compiler-reference-index` module in the Kotlin IDEA plugin currently can only read the old data format
- * (see KTIJ-27258).
+ * `DataExternalizer<String>`, and the `compiler-reference-index` module in the Kotlin IDEA plugin currently can only read the old data
+ * format (see KTIJ-27258).
  *
  * Once we fix that bug, we can remove this class and use [FqNameExternalizer].
  */

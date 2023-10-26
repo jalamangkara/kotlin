@@ -24,7 +24,7 @@ internal class FileToIdMap(
     icContext: IncrementalCompilationContext,
 ) : AbstractBasicMap<File, Int>(
     storageFile,
-    icContext.fileExternalizerForSourceFiles.toDescriptor(),
+    icContext.fileDescriptorForSourceFiles,
     IntExternalizer,
     icContext
 )

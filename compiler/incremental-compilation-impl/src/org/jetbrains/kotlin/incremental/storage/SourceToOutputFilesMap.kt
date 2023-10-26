@@ -13,8 +13,8 @@ class SourceToOutputFilesMap(
     icContext: IncrementalCompilationContext,
 ) : AppendableSetBasicMap<File, File>(
     storageFile,
-    icContext.fileExternalizerForSourceFiles.toDescriptor(),
-    icContext.fileExternalizerForOutputFiles,
+    icContext.fileDescriptorForSourceFiles,
+    icContext.fileDescriptorForOutputFiles,
     icContext
 ) {
     @Synchronized

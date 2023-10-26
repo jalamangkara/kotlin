@@ -189,7 +189,7 @@ abstract class AbstractIncrementalCache<ClassName>(
     ) : AbstractBasicMap<FqName, File>(
         storageFile,
         FqNameExternalizer.toDescriptor(),
-        icContext.fileExternalizerForSourceFiles,
+        icContext.fileDescriptorForSourceFiles,
         icContext
     )
 

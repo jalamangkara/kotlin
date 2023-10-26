@@ -9,9 +9,7 @@ import com.intellij.openapi.util.io.FileUtil
 import junit.framework.TestCase
 import org.jetbrains.kotlin.config.LanguageFeature
 import java.io.File
-import java.util.*
 import java.util.regex.Pattern
-import kotlin.collections.HashSet
 
 class CodeConformanceTest : TestCase() {
     companion object {
@@ -220,7 +218,6 @@ class CodeConformanceTest : TestCase() {
                         "These files are affected:\n%s",
                 allowedFiles = listOf(
                     "analysis/light-classes-base/src/org/jetbrains/kotlin/asJava/classes/KotlinClassInnerStuffCache.kt",
-                    "build-common/src/org/jetbrains/kotlin/incremental/IncrementalJvmCache.kt",
                     "compiler/backend/src/org/jetbrains/kotlin/codegen/FrameMap.kt",
                     "compiler/backend/src/org/jetbrains/kotlin/codegen/inline/SMAP.kt",
                     "compiler/backend/src/org/jetbrains/kotlin/codegen/optimization/common/ControlFlowGraph.kt",

@@ -19,7 +19,6 @@ package org.jetbrains.kotlin.incremental.snapshots
 import org.jetbrains.kotlin.incremental.ChangedFiles
 import org.jetbrains.kotlin.incremental.IncrementalCompilationContext
 import org.jetbrains.kotlin.incremental.storage.AbstractBasicMap
-import org.jetbrains.kotlin.incremental.storage.toDescriptor
 import java.io.File
 
 class FileSnapshotMap(
@@ -27,7 +26,7 @@ class FileSnapshotMap(
     icContext: IncrementalCompilationContext,
 ) : AbstractBasicMap<File, FileSnapshot>(
     storageFile,
-    icContext.fileExternalizerForSourceFiles.toDescriptor(),
+    icContext.fileDescriptorForSourceFiles,
     FileSnapshotExternalizer,
     icContext
 ) {
