@@ -44060,6 +44060,12 @@ public class DiagnosticTestGenerated extends AbstractDiagnosticTest {
                 public void testConstructorCase() throws Exception {
                     runTest("compiler/testData/diagnostics/testsWithStdLib/resolve/ambiguousTypeReferences/constructorCase.kt");
                 }
+
+                @Test
+                @TestMetadata("constructorCaseSpace.kt")
+                public void testConstructorCaseSpace() throws Exception {
+                    runTest("compiler/testData/diagnostics/testsWithStdLib/resolve/ambiguousTypeReferences/constructorCaseSpace.kt");
+                }
             }
         }
 
