@@ -249,11 +249,17 @@ private val sharedVariablesLoweringPhase = makeBodyLoweringPhase(
     prerequisite = setOf(lateinitDeclarationLoweringPhase, lateinitUsageLoweringPhase)
 )
 
+private val deconstructInitBlockLowering = makeDeclarationTransformerPhase(
+    ::DeconstructClassInitializationBlockLowering,
+    name = "DeconstructClassInitializationBlockLowering",
+    description = "Split initialization block on inline function and its call",
+)
+
 private val localClassesInInlineLambdasPhase = makeBodyLoweringPhase(
     ::LocalClassesInInlineLambdasLowering,
     name = "LocalClassesInInlineLambdasPhase",
     description = "Extract local classes from inline lambdas",
-    prerequisite = setOf(inventNamesForLocalClassesPhase)
+    prerequisite = setOf(inventNamesForLocalClassesPhase, deconstructInitBlockLowering)
 )
 
 private val localClassesInInlineFunctionsPhase = makeBodyLoweringPhase(
@@ -315,6 +321,13 @@ private val copyInlineFunctionBodyLoweringPhase = makeDeclarationTransformerPhas
     name = "CopyInlineFunctionBody",
     description = "Copy inline function body",
     prerequisite = setOf(functionInliningPhase)
+)
+
+private val removeDeconstructedInitBlockAfterInliningLowering = makeDeclarationTransformerPhase(
+    { RemoveDeconstructedInitBlockAfterInliningLowering() },
+    name = "RemoveDeconstructedInitBlockAfterInliningLowering",
+    description = "Remove inlined init block",
+    prerequisite = setOf(deconstructInitBlockLowering, functionInliningPhase)
 )
 
 private val removeInlineDeclarationsWithReifiedTypeParametersLoweringPhase = makeDeclarationTransformerPhase(
@@ -885,6 +898,7 @@ val loweringList = listOf<Lowering>(
     lateinitDeclarationLoweringPhase,
     lateinitUsageLoweringPhase,
     sharedVariablesLoweringPhase,
+    deconstructInitBlockLowering,
     localClassesInInlineLambdasPhase,
     localClassesInInlineFunctionsPhase,
     localClassesExtractionFromInlineFunctionsPhase,
@@ -894,6 +908,7 @@ val loweringList = listOf<Lowering>(
     functionInliningPhase,
     constEvaluationPhase,
     copyInlineFunctionBodyLoweringPhase,
+    removeDeconstructedInitBlockAfterInliningLowering,
     removeInlineDeclarationsWithReifiedTypeParametersLoweringPhase,
     createScriptFunctionsPhase,
     stringConcatenationLoweringPhase,

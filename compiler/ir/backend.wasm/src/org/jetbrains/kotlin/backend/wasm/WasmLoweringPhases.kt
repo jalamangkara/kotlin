@@ -144,10 +144,17 @@ private val sharedVariablesLoweringPhase = makeWasmModulePhase(
     )
 )
 
+private val deconstructInitBlockLowering = makeWasmModulePhase(
+    ::DeconstructClassInitializationBlockLowering,
+    name = "DeconstructClassInitializationBlockLowering",
+    description = "Split initialization block on inline function and its call",
+)
+
 private val localClassesInInlineLambdasPhase = makeWasmModulePhase(
     ::LocalClassesInInlineLambdasLowering,
     name = "LocalClassesInInlineLambdasPhase",
     description = "Extract local classes from inline lambdas",
+    prerequisite = setOf(deconstructInitBlockLowering)
 )
 
 private val localClassesInInlineFunctionsPhase = makeWasmModulePhase(
@@ -188,6 +195,13 @@ private val functionInliningPhase = makeCustomWasmModulePhase(
         localClassesInInlineLambdasPhase,
         localClassesInInlineFunctionsPhase,
     )
+)
+
+private val removeDeconstructedInitBlockAfterInliningLowering = makeWasmModulePhase(
+    { RemoveDeconstructedInitBlockAfterInliningLowering() },
+    name = "RemoveDeconstructedInitBlockAfterInliningLowering",
+    description = "Remove inlined init block",
+    prerequisite = setOf(deconstructInitBlockLowering, functionInliningPhase)
 )
 
 private val removeInlineDeclarationsWithReifiedTypeParametersLoweringPhase = makeWasmModulePhase(
@@ -647,6 +661,7 @@ val wasmPhases = SameTypeNamedCompilerPhase(
             arrayConstructorReferencePhase then
             arrayConstructorPhase then
             sharedVariablesLoweringPhase then
+            deconstructInitBlockLowering then
             localClassesInInlineLambdasPhase then
             localClassesInInlineFunctionsPhase then
             localClassesExtractionFromInlineFunctionsPhase then
@@ -654,6 +669,7 @@ val wasmPhases = SameTypeNamedCompilerPhase(
             wrapInlineDeclarationsWithReifiedTypeParametersPhase then
 
             functionInliningPhase then
+            removeDeconstructedInitBlockAfterInliningLowering then
             removeInlineDeclarationsWithReifiedTypeParametersLoweringPhase then
 
             tailrecLoweringPhase then
