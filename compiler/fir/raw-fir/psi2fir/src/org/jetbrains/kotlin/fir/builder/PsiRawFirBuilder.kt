@@ -2473,6 +2473,7 @@ open class PsiRawFirBuilder(
 
                 for (entry in expression.entries) {
                     val entrySource = entry.toFirSourceElement()
+                    val entryGuard = entry.guard?.expression?.toFirExpression("No expression in guard")
                     val branchBody = entry.expression.toFirBlock()
                     branches += if (!entry.isElse) {
                         if (hasSubject) {
@@ -2482,7 +2483,7 @@ open class PsiRawFirBuilder(
                                     ref,
                                     { toFirExpression(it) },
                                     { toFirOrErrorType() },
-                                )
+                                ).guardedBy(entryGuard)
                                 result = branchBody
                             }
                         } else {
@@ -2518,14 +2519,14 @@ open class PsiRawFirBuilder(
                                                 }
                                             }
                                         })
-                                    }
+                                    }.guardedBy(entryGuard)
                                 result = branchBody
                             }
                         }
                     } else {
                         buildWhenBranch {
                             source = entrySource
-                            condition = buildElseIfTrueCondition()
+                            condition = buildElseIfTrueCondition().guardedBy(entryGuard)
                             result = branchBody
                         }
                     }
