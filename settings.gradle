@@ -579,7 +579,8 @@ include ":generators:analysis-api-generator",
         ":tools:ide-plugin-dependencies-validator"
 
 if (buildProperties.isKotlinNativeEnabled) {
-    include ":generators:analysis-api-generator:generator-kotlin-native"
+    include ":generators:analysis-api-generator:generator-kotlin-native",
+            ":analysis:low-level-api-fir:kotlin-native"
 }
 
 
