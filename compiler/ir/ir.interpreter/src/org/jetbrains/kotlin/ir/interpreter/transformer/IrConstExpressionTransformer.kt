@@ -45,10 +45,7 @@ internal abstract class IrConstExpressionTransformer(
     }
 
     override fun visitClass(declaration: IrClass, data: Data): IrStatement {
-        if (declaration.kind == ClassKind.ANNOTATION_CLASS) {
-            return super.visitClass(declaration, data.copy(mustBeEvaluated = true))
-        }
-        return super.visitClass(declaration, data)
+        return super.visitClass(declaration, data.copy(mustBeEvaluated = declaration.kind == ClassKind.ANNOTATION_CLASS))
     }
 
     override fun visitCall(expression: IrCall, data: Data): IrElement {
