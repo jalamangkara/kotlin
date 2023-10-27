@@ -117,7 +117,7 @@ abstract class KotlinJsIrLink @Inject constructor(
     }
 
     override fun processArgsBeforeCompile(args: K2JSCompilerArguments) {
-        buildFlowService.orNull?.reportFusMetrics {
+        buildFusService.orNull?.reportFusMetrics {
             it.report(BooleanMetrics.JS_IR_INCREMENTAL, incrementalJsIr)
             val newArgs = K2JSCompilerArguments()
             parseCommandLineArguments(ArgumentUtils.convertArgumentsToStringList(args), newArgs)

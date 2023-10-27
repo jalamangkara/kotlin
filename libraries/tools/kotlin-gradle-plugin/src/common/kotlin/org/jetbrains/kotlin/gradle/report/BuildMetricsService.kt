@@ -40,8 +40,8 @@ import org.jetbrains.kotlin.statistics.metrics.NumericalMetrics
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+import org.jetbrains.kotlin.gradle.plugin.StatisticsBuildFlowManager
 import org.jetbrains.kotlin.gradle.plugin.internal.isConfigurationCacheRequested
-import org.jetbrains.kotlin.gradle.plugin.statistics.NonSynchronizedMetricsContainer
 import org.jetbrains.kotlin.statistics.metrics.IStatisticsValuesConsumer
 import java.lang.management.ManagementFactory
 import kotlin.reflect.KProperty0
@@ -286,7 +286,9 @@ abstract class BuildMetricsService : BuildService<BuildMetricsService.Parameters
 
                     })
                 }
-                else -> {}//do nothing, BuildScanFlowAction is used
+                else -> {
+                    StatisticsBuildFlowManager.getInstance(project).subscribeForBuildScan(buildScanHolder)
+                }
             }
         }
 

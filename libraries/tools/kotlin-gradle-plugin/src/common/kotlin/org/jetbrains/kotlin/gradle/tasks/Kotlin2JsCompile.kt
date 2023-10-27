@@ -82,14 +82,14 @@ abstract class Kotlin2JsCompile @Inject constructor(
             PRODUCE_JS in freeArgs -> false
 
             PRODUCE_UNZIPPED_KLIB in freeArgs -> {
-                buildFlowService.orNull?.reportFusMetrics {
+                buildFusService.orNull?.reportFusMetrics {
                     it.report(BooleanMetrics.JS_KLIB_INCREMENTAL, incrementalJsKlib)
                 }
                 incrementalJsKlib
             }
 
             PRODUCE_ZIPPED_KLIB in freeArgs -> {
-                buildFlowService.orNull?.reportFusMetrics {
+                buildFusService.orNull?.reportFusMetrics {
                     it.report(BooleanMetrics.JS_KLIB_INCREMENTAL, incrementalJsKlib)
                 }
                 incrementalJsKlib

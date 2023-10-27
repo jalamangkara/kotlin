@@ -24,7 +24,6 @@ import org.jetbrains.kotlin.gradle.plugin.BuildEventsListenerRegistryHolder
 import org.jetbrains.kotlin.gradle.plugin.StatisticsBuildFlowManager
 import org.jetbrains.kotlin.gradle.plugin.internal.isConfigurationCacheRequested
 import org.jetbrains.kotlin.gradle.plugin.internal.isProjectIsolationEnabled
-import org.jetbrains.kotlin.gradle.report.BuildReportType
 import org.jetbrains.kotlin.gradle.report.UsesBuildMetricsService
 import org.jetbrains.kotlin.gradle.report.reportingSettings
 import org.jetbrains.kotlin.gradle.tasks.withType
@@ -38,10 +37,10 @@ import java.io.Serializable
 
 internal interface UsesBuildFlowService : Task {
     @get:Internal
-    val buildFlowService: Property<BuildFlowService?>
+    val buildFusService: Property<BuildFusService?>
 }
 
-internal abstract class BuildFlowService : BuildService<BuildFlowService.Parameters>, AutoCloseable, OperationCompletionListener {
+internal abstract class BuildFusService : BuildService<BuildFusService.Parameters>, AutoCloseable, OperationCompletionListener {
     private var buildFailed: Boolean = false
     private val log = Logging.getLogger(this.javaClass)
 
@@ -70,7 +69,7 @@ internal abstract class BuildFlowService : BuildService<BuildFlowService.Paramet
 
 
     companion object {
-        private val serviceName = "${BuildFlowService::class.simpleName}_${BuildFlowService::class.java.classLoader.hashCode()}"
+        private val serviceName = "${BuildFusService::class.simpleName}_${BuildFusService::class.java.classLoader.hashCode()}"
 
         private fun fusStatisticsAvailable(project: Project): Boolean {
             return when {
@@ -82,10 +81,10 @@ internal abstract class BuildFlowService : BuildService<BuildFlowService.Paramet
             }
         }
 
-        fun registerIfAbsent(project: Project) = registerIfAbsentImpl(project)?.also { serviceProvider ->
+        fun registerIfAbsent(project: Project) = registerIfAbsentImpl(project).also { serviceProvider ->
             SingleActionPerProject.run(project, UsesBuildMetricsService::class.java.name) {
                 project.tasks.withType<UsesBuildFlowService>().configureEach { task ->
-                    task.buildFlowService.value(serviceProvider).disallowChanges()
+                    task.buildFusService.value(serviceProvider).disallowChanges()
                     task.usesService(serviceProvider)
                 }
             }
@@ -93,13 +92,13 @@ internal abstract class BuildFlowService : BuildService<BuildFlowService.Paramet
 
         private fun registerIfAbsentImpl(
             project: Project,
-        ): Provider<BuildFlowService> {
+        ): Provider<BuildFusService> {
 
             val isProjectIsolationEnabled = project.isProjectIsolationEnabled
 
             project.gradle.sharedServices.registrations.findByName(serviceName)?.let {
                 @Suppress("UNCHECKED_CAST")
-                return (it.service as Provider<BuildFlowService>).also {
+                return (it.service as Provider<BuildFusService>).also {
                     it.get().parameters.configurationMetrics.add(project.provider {
                         KotlinBuildStatHandler.collectProjectConfigurationTimeMetrics(project, isProjectIsolationEnabled)
                     })
@@ -111,12 +110,11 @@ internal abstract class BuildFlowService : BuildService<BuildFlowService.Paramet
 
             val fusStatisticsAvailable = fusStatisticsAvailable(project)
             val buildReportOutputs = reportingSettings(project).buildReportOutputs
-            val buildScanReportEnabled = buildReportOutputs.contains(BuildReportType.BUILD_SCAN)
 
             //Workaround for known issues for Gradle 8+: https://github.com/gradle/gradle/issues/24887:
             // when this OperationCompletionListener is called services can be already closed for Gradle 8,
             // so there is a change that no VariantImplementationFactory will be found
-            return project.gradle.sharedServices.registerIfAbsent(serviceName, BuildFlowService::class.java) { spec ->
+            return project.gradle.sharedServices.registerIfAbsent(serviceName, BuildFusService::class.java) { spec ->
                 if (fusStatisticsAvailable) {
                     KotlinBuildStatsService.applyIfInitialised {
                         it.recordProjectsEvaluated(project.gradle)
@@ -138,9 +136,6 @@ internal abstract class BuildFlowService : BuildService<BuildFlowService.Paramet
                             BuildEventsListenerRegistryHolder.getInstance(project).listenerRegistry.onTaskCompletion(buildService)
                         else -> StatisticsBuildFlowManager.getInstance(project).subscribeForBuildResult()
                     }
-                }
-                if (buildScanReportEnabled && GradleVersion.current().baseVersion >= GradleVersion.version("8.1")) {
-                    StatisticsBuildFlowManager.getInstance(project).subscribeForBuildScan(project)
                 }
             }
         }

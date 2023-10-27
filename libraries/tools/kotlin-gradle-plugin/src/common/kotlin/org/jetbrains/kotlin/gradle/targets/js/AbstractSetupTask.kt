@@ -77,7 +77,7 @@ abstract class AbstractSetupTask<Env : AbstractEnv, Settings : AbstractSettings<
             configuration!!.get().files.single().also {
                 val downloadDuration = System.currentTimeMillis() - startDownloadTime
                 if (downloadDuration > 0) {
-                    buildFlowService.orNull?.reportFusMetrics { metricsConsumer ->
+                    buildFusService.orNull?.reportFusMetrics { metricsConsumer ->
                         metricsConsumer.report(NumericalMetrics.ARTIFACTS_DOWNLOAD_SPEED, it.length() * 1000 / downloadDuration)
                     }
                 }

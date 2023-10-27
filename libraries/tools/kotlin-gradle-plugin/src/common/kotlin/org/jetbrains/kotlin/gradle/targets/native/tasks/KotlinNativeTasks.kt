@@ -545,7 +545,7 @@ internal constructor(
     }
 
     private fun collectCommonCompilerStats() {
-        buildFlowService.orNull?.reportFusMetrics {
+        buildFusService.orNull?.reportFusMetrics {
             it.report(BooleanMetrics.KOTLIN_PROGRESSIVE_MODE, compilerOptions.progressiveMode.get())
             compilerOptions.apiVersion.orNull?.also { v ->
                 it.report(StringMetrics.KOTLIN_API_VERSION, v.version)

@@ -202,7 +202,7 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments> @Inject constr
                                     classLoadersCachingService,
                                     buildFinishedListenerService,
                                     buildIdService,
-                                    buildFlowService.orNull?.getFusMetricsConsumer()
+                                    buildFusService.orNull?.getFusMetricsConsumer()
                                 )
                             }
                     }
@@ -249,7 +249,7 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments> @Inject constr
         val buildMetrics = metrics.get()
         buildMetrics.addTimeMetric(GradleBuildPerformanceMetric.START_TASK_ACTION_EXECUTION)
         buildMetrics.measure(GradleBuildTime.OUT_OF_WORKER_TASK_ACTION) {
-            buildFlowService.orNull?.reportFusMetrics {
+            buildFusService.orNull?.reportFusMetrics {
                 if (name.contains("Test"))
                     it.report(BooleanMetrics.TESTS_EXECUTED, true)
                 else
@@ -291,7 +291,7 @@ abstract class AbstractKotlinCompile<T : CommonCompilerArguments> @Inject constr
     }
 
     private fun collectCommonCompilerStats() {
-        buildFlowService.orNull?.reportFusMetrics {
+        buildFusService.orNull?.reportFusMetrics {
             it.report(BooleanMetrics.KOTLIN_PROGRESSIVE_MODE, compilerOptions.progressiveMode.get())
             compilerOptions.apiVersion.orNull?.also { v ->
                 it.report(StringMetrics.KOTLIN_API_VERSION, v.version)
