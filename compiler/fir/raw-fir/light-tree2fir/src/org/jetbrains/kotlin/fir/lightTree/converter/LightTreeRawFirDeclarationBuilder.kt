@@ -1002,8 +1002,10 @@ class LightTreeRawFirDeclarationBuilder(
      */
     private fun convertAnonymousInitializer(anonymousInitializer: LighterASTNode): FirDeclaration {
         var firBlock: FirBlock? = null
+        var modifiers = Modifier()
         anonymousInitializer.forEachChildren {
             when (it.tokenType) {
+                MODIFIER_LIST -> modifiers = convertModifierList(it, isInClass = true)
                 BLOCK -> withForcedLocalContext {
                     firBlock = convertBlock(it)
                 }
@@ -1016,6 +1018,7 @@ class LightTreeRawFirDeclarationBuilder(
             origin = FirDeclarationOrigin.Source
             body = firBlock ?: buildEmptyExpressionBlock()
             dispatchReceiverType = context.dispatchReceiverTypesStack.lastOrNull()
+            annotations += modifiers.annotations
         }
     }
 
