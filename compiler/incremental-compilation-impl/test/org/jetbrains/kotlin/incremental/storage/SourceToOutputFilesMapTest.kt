@@ -84,16 +84,21 @@ class SourceToOutputFilesMapTest {
 
     @Test
     fun testSetRelativePathFails() {
-        assertFailsWith<IllegalArgumentException> {
+        assertFailsWith<IllegalStateException> {
             stofMap[fooDotKt] = setOf(File("relativePath"))
+        }
+        assertFailsWith<IllegalStateException> {
+            stofMap[File("relativePath")] = setOf(fooDotClass)
         }
     }
 
     @Test
-    fun testGetRelativePathReturnsNull() {
+    fun testGetRelativePathFails() {
         stofMap[fooDotKt] = setOf(fooDotClass)
 
-        assertNull(stofMap[fooDotKt.relativeTo(srcDir)])
+        assertFailsWith<IllegalStateException> {
+            stofMap[File("relativePath")]
+        }
     }
 
     @Test
