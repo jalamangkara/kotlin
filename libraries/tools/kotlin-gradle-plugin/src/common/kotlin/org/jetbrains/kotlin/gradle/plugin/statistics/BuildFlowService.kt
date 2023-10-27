@@ -53,7 +53,14 @@ internal abstract class BuildFlowService : BuildService<BuildFlowService.Paramet
         val configurationMetrics: ListProperty<MetricContainer>
         val fusStatisticsAvailable: Property<Boolean>
     }
-    internal val fusMetricsConsumer = NonSynchronizedMetricsContainer()
+
+    private val fusMetricsConsumer = NonSynchronizedMetricsContainer()
+
+    internal fun getFusMetricsConsumer() = if (parameters.fusStatisticsAvailable.get())
+        fusMetricsConsumer
+    else
+        null
+
 
     internal fun reportFusMetrics(reportAction: (IStatisticsValuesConsumer) -> Unit) {
         if (parameters.fusStatisticsAvailable.getOrElse(false)) {

@@ -11,7 +11,6 @@ import org.jetbrains.kotlin.gradle.plugin.statistics.KotlinBuildStatHandler
 import org.jetbrains.kotlin.statistics.metrics.BooleanMetrics
 import org.jetbrains.kotlin.statistics.metrics.NumericalMetrics
 import org.jetbrains.kotlin.statistics.metrics.StringMetrics
-import java.io.File
 import javax.management.ObjectName
 
 internal class Pre232IdeaKotlinBuildStatsService internal constructor(

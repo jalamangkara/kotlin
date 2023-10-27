@@ -34,7 +34,6 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinMultiplatformPlugin
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinUsages
 import org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSetFactory
 import org.jetbrains.kotlin.gradle.plugin.statistics.BuildFlowService
-import org.jetbrains.kotlin.gradle.plugin.statistics.KotlinBuildStatsService
 import org.jetbrains.kotlin.gradle.report.BuildMetricsService
 import org.jetbrains.kotlin.gradle.targets.js.KotlinJsCompilerAttribute
 import org.jetbrains.kotlin.gradle.targets.js.KotlinJsPlugin
@@ -63,10 +62,8 @@ abstract class DefaultKotlinBasePlugin : KotlinBasePlugin {
 
     override fun apply(project: Project) {
         project.registerDefaultVariantImplementations()
-        KotlinBuildStatsService.getOrCreateInstance(project)?.apply {
-            report(StringMetrics.KOTLIN_COMPILER_VERSION, pluginVersion)
-        }
-        BuildFlowService.registerIfAbsent(project).get().reportFusMetrics {
+        val buildFlowService = BuildFlowService.registerIfAbsent(project).get()
+        buildFlowService.reportFusMetrics {
             it.report(StringMetrics.KOTLIN_COMPILER_VERSION, pluginVersion)
         }
 
@@ -89,7 +86,7 @@ abstract class DefaultKotlinBasePlugin : KotlinBasePlugin {
             kotlinGradleBuildServices.detectKotlinPluginLoadedInMultipleProjects(project, pluginVersion)
         }
 
-        BuildMetricsService.registerIfAbsent(project)
+        BuildMetricsService.registerIfAbsent(project, buildFlowService.getFusMetricsConsumer())
     }
 
     private fun addKotlinCompilerConfiguration(project: Project) {
