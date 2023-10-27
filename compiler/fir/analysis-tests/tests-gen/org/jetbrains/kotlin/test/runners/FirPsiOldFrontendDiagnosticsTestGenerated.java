@@ -42140,6 +42140,12 @@ public class FirPsiOldFrontendDiagnosticsTestGenerated extends AbstractFirPsiDia
                 }
 
                 @Test
+                @TestMetadata("qualifierForStaticCase.kt")
+                public void testQualifierForStaticCase() throws Exception {
+                    runTest("compiler/testData/diagnostics/testsWithStdLib/resolve/ambiguousTypeReferences/qualifierForStaticCase.kt");
+                }
+
+                @Test
                 @TestMetadata("typeCase.kt")
                 public void testTypeCase() throws Exception {
                     runTest("compiler/testData/diagnostics/testsWithStdLib/resolve/ambiguousTypeReferences/typeCase.kt");
