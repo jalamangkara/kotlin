@@ -147,6 +147,10 @@ abstract class KotlinLibrarySearchPathResolver<L : KotlinLibrary>(
                             "Please use library paths instead of library names."
 
                         logger.warning("Library ${given.path} found in non-standard search root: ${searchRoot.path}\n$recommendation")
+
+                        // THIS IS JUST TO CHECK IF THERE ARE FAILURES REGARDING IMPLEMENTING KT-61098:
+                        if ("5".toInt() > 1)
+                            error("Library ${given.path} found in non-standard search root: ${searchRoot.path}\n$recommendation")
                     }
                     candidate
                 }
