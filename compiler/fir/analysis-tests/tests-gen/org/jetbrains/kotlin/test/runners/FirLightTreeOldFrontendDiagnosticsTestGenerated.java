@@ -6272,6 +6272,12 @@ public class FirLightTreeOldFrontendDiagnosticsTestGenerated extends AbstractFir
                 }
 
                 @Test
+                @TestMetadata("equalityCompare.kt")
+                public void testEqualityCompare() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/constantEvaluator/constant/equalityCompare.kt");
+                }
+
+                @Test
                 @TestMetadata("equals.kt")
                 public void testEquals() throws Exception {
                     runTest("compiler/testData/diagnostics/tests/constantEvaluator/constant/equals.kt");
@@ -6377,6 +6383,12 @@ public class FirLightTreeOldFrontendDiagnosticsTestGenerated extends AbstractFir
                 @TestMetadata("unaryMinusIndependentExpType.kt")
                 public void testUnaryMinusIndependentExpType() throws Exception {
                     runTest("compiler/testData/diagnostics/tests/constantEvaluator/constant/unaryMinusIndependentExpType.kt");
+                }
+
+                @Test
+                @TestMetadata("unsignedOperations.kt")
+                public void testUnsignedOperations() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/constantEvaluator/constant/unsignedOperations.kt");
                 }
             }
 
