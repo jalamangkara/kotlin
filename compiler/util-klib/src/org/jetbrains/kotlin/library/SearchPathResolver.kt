@@ -13,7 +13,21 @@ import java.nio.file.Paths
 const val KOTLIN_STDLIB_NAME = "stdlib"
 
 interface SearchPathResolver<L : KotlinLibrary> : WithLogger {
+    /**
+     * The default KLIB search roots for relative paths:
+     * 1. the current K/N distribution
+     * 2. user work dir
+     *
+     * IMPORTANT: The order of search roots actually defines the order of the lookup.
+     */
+    val defaultSearchRoots: List<File>
+
+    /**
+     * The extended KLIB search roots: [defaultSearchRoots] plus custom repositories, if any.
+     * TODO: remove after 2.0, KT-61098
+     */
     val searchRoots: List<File>
+
     fun resolutionSequence(givenPath: String): Sequence<File>
     fun resolve(unresolved: LenientUnresolvedLibrary, isDefaultLink: Boolean = false): L?
     fun resolve(unresolved: RequiredUnresolvedLibrary, isDefaultLink: Boolean = false): L
@@ -57,9 +71,12 @@ abstract class KotlinLibrarySearchPathResolver<L : KotlinLibrary>(
         directLibs.mapNotNull { found(File(it)) }.flatMap { libraryComponentBuilder(it, false) }
     }
 
-    // This is the place where we specify the order of library search.
+    override val defaultSearchRoots: List<File> by lazy {
+        listOfNotNull(currentDirHead, distHead, distPlatformHead)
+    }
+
     override val searchRoots: List<File> by lazy {
-        (listOf(currentDirHead) + repoRoots + listOf(localHead, distHead, distPlatformHead)).filterNotNull()
+        listOfNotNull(currentDirHead) + repoRoots + listOfNotNull(localHead, distHead, distPlatformHead)
     }
 
     private val files: Set<String> by lazy { searchRoots.flatMap { it.listFilesOrEmpty }.map { it.absolutePath }.toSet() }
@@ -107,8 +124,8 @@ abstract class KotlinLibrarySearchPathResolver<L : KotlinLibrary>(
     }
 
     override fun resolutionSequence(givenPath: String): Sequence<File> {
-        val given = validFileOrNull(givenPath)
-        val sequence = when {
+        val given: File? = validFileOrNull(givenPath)
+        val sequence: Sequence<File?> = when {
             given == null -> {
                 // The given path can't denote a real file, so just look for such
                 // unique_name among libraries passed to the compiler directly.
@@ -118,8 +135,20 @@ abstract class KotlinLibrarySearchPathResolver<L : KotlinLibrary>(
                 sequenceOf(found(given))
             else -> {
                 // Search among libraries in repositories by library filename.
-                val repoLibs = searchRoots.asSequence().map {
-                    found(File(it, given))
+                val repoLibs = searchRoots.asSequence().map { searchRoot ->
+                    val candidate = found(File(searchRoot, given))
+                    if (candidate != null && searchRoot !in defaultSearchRoots) {
+                        // A candidate found in the custom search root, log a warning.
+                        val nameSegmentsAmount = given.path.trim('/', '\\').split('/', '\\').size
+                        val recommendation = if (nameSegmentsAmount > 1)
+                            "Please don't use custom library repositories ('-repo' compiler option).\n" +
+                                    "Make sure that you provide full paths to libraries."
+                        else
+                            "Please use library paths instead of library names."
+
+                        logger.warning("Library ${given.path} found in non-standard search root: ${searchRoot.path}\n$recommendation")
+                    }
+                    candidate
                 }
                 // The given path still may denote a unique name of a direct library.
                 directLibsSequence(givenPath) + repoLibs
