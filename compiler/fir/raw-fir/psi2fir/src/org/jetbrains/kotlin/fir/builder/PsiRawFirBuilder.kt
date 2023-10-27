@@ -2633,6 +2633,7 @@ open class PsiRawFirBuilder(
                                 explicitReceiver = generateResolvedAccessExpression(rangeSource, iteratorVal)
                             },
                             typeRef = ktParameter.typeReference.toFirOrImplicitType(),
+                            extractedAnnotations = ktParameter.modifierList?.annotationEntries?.map { it.convert<FirAnnotation>() },
                         )
                         if (multiDeclaration != null) {
                             blockBuilder.statements.addDestructuringStatements(
