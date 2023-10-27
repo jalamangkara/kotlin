@@ -18,5 +18,6 @@ import org.jetbrains.kotlin.ir.symbols.IrReturnableBlockSymbol
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.returnableBlock]
  */
 abstract class IrReturnableBlock : IrBlock(), IrSymbolOwner, IrReturnTarget {
+
     abstract override val symbol: IrReturnableBlockSymbol
 }

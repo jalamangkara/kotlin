@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.ir.symbols.IrSimpleFunctionSymbol
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.functionWithLateBinding]
  */
 abstract class IrFunctionWithLateBinding : IrSimpleFunction() {
+
     abstract val isBound: Boolean
 
     abstract fun acquireSymbol(symbol: IrSimpleFunctionSymbol): IrFunctionWithLateBinding

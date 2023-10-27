@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.return]
  */
 abstract class IrReturn : IrExpression() {
+
     abstract var value: IrExpression
 
     abstract var returnTargetSymbol: IrReturnTargetSymbol

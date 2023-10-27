@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.memberAccessExpression]
  */
 abstract class IrMemberAccessExpression<S : IrSymbol> : IrDeclarationReference() {
+
     var dispatchReceiver: IrExpression? = null
 
     var extensionReceiver: IrExpression? = null
@@ -31,12 +32,6 @@ abstract class IrMemberAccessExpression<S : IrSymbol> : IrDeclarationReference()
     protected abstract val valueArguments: Array<IrExpression?>
 
     protected abstract val typeArguments: Array<IrType?>
-
-    val valueArgumentsCount: Int
-        get() = valueArguments.size
-
-    val typeArgumentsCount: Int
-        get() = typeArguments.size
 
     override fun <D> acceptChildren(visitor: IrElementVisitor<Unit, D>, data: D) {
         dispatchReceiver?.accept(visitor, data)
@@ -69,4 +64,10 @@ abstract class IrMemberAccessExpression<S : IrSymbol> : IrDeclarationReference()
         checkArgumentSlotAccess("type", index, typeArguments.size)
         typeArguments[index] = type
     }
+
+    val valueArgumentsCount: Int
+        get() = valueArguments.size
+
+    val typeArgumentsCount: Int
+        get() = typeArguments.size
 }

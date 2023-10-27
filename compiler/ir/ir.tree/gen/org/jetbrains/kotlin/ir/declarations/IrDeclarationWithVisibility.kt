@@ -16,5 +16,6 @@ import org.jetbrains.kotlin.descriptors.DescriptorVisibility
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.declarationWithVisibility]
  */
 interface IrDeclarationWithVisibility : IrDeclaration {
+
     var visibility: DescriptorVisibility
 }

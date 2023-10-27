@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.dynamicOperatorExpression]
  */
 abstract class IrDynamicOperatorExpression : IrDynamicExpression() {
+
     abstract var operator: IrDynamicOperator
 
     abstract var receiver: IrExpression

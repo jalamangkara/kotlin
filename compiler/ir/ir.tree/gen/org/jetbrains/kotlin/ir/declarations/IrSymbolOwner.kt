@@ -17,5 +17,6 @@ import org.jetbrains.kotlin.ir.symbols.IrSymbol
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.symbolOwner]
  */
 interface IrSymbolOwner : IrElement {
+
     val symbol: IrSymbol
 }

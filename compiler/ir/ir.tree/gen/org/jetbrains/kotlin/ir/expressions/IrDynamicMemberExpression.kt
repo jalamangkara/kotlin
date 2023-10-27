@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.dynamicMemberExpression]
  */
 abstract class IrDynamicMemberExpression : IrDynamicExpression() {
+
     abstract var memberName: String
 
     abstract var receiver: IrExpression

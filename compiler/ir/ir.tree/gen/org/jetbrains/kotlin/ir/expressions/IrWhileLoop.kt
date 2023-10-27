@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.whileLoop]
  */
 abstract class IrWhileLoop : IrLoop() {
+
     override fun <R, D> accept(visitor: IrElementVisitor<R, D>, data: D): R =
         visitor.visitWhileLoop(this, data)
 

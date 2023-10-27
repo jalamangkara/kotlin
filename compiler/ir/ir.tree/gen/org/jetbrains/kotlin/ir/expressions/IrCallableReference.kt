@@ -16,5 +16,6 @@ import org.jetbrains.kotlin.ir.symbols.IrSymbol
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.callableReference]
  */
 abstract class IrCallableReference<S : IrSymbol> : IrMemberAccessExpression<S>() {
+
     abstract override var symbol: S
 }

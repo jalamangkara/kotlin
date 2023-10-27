@@ -16,5 +16,6 @@ import org.jetbrains.kotlin.name.Name
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.declarationWithName]
  */
 interface IrDeclarationWithName : IrDeclaration {
+
     var name: Name
 }

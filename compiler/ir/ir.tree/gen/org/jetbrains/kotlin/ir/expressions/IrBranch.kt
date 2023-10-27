@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.branch]
  */
 abstract class IrBranch : IrElementBase(), IrElement {
+
     abstract var condition: IrExpression
 
     abstract var result: IrExpression

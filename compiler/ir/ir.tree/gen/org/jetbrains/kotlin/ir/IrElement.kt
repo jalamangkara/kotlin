@@ -17,12 +17,11 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.rootElement]
  */
 interface IrElement {
+
     /**
      * The start offset of the syntax node from which this IR node was generated,
-     * in number of characters from the start of the source file. If there is no source information
-     * for this IR node,
-     * the [UNDEFINED_OFFSET] constant is used. In order to get the line number and the column
-     * number from this offset,
+     * in number of characters from the start of the source file. If there is no source information for this IR node,
+     * the [UNDEFINED_OFFSET] constant is used. In order to get the line number and the column number from this offset,
      * [IrFileEntry.getLineNumber] and [IrFileEntry.getColumnNumber] can be used.
      *
      * @see IrFileEntry.getSourceRangeInfo
@@ -31,10 +30,8 @@ interface IrElement {
 
     /**
      * The end offset of the syntax node from which this IR node was generated,
-     * in number of characters from the start of the source file. If there is no source information
-     * for this IR node,
-     * the [UNDEFINED_OFFSET] constant is used. In order to get the line number and the column
-     * number from this offset,
+     * in number of characters from the start of the source file. If there is no source information for this IR node,
+     * the [UNDEFINED_OFFSET] constant is used. In order to get the line number and the column number from this offset,
      * [IrFileEntry.getLineNumber] and [IrFileEntry.getColumnNumber] can be used.
      *
      * @see IrFileEntry.getSourceRangeInfo
@@ -74,8 +71,7 @@ interface IrElement {
     /**
      * Recursively transforms this node's children *in place* using [transformer].
      *
-     * Basically, executes `this.child = this.child.transform(transformer, data)` for each child
-     * of this node.
+     * Basically, executes `this.child = this.child.transform(transformer, data)` for each child of this node.
      *
      * Does **not** run [transformer] on this node itself.
      *

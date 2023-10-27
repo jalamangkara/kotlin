@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.ir.types.IrType
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.valueDeclaration]
  */
 interface IrValueDeclaration : IrDeclarationWithName, IrSymbolOwner {
+
     @ObsoleteDescriptorBasedAPI
     override val descriptor: ValueDescriptor
 

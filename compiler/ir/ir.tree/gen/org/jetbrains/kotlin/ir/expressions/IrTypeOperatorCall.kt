@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.typeOperatorCall]
  */
 abstract class IrTypeOperatorCall : IrExpression() {
+
     abstract var operator: IrTypeOperator
 
     abstract var argument: IrExpression

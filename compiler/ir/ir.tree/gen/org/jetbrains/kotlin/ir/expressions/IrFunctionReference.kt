@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.functionReference]
  */
 abstract class IrFunctionReference : IrCallableReference<IrFunctionSymbol>() {
+
     abstract var reflectionTarget: IrFunctionSymbol?
 
     override fun <R, D> accept(visitor: IrElementVisitor<R, D>, data: D): R =

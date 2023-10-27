@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.propertyReference]
  */
 abstract class IrPropertyReference : IrCallableReference<IrPropertySymbol>() {
+
     abstract var field: IrFieldSymbol?
 
     abstract var getter: IrSimpleFunctionSymbol?

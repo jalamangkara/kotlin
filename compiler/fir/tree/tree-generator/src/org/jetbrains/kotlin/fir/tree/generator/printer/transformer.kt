@@ -102,6 +102,5 @@ fun printTransformer(elements: List<Element>, generationPath: File): GeneratedFi
         firTransformerType.packageName,
         firTransformerType.simpleName,
     ) {
-        println()
         TransformerPrinter(this).printVisitor(elements)
     }

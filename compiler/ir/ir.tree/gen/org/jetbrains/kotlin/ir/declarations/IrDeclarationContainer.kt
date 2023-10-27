@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.ir.symbols.UnsafeDuringIrConstructionAPI
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.declarationContainer]
  */
 interface IrDeclarationContainer : IrDeclarationParent {
+
     /**
      * Accessing list of declaration may trigger lazy declaration list computation for lazy class,
      *   which requires computation of fake-overrides for this class. So it's unsafe to access it

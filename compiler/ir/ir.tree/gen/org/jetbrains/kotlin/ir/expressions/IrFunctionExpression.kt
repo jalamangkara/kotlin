@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.functionExpression]
  */
 abstract class IrFunctionExpression : IrExpression() {
+
     abstract var origin: IrStatementOrigin
 
     abstract var function: IrSimpleFunction

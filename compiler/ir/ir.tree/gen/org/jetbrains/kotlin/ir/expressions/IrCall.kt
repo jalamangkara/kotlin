@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.call]
  */
 abstract class IrCall : IrFunctionAccessExpression() {
+
     abstract override var symbol: IrSimpleFunctionSymbol
 
     abstract var superQualifierSymbol: IrClassSymbol?

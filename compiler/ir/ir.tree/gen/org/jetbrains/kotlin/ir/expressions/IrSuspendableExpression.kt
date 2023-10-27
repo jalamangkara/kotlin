@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.suspendableExpression]
  */
 abstract class IrSuspendableExpression : IrExpression() {
+
     abstract var suspensionPointId: IrExpression
 
     abstract var result: IrExpression

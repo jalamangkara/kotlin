@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.suspensionPoint]
  */
 abstract class IrSuspensionPoint : IrExpression() {
+
     abstract var suspensionPointIdParameter: IrVariable
 
     abstract var result: IrExpression
@@ -34,8 +35,7 @@ abstract class IrSuspensionPoint : IrExpression() {
     }
 
     override fun <D> transformChildren(transformer: IrElementTransformer<D>, data: D) {
-        suspensionPointIdParameter = suspensionPointIdParameter.transform(transformer, data) as
-                IrVariable
+        suspensionPointIdParameter = suspensionPointIdParameter.transform(transformer, data) as IrVariable
         result = result.transform(transformer, data)
         resumeResult = resumeResult.transform(transformer, data)
     }

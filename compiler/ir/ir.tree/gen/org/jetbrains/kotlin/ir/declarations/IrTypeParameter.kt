@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.types.Variance
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.typeParameter]
  */
 abstract class IrTypeParameter : IrDeclarationBase(), IrDeclarationWithName {
+
     @ObsoleteDescriptorBasedAPI
     abstract override val descriptor: TypeParameterDescriptor
 
@@ -38,6 +39,6 @@ abstract class IrTypeParameter : IrDeclarationBase(), IrDeclarationWithName {
     override fun <R, D> accept(visitor: IrElementVisitor<R, D>, data: D): R =
         visitor.visitTypeParameter(this, data)
 
-    override fun <D> transform(transformer: IrElementTransformer<D>, data: D):
-            IrTypeParameter = accept(transformer, data) as IrTypeParameter
+    override fun <D> transform(transformer: IrElementTransformer<D>, data: D): IrTypeParameter =
+        accept(transformer, data) as IrTypeParameter
 }

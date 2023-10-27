@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.try]
  */
 abstract class IrTry : IrExpression() {
+
     abstract var tryResult: IrExpression
 
     abstract val catches: MutableList<IrCatch>

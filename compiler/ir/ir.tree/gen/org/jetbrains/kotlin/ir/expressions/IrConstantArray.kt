@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.constantArray]
  */
 abstract class IrConstantArray : IrConstantValue() {
+
     abstract val elements: MutableList<IrConstantValue>
 
     override fun <R, D> accept(visitor: IrElementVisitor<R, D>, data: D): R =

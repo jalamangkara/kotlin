@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.serialization.deserialization.descriptors.Deserializ
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.externalPackageFragment]
  */
 abstract class IrExternalPackageFragment : IrPackageFragment() {
+
     abstract override val symbol: IrExternalPackageFragmentSymbol
 
     abstract val containerSource: DeserializedContainerSource?

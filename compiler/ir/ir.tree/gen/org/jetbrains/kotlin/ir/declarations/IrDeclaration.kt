@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.declaration]
  */
 interface IrDeclaration : IrStatement, IrSymbolOwner, IrMutableAnnotationContainer {
+
     @ObsoleteDescriptorBasedAPI
     val descriptor: DeclarationDescriptor
 

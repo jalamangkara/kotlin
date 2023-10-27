@@ -18,6 +18,7 @@ import org.jetbrains.kotlin.ir.symbols.IrReturnTargetSymbol
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.returnTarget]
  */
 interface IrReturnTarget : IrSymbolOwner {
+
     @ObsoleteDescriptorBasedAPI
     val descriptor: FunctionDescriptor
 

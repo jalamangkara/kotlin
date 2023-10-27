@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.continue]
  */
 abstract class IrContinue : IrBreakContinue() {
+
     override fun <R, D> accept(visitor: IrElementVisitor<R, D>, data: D): R =
         visitor.visitContinue(this, data)
 }

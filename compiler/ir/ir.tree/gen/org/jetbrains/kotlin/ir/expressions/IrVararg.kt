@@ -19,6 +19,7 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.vararg]
  */
 abstract class IrVararg : IrExpression() {
+
     abstract var varargElementType: IrType
 
     abstract val elements: MutableList<IrVarargElement>

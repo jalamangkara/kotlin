@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.name.FqName
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.packageFragment]
  */
 abstract class IrPackageFragment : IrElementBase(), IrDeclarationContainer, IrSymbolOwner {
+
     abstract override val symbol: IrPackageFragmentSymbol
 
     @ObsoleteDescriptorBasedAPI
@@ -28,9 +29,8 @@ abstract class IrPackageFragment : IrElementBase(), IrDeclarationContainer, IrSy
 
     /**
      * This should be a link to [IrModuleFragment] instead. 
-     *    
-     * Unfortunately, some package fragments (e.g. some synthetic ones and
-     * [IrExternalPackageFragment])
+     *
+     * Unfortunately, some package fragments (e.g. some synthetic ones and [IrExternalPackageFragment])
      * are not located in any IR module, but still have a module descriptor. 
      */
     abstract val moduleDescriptor: ModuleDescriptor

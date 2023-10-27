@@ -16,6 +16,7 @@ import org.jetbrains.kotlin.ir.IrElement
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.inlinedFunctionBlock]
  */
 abstract class IrInlinedFunctionBlock : IrBlock() {
+
     abstract var inlineCall: IrFunctionAccessExpression
 
     abstract var inlinedElement: IrElement

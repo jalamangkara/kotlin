@@ -17,5 +17,6 @@ import org.jetbrains.kotlin.ir.IrStatement
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.statementContainer]
  */
 interface IrStatementContainer : IrElement {
+
     val statements: MutableList<IrStatement>
 }

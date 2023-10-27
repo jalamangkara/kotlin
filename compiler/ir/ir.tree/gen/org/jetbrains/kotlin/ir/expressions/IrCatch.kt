@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.ir.visitors.IrElementVisitor
  * Generated from: [org.jetbrains.kotlin.ir.generator.IrTree.catch]
  */
 abstract class IrCatch : IrElementBase(), IrElement {
+
     abstract var catchParameter: IrVariable
 
     abstract var result: IrExpression
