@@ -17,7 +17,7 @@ import a.A
 
 fun foo(f: () -> A): A = f()
 
-// MODULE: c(b)
+// MODULE: c(b, a)
 // FILE: c.kt
 import b.foo
 
