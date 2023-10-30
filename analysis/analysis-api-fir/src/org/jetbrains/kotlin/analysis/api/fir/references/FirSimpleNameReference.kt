@@ -40,6 +40,16 @@ internal class KtFirSimpleNameReference(
         }
     }
 
+    override fun isReferenceToImportAlias(alias: KtImportAlias): Boolean {
+        val importDirective = alias.importDirective ?: return false
+        val importedFqName = importDirective.importedFqName ?: return false
+        val codeFragment = KtPsiFactory(element.project).createExpressionCodeFragment(importedFqName.asString(), element)
+        val importResults =
+            (codeFragment.getContentElement() as? KtDotQualifiedExpression)?.selectorExpression?.mainReference?.multiResolve(false)
+                ?: return false
+        return multiResolve(false).any { it in importResults }
+    }
+
     override fun KtAnalysisSession.resolveToSymbols(): Collection<KtSymbol> {
         check(this is KtFirAnalysisSession)
         val results = FirReferenceResolveHelper.resolveSimpleNameReference(this@KtFirSimpleNameReference, this)
@@ -81,7 +91,17 @@ internal class KtFirSimpleNameReference(
     }
 
     override fun getImportAlias(): KtImportAlias? {
-        // TODO: Implement.
+        val name = element.getReferencedName()
+        val file = element.containingKtFile
+        val importDirective = file.findImportByAlias(name) ?: return null
+        val fqName = importDirective.importedFqName ?: return null
+        val codeFragment = KtPsiFactory(element.project).createExpressionCodeFragment(fqName.asString(), element)
+        val importResults =
+            (codeFragment.getContentElement() as? KtDotQualifiedExpression)?.selectorExpression?.mainReference?.multiResolve(false)
+                ?: return null
+        if (multiResolve(false).any { it in importResults }) {
+            return importDirective.alias
+        }
         return null
     }
 }
