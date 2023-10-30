@@ -3,10 +3,6 @@
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
 
-
-// TODO: Compile arrayPlusCollection
-// TODO: implement a copy of jsIsType for both JS backends
-
 @file:Suppress("UNUSED_PARAMETER", "NOTHING_TO_INLINE")
 
 package kotlin
