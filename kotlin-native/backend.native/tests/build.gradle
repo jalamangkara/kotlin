@@ -5199,7 +5199,7 @@ Task frameworkTest(String name, Closure<FrameworkTest> configurator) {
                         fr.libraries.forEach { library ->
                             dependsOn konanArtifacts[library].getByTarget(target.name)
                             libraries {
-                                file konanArtifacts[library].getArtifactByTarget(target.name)
+                                klibFile konanArtifacts[library].getArtifactByTarget(target.name)
                             }
                             linkerOpts "-L$buildDir"
                             UtilsKt.dependsOnKonanBuildingTask(task, library, target)
