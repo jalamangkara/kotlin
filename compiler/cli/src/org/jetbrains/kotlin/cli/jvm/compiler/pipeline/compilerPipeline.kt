@@ -68,6 +68,7 @@ import org.jetbrains.kotlin.platform.jvm.JvmPlatforms
 import org.jetbrains.kotlin.progress.ProgressIndicatorAndCompilationCanceledStatus
 import org.jetbrains.kotlin.resolve.ModuleAnnotationsResolver
 import org.jetbrains.kotlin.resolve.jvm.modules.JavaModuleResolver
+import org.jetbrains.kotlin.utils.addToStdlib.measureTimeMillisWithResult
 import org.jetbrains.kotlin.utils.addToStdlib.runIf
 import java.io.File
 
@@ -78,7 +79,7 @@ fun compileModulesUsingFrontendIrAndLightTree(
     buildFile: File?,
     module: Module,
     targetDescription: String,
-    checkSourceFiles: Boolean
+    checkSourceFiles: Boolean,
 ): Boolean {
     ProgressIndicatorAndCompilationCanceledStatus.checkCanceled()
 
@@ -168,7 +169,7 @@ fun compileModulesUsingFrontendIrAndLightTree(
 fun convertAnalyzedFirToIr(
     input: ModuleCompilerInput,
     analysisResults: FirResult,
-    environment: ModuleCompilerEnvironment
+    environment: ModuleCompilerEnvironment,
 ): ModuleCompilerIrBackendInput {
     val extensions = JvmFir2IrExtensions(input.configuration, JvmIrDeserializerImpl(), JvmIrMangler)
 
@@ -189,9 +190,11 @@ fun convertAnalyzedFirToIr(
         useIrFakeOverrideBuilder = input.configuration.getBoolean(CommonConfigurationKeys.USE_IR_FAKE_OVERRIDE_BUILDER),
     )
     val (moduleFragment, components, pluginContext, irActualizedResult) =
-        analysisResults.convertToIrAndActualizeForJvm(
-            extensions, fir2IrConfiguration, irGenerationExtensions,
-        )
+        measureTimeMillisWithResult {
+            analysisResults.convertToIrAndActualizeForJvm(
+                extensions, fir2IrConfiguration, irGenerationExtensions,
+            )
+        }.also { println("FIR2IR: ${it.first}") }.second
 
     return ModuleCompilerIrBackendInput(
         input.targetId,
@@ -207,7 +210,7 @@ fun convertAnalyzedFirToIr(
 fun generateCodeFromIr(
     input: ModuleCompilerIrBackendInput,
     environment: ModuleCompilerEnvironment,
-    performanceManager: CommonCompilerPerformanceManager?
+    performanceManager: CommonCompilerPerformanceManager?,
 ): ModuleCompilerOutput {
     // IR
     val codegenFactory = JvmIrCodegenFactory(
@@ -261,7 +264,7 @@ fun compileModuleToAnalyzedFir(
     previousStepsSymbolProviders: List<FirSymbolProvider>,
     incrementalExcludesScope: AbstractProjectFileSearchScope?,
     diagnosticsReporter: BaseDiagnosticsCollector,
-    performanceManager: CommonCompilerPerformanceManager?
+    performanceManager: CommonCompilerPerformanceManager?,
 ): FirResult {
     val moduleConfiguration = input.configuration
 
@@ -311,7 +314,7 @@ fun compileModuleToAnalyzedFir(
 fun createIncrementalCompilationScope(
     configuration: CompilerConfiguration,
     projectEnvironment: AbstractProjectEnvironment,
-    incrementalExcludesScope: AbstractProjectFileSearchScope?
+    incrementalExcludesScope: AbstractProjectFileSearchScope?,
 ): AbstractProjectFileSearchScope? {
     if (!needCreateIncrementalCompilationScope(configuration)) return null
     val dir = configuration[JVMConfigurationKeys.OUTPUT_DIRECTORY] ?: return null
@@ -332,7 +335,7 @@ fun createContextForIncrementalCompilation(
     projectEnvironment: AbstractProjectEnvironment,
     sourceScope: AbstractProjectFileSearchScope,
     previousStepsSymbolProviders: List<FirSymbolProvider>,
-    incrementalCompilationScope: AbstractProjectFileSearchScope?
+    incrementalCompilationScope: AbstractProjectFileSearchScope?,
 ): IncrementalCompilationContext? {
     if (incrementalCompilationScope == null && previousStepsSymbolProviders.isEmpty()) return null
     val targetIds = configuration.get(JVMConfigurationKeys.MODULES)?.map(::TargetId) ?: return null
@@ -353,7 +356,7 @@ private class ProjectEnvironmentWithCoreEnvironmentEmulation(
     localFileSystem: VirtualFileSystem,
     getPackagePartProviderFn: (GlobalSearchScope) -> PackagePartProvider,
     val initialRoots: List<JavaRoot>,
-    val configuration: CompilerConfiguration
+    val configuration: CompilerConfiguration,
 ) : VfsBasedProjectEnvironment(project, localFileSystem, getPackagePartProviderFn) {
 
     val packagePartProviders = mutableListOf<JvmPackagePartProvider>()
@@ -373,7 +376,7 @@ fun createProjectEnvironment(
     configuration: CompilerConfiguration,
     parentDisposable: Disposable,
     configFiles: EnvironmentConfigFiles,
-    messageCollector: MessageCollector
+    messageCollector: MessageCollector,
 ): VfsBasedProjectEnvironment {
     setupIdeaStandaloneExecution()
     val appEnv = KotlinCoreEnvironment.getOrCreateApplicationEnvironmentForProduction(parentDisposable, configuration)
