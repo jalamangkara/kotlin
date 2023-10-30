@@ -5090,12 +5090,12 @@ interopTest("interop_exceptions_cCallback") {
 standaloneTest("library_ir_provider_mismatch") {
     enabled = !isAggressiveGC // No need to test with different GC schedulers
 
-    def librarySource = "$projectDir/link/ir_providers/library/empty.kt"
-    def invalidManifest = "$projectDir/link/ir_providers/library/manifest.properties"
-    def mainSource = "$projectDir/link/ir_providers/hello.kt"
+    String librarySource = "$projectDir/link/ir_providers/library/empty.kt"
+    String invalidManifest = "$projectDir/link/ir_providers/library/manifest.properties"
+    String mainSource = "$projectDir/link/ir_providers/hello.kt"
 
-    def outputDir = "$buildDir/$name"
-    def currentTarget = project.target.name
+    String outputDir = "$buildDir/$name"
+    String currentTarget = project.target.name
 
     inputs.files(librarySource, invalidManifest)
     inputs.property("target", currentTarget)
@@ -5107,13 +5107,16 @@ standaloneTest("library_ir_provider_mismatch") {
         konanc("$librarySource -target $currentTarget -p library -o $outputDir/supported_ir_provider/empty ")
 
         // Should not be successful:
-        def failed = false
-        def command = "$mainSource -target $currentTarget -p program -o $outputDir/failed.kexe -l $outputDir/unsupported_ir_provider/empty"
+        boolean failed = false
+        String command = "$mainSource -target $currentTarget -p program -o $outputDir/failed.kexe -l $outputDir/unsupported_ir_provider/empty"
         try {
             konanc(command)
         } catch (Throwable t) {
+            String exceptionText = t.message
+            exceptionText = PlatformInfo.isWindows() ? exceptionText.replaceAll('\\/', '\\\\') : exceptionText
+
             if (t instanceof GradleException
-                    && t.message.contains("warning: skipping $outputDir/unsupported_ir_provider/empty.klib. The library requires unknown IR provider UNSUPPORTED.")
+                    && exceptionText.contains("warning: skipping $outputDir/unsupported_ir_provider/empty.klib. The library requires unknown IR provider UNSUPPORTED.")
             ) {
                 failed = true
             } else {
