@@ -42008,6 +42008,12 @@ public class FirLightTreeOldFrontendDiagnosticsTestGenerated extends AbstractFir
                 }
 
                 @Test
+                @TestMetadata("callableReferenceCase.kt")
+                public void testCallableReferenceCase() throws Exception {
+                    runTest("compiler/testData/diagnostics/testsWithStdLib/resolve/ambiguousTypeReferences/callableReferenceCase.kt");
+                }
+
+                @Test
                 @TestMetadata("classLiteralCase.kt")
                 public void testClassLiteralCase() throws Exception {
                     runTest("compiler/testData/diagnostics/testsWithStdLib/resolve/ambiguousTypeReferences/classLiteralCase.kt");
