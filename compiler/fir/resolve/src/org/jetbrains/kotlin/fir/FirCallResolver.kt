@@ -227,16 +227,6 @@ class FirCallResolver(
         return resolveVariableAccessAndSelectCandidateImpl(qualifiedAccess, isUsedAsReceiver, callSite) { true }
     }
 
-    fun resolveOnlyEnumOrQualifierAccessAndSelectCandidate(
-        qualifiedAccess: FirQualifiedAccessExpression,
-        isUsedAsReceiver: Boolean,
-    ): FirStatement {
-        return resolveVariableAccessAndSelectCandidateImpl(qualifiedAccess, isUsedAsReceiver) accept@{ candidates ->
-            val symbol = candidates.singleOrNull()?.symbol ?: return@accept false
-            symbol is FirEnumEntrySymbol || symbol is FirRegularClassSymbol
-        }
-    }
-
     private fun resolveVariableAccessAndSelectCandidateImpl(
         qualifiedAccess: FirQualifiedAccessExpression,
         isUsedAsReceiver: Boolean,
