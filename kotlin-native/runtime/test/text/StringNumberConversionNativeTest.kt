@@ -56,6 +56,15 @@ class StringNumberConversionNativeTest {
         assertFailsWith<NumberFormatException> { "\u20293.14".toDouble() }
         assertFailsWith<NumberFormatException> { "3.14\u200B".toDouble() }
         assertFailsWith<NumberFormatException> { "3.14\u200B ABC".toDouble() }
+
+        // Illegal surrogate pair
+        assertFailsWith<NumberFormatException> { "\uDC00\uD800".toDouble() }
+        // Different kinds of input (including illegal one)
+        assertFailsWith<NumberFormatException> { "\uD800\uDC001\uDC00\uD800".toDouble() }
+        // Lone surrogate
+        assertFailsWith<NumberFormatException> { "\uD80012".toDouble() }
+        assertFailsWith<NumberFormatException> { "\uDC0012".toDouble() }
+        assertFailsWith<NumberFormatException> { "12\uD800".toDouble() }
     }
 
     @Test
@@ -108,6 +117,15 @@ class StringNumberConversionNativeTest {
         }
 
         assertFailsWith<NumberFormatException> { "\u202F3.14".toFloat() }
+
+        // Illegal surrogate pair
+        assertFailsWith<NumberFormatException> { "\uDC00\uD800".toFloat() }
+        // Different kinds of input (including illegal one)
+        assertFailsWith<NumberFormatException> { "\uD800\uDC001\uDC00\uD800".toFloat() }
+        // Lone surrogate
+        assertFailsWith<NumberFormatException> { "\uD80012".toFloat() }
+        assertFailsWith<NumberFormatException> { "\uDC0012".toFloat() }
+        assertFailsWith<NumberFormatException> { "12\uD800".toFloat() }
     }
 
     @Test
