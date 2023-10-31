@@ -262,6 +262,6 @@ internal class CCallBuilder {
 }
 
 object CBridgeOrigin {
-    val KOTLIN_TO_C_BRIDGE = IrDeclarationOriginImpl("KOTLIN_TO_C_BRIDGE", isSynthetic = true)
-    val C_TO_KOTLIN_BRIDGE = IrDeclarationOriginImpl("C_TO_KOTLIN_BRIDGE", isSynthetic = true)
+    val KOTLIN_TO_C_BRIDGE by IrDeclarationOriginImpl.Synthetic
+    val C_TO_KOTLIN_BRIDGE by IrDeclarationOriginImpl.Synthetic
 }
