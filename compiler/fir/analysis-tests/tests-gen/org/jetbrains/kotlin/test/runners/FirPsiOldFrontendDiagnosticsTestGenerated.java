@@ -42158,6 +42158,12 @@ public class FirPsiOldFrontendDiagnosticsTestGenerated extends AbstractFirPsiDia
                 }
 
                 @Test
+                @TestMetadata("qualifierOrStaticObjectCase.kt")
+                public void testQualifierOrStaticObjectCase() throws Exception {
+                    runTest("compiler/testData/diagnostics/testsWithStdLib/resolve/ambiguousTypeReferences/qualifierOrStaticObjectCase.kt");
+                }
+
+                @Test
                 @TestMetadata("qualifierStaticObjectOrCompanionMemberCase.kt")
                 public void testQualifierStaticObjectOrCompanionMemberCase() throws Exception {
                     runTest("compiler/testData/diagnostics/testsWithStdLib/resolve/ambiguousTypeReferences/qualifierStaticObjectOrCompanionMemberCase.kt");
