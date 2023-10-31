@@ -42094,6 +42094,12 @@ public class DiagnosticCompilerTestFE10TestdataTestGenerated extends AbstractDia
                 }
 
                 @Test
+                @TestMetadata("qualifierEnumEntryOrCompanionMemberCase.kt")
+                public void testQualifierEnumEntryOrCompanionMemberCase() throws Exception {
+                    runTest("compiler/testData/diagnostics/testsWithStdLib/resolve/ambiguousTypeReferences/qualifierEnumEntryOrCompanionMemberCase.kt");
+                }
+
+                @Test
                 @TestMetadata("qualifierForStaticCase.kt")
                 public void testQualifierForStaticCase() throws Exception {
                     runTest("compiler/testData/diagnostics/testsWithStdLib/resolve/ambiguousTypeReferences/qualifierForStaticCase.kt");

@@ -42038,6 +42038,12 @@ public class FirLightTreeOldFrontendDiagnosticsTestGenerated extends AbstractFir
                 }
 
                 @Test
+                @TestMetadata("qualifierEnumEntryOrCompanionMemberCase.kt")
+                public void testQualifierEnumEntryOrCompanionMemberCase() throws Exception {
+                    runTest("compiler/testData/diagnostics/testsWithStdLib/resolve/ambiguousTypeReferences/qualifierEnumEntryOrCompanionMemberCase.kt");
+                }
+
+                @Test
                 @TestMetadata("qualifierForStaticCase.kt")
                 public void testQualifierForStaticCase() throws Exception {
                     runTest("compiler/testData/diagnostics/testsWithStdLib/resolve/ambiguousTypeReferences/qualifierForStaticCase.kt");
