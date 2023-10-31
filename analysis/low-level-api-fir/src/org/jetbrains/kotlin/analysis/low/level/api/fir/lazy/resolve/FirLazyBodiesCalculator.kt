@@ -9,6 +9,7 @@ import com.intellij.psi.PsiElement
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
+import org.jetbrains.kotlin.KtFakeSourceElementKind
 import org.jetbrains.kotlin.analysis.low.level.api.fir.api.FirDesignation
 import org.jetbrains.kotlin.fir.*
 import org.jetbrains.kotlin.fir.builder.PsiRawFirBuilder
@@ -20,11 +21,26 @@ import org.jetbrains.kotlin.fir.declarations.utils.getExplicitBackingField
 import org.jetbrains.kotlin.fir.expressions.*
 import org.jetbrains.kotlin.fir.expressions.impl.FirLazyDelegatedConstructorCall
 import org.jetbrains.kotlin.fir.extensions.registeredPluginAnnotations
+import org.jetbrains.kotlin.fir.references.FirDelegateFieldReference
+import org.jetbrains.kotlin.fir.references.FirResolvedNamedReference
+import org.jetbrains.kotlin.fir.references.builder.buildDelegateFieldReference
+import org.jetbrains.kotlin.fir.references.builder.buildImplicitThisReference
+import org.jetbrains.kotlin.fir.references.builder.buildResolvedNamedReference
 import org.jetbrains.kotlin.fir.scopes.kotlinScopeProvider
+import org.jetbrains.kotlin.fir.symbols.impl.FirPropertySymbol
 import org.jetbrains.kotlin.fir.types.*
+import org.jetbrains.kotlin.fir.types.builder.buildResolvedTypeRef
+import org.jetbrains.kotlin.fir.types.builder.buildTypeProjectionWithVariance
+import org.jetbrains.kotlin.fir.types.impl.ConeTypeParameterTypeImpl
+import org.jetbrains.kotlin.fir.utils.exceptions.withFirEntry
+import org.jetbrains.kotlin.fir.utils.exceptions.withFirSymbolEntry
 import org.jetbrains.kotlin.fir.visitors.FirTransformer
+import org.jetbrains.kotlin.fir.visitors.FirVisitorVoid
 import org.jetbrains.kotlin.fir.visitors.transformSingle
 import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.types.Variance
+import org.jetbrains.kotlin.utils.exceptions.errorWithAttachment
+import org.jetbrains.kotlin.utils.exceptions.requireWithAttachment
 
 internal object FirLazyBodiesCalculator {
     fun calculateBodies(designation: FirDesignation) {
@@ -186,21 +202,150 @@ private fun calculateLazyBodyForProperty(designation: FirDesignation) {
         val newGetter = newProperty.getter!!
         replaceLazyContractDescription(getter, newGetter)
         replaceLazyBody(getter, newGetter)
+        rebindDelegatedAccessorBody(getter)
     }
 
     firProperty.setter?.let { setter ->
         val newSetter = newProperty.setter!!
         replaceLazyContractDescription(setter, newSetter)
         replaceLazyBody(setter, newSetter)
+        rebindDelegatedAccessorBody(setter)
     }
 
     replaceLazyInitializer(firProperty, newProperty)
     replaceLazyDelegate(firProperty, newProperty)
+    rebindDelegate(firProperty)
 
     firProperty.getExplicitBackingField()?.let { backingField ->
         val newBackingField = newProperty.getExplicitBackingField()!!
         replaceLazyInitializer(backingField, newBackingField)
     }
+}
+
+/**
+ * This function is required to correctly rebind symbols
+ * after [generateAccessorsByDelegate][org.jetbrains.kotlin.fir.builder.generateAccessorsByDelegate]
+ * for correct work
+ *
+ * @see org.jetbrains.kotlin.fir.builder.generateAccessorsByDelegate
+ */
+private fun rebindDelegate(property: FirProperty) {
+    val delegate = property.delegate ?: return
+    requireWithAttachment(
+        delegate is FirWrappedDelegateExpression,
+        { "Unexpected delegate type: ${delegate::class.simpleName}" },
+    ) {
+        withFirEntry("property", property)
+        withFirEntry("delegate", delegate)
+    }
+
+    val delegateProvider = delegate.delegateProvider
+    requireWithAttachment(
+        delegateProvider is FirFunctionCall,
+        { "Unexpected delegate provider type: ${delegateProvider::class.simpleName}" },
+    ) {
+        withFirEntry("property", property)
+        withFirEntry("expression", delegateProvider)
+    }
+
+    delegateProvider.argumentList.accept(object : FirVisitorVoid() {
+        override fun visitElement(element: FirElement) {
+            when (element) {
+                is FirThisReceiverExpression -> rebindThisReceiverExpression(element, property.symbol)
+                is FirCallableReferenceAccess -> rebindCallableReferenceAccess(element, property.symbol)
+                else -> element.acceptChildren(this)
+            }
+        }
+    })
+}
+
+/**
+ * To cover `thisRef` function
+ *
+ * @see org.jetbrains.kotlin.fir.builder.generateAccessorsByDelegate
+ */
+private fun rebindThisReceiverExpression(expression: FirThisReceiverExpression, propertySymbol: FirPropertySymbol) {
+    if (expression.calleeReference.boundSymbol is FirPropertySymbol) {
+        expression.replaceCalleeReference(buildImplicitThisReference {
+            boundSymbol = propertySymbol
+        })
+    }
+}
+
+/**
+ * To cover `propertyRef` function
+ *
+ * @see org.jetbrains.kotlin.fir.builder.generateAccessorsByDelegate
+ */
+private fun rebindCallableReferenceAccess(expression: FirCallableReferenceAccess, propertySymbol: FirPropertySymbol) {
+    val calleeReference = expression.calleeReference
+    expression.replaceCalleeReference(buildResolvedNamedReference {
+        source = calleeReference.source
+        name = calleeReference.name
+        resolvedSymbol = propertySymbol
+    })
+
+    expression.replaceTypeArguments(propertySymbol.fir.typeParameters.map {
+        buildTypeProjectionWithVariance {
+            source = expression.source
+            variance = Variance.INVARIANT
+            typeRef = buildResolvedTypeRef {
+                type = ConeTypeParameterTypeImpl(it.symbol.toLookupTag(), false)
+            }
+        }
+    })
+}
+
+/**
+ * This function is required to correctly rebind symbols
+ * after [generateAccessorsByDelegate][org.jetbrains.kotlin.fir.builder.generateAccessorsByDelegate]
+ * for correct work
+ *
+ * @see org.jetbrains.kotlin.fir.builder.generateAccessorsByDelegate
+ * @see rebindDelegate
+ */
+private fun rebindDelegatedAccessorBody(updatedAccessor: FirPropertyAccessor) {
+    if (updatedAccessor.source?.kind != KtFakeSourceElementKind.DelegatedPropertyAccessor) return
+    val body = updatedAccessor.body ?: errorWithAttachment("Body is missing for delegated accessor") {
+        withFirSymbolEntry("property", updatedAccessor.propertySymbol)
+    }
+
+    body.accept(object : FirVisitorVoid() {
+        override fun visitElement(element: FirElement) {
+            when (element) {
+                is FirThisReceiverExpression -> rebindThisReceiverExpression(element, updatedAccessor.propertySymbol)
+                is FirCallableReferenceAccess -> rebindCallableReferenceAccess(element, updatedAccessor.propertySymbol)
+
+                // to cover `delegateAccess` function and setter body logic
+                is FirPropertyAccessExpression -> when (val calleeReference = element.calleeReference) {
+                    is FirDelegateFieldReference -> element.replaceCalleeReference(buildDelegateFieldReference {
+                        source = calleeReference.source
+                        resolvedSymbol = updatedAccessor.propertySymbol.delegateFieldSymbol
+                            ?: errorWithAttachment("Delegate field is missing") {
+                                withFirSymbolEntry("property", updatedAccessor.propertySymbol)
+                            }
+                    })
+
+                    is FirResolvedNamedReference -> element.replaceCalleeReference(buildResolvedNamedReference {
+                        source = calleeReference.source
+                        name = calleeReference.name
+                        resolvedSymbol = updatedAccessor.valueParameters.first().symbol
+                    })
+
+                    else -> errorWithAttachment("Unexpected element: ${calleeReference::class.simpleName}") {
+                        withFirEntry("element", element)
+                    }
+                }
+
+                is FirReturnExpression -> {
+                    element.target.bind(updatedAccessor)
+                    element.result.acceptChildren(this)
+                }
+
+                else -> element.acceptChildren(this)
+            }
+        }
+    })
 }
 
 private fun calculateLazyInitializerForEnumEntry(designation: FirDesignation) {
