@@ -129,16 +129,8 @@ private fun StringBuilder.appendFileName(file: File) {
 // Reads the class file and writes it back with KmClass/KmFunction/... elements.
 private fun transformClassFileWithNodes(metadata: Metadata, classFile: KotlinClassMetadata): Metadata =
     when (classFile) {
-        is KotlinClassMetadata.Class ->
-            KotlinClassMetadata.writeClass(classFile.kmClass)
-        is KotlinClassMetadata.FileFacade ->
-            KotlinClassMetadata.writeFileFacade(classFile.kmPackage)
-        is KotlinClassMetadata.SyntheticClass ->
-            classFile.kmLambda?.let { KotlinClassMetadata.writeLambda(it) } ?: KotlinClassMetadata.writeSyntheticClass()
-        is KotlinClassMetadata.MultiFileClassPart ->
-            KotlinClassMetadata.writeMultiFileClassPart(classFile.kmPackage, classFile.facadeClassName)
-        is KotlinClassMetadata.MultiFileClassFacade -> KotlinClassMetadata.writeMultiFileClassFacade(classFile.partClassNames)
         is KotlinClassMetadata.Unknown -> metadata
+        else -> KotlinClassMetadata.write(classFile)
     }
 
 @OptIn(UnstableMetadataApi::class)

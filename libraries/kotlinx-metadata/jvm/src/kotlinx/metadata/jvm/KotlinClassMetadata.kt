@@ -17,6 +17,27 @@ import org.jetbrains.kotlin.metadata.jvm.deserialization.JvmProtoBufUtil
 import org.jetbrains.kotlin.metadata.jvm.serialization.JvmStringTable
 import java.util.*
 
+private object ReadHelpers {
+    internal fun readKmClass(annotationData: Metadata): KmClass {
+        val (strings, proto) = JvmProtoBufUtil.readClassDataFrom(annotationData.requireNotEmpty(), annotationData.data2)
+        return proto.toKmClass(strings)
+    }
+
+    internal fun readKmPackage(annotationData: Metadata): KmPackage {
+        val (strings, proto) = JvmProtoBufUtil.readPackageDataFrom(annotationData.requireNotEmpty(), annotationData.data2)
+        return proto.toKmPackage(strings)
+    }
+
+    internal fun readKmLambda(annotationData: Metadata): KmLambda? {
+        val functionData =
+            annotationData.data1.takeIf(Array<*>::isNotEmpty)?.let { data1 ->
+                JvmProtoBufUtil.readFunctionDataFrom(data1, annotationData.data2)
+            } ?: return null
+        val (strings, proto) = functionData
+        return proto.toKmLambda(strings)
+    }
+}
+
 /**
  * Represents the parsed metadata of a Kotlin JVM class file. Entry point for parsing metadata on JVM.
  *
@@ -46,7 +67,7 @@ import java.util.*
  * }
  * ```
  */
-public sealed class KotlinClassMetadata(internal val annotationData: Metadata) {
+public sealed class KotlinClassMetadata() {
 
     /**
      * Represents metadata of a class file containing a declaration of a Kotlin class.
@@ -54,20 +75,14 @@ public sealed class KotlinClassMetadata(internal val annotationData: Metadata) {
      * Anything that does not belong to a Kotlin class (top-level declarations) is not present in
      * [Class] metadata, even if such declaration was in the same source file. See [FileFacade] for details.
      */
-    public class Class internal constructor(annotationData: Metadata, lenient: Boolean) : KotlinClassMetadata(annotationData) {
+    public class Class public constructor(public var kmClass: KmClass, public val version: IntArray, public val flags: Int) :
+        KotlinClassMetadata() {
 
-        /**
-         * Returns the [KmClass] representation of this metadata.
-         *
-         * Returns the same (mutable) [KmClass] instance every time.
-         */
-        public val kmClass: KmClass
-
-        init {
-            val (strings, proto) = JvmProtoBufUtil.readClassDataFrom(annotationData.requireNotEmpty(), annotationData.data2)
-            kmClass = proto.toKmClass(strings)
-            if (lenient) KmInternalAccessors.disallowWrite(kmClass)
-        }
+        internal constructor(annotationData: Metadata, lenient: Boolean) : this(
+            ReadHelpers.readKmClass(annotationData).also { if (lenient) KmInternalAccessors.disallowWrite(it) },
+            annotationData.metadataVersion,
+            annotationData.extraInt
+        )
 
         /**
          * Returns a new [KmClass] instance created from this class metadata.
@@ -125,20 +140,22 @@ public sealed class KotlinClassMetadata(internal val annotationData: Metadata) {
      * If Kotlin source file contains both classes and top-level declarations, only top-level declarations would be available in the corresponding file facade.
      * Classes would have their own JVM classfiles and their own metadata of [Class] kind.
      */
-    public class FileFacade internal constructor(annotationData: Metadata, lenient: Boolean) : KotlinClassMetadata(annotationData) {
+    public class FileFacade public constructor(public var kmPackage: KmPackage, public val version: IntArray, public val flags: Int) :
+        KotlinClassMetadata() {
+
+        internal constructor(annotationData: Metadata, lenient: Boolean) : this(
+            ReadHelpers.readKmPackage(annotationData).also { if (lenient) KmInternalAccessors.disallowWrite(it) },
+            annotationData.metadataVersion,
+            annotationData.extraInt
+        )
 
         /**
          * Returns the [KmPackage] representation of this metadata.
          *
          * Returns the same (mutable) [KmPackage] instance every time.
          */
-        public val kmPackage: KmPackage
+//        public val kmPackage: KmPackage
 
-        init {
-            val (strings, proto) = JvmProtoBufUtil.readPackageDataFrom(annotationData.requireNotEmpty(), annotationData.data2)
-            kmPackage = proto.toKmPackage(strings)
-            if (lenient) KmInternalAccessors.disallowWrite(kmPackage)
-        }
 
         /**
          * Creates a new [KmPackage] instance from this file facade metadata.
@@ -192,17 +209,24 @@ public sealed class KotlinClassMetadata(internal val annotationData: Metadata) {
      * Represents metadata of a class file containing a synthetic class, e.g. a class for lambda, `$DefaultImpls` class for interface
      * method implementations, `$WhenMappings` class for optimized `when` over enums, etc.
      */
-    public class SyntheticClass internal constructor(annotationData: Metadata, lenient: Boolean) : KotlinClassMetadata(annotationData) {
-        private val functionData =
-            annotationData.data1.takeIf(Array<*>::isNotEmpty)?.let { data1 ->
-                JvmProtoBufUtil.readFunctionDataFrom(data1, annotationData.data2)
-            }
+    public class SyntheticClass(public var kmLambda: KmLambda?, public val version: IntArray, public val flags: Int) :
+        KotlinClassMetadata() {
+
+        internal var allowedToWrite: Boolean = true
+
+        internal constructor(annotationData: Metadata, lenient: Boolean) : this(
+            ReadHelpers.readKmLambda(annotationData)?.also { if (lenient) KmInternalAccessors.disallowWrite(it) },
+            annotationData.metadataVersion,
+            annotationData.extraInt
+        ) {
+            if (lenient) allowedToWrite = false
+        }
 
         /**
          * Returns `true` if this synthetic class is a class file compiled for a Kotlin lambda.
          */
         public val isLambda: Boolean
-            get() = annotationData.data1.isNotEmpty()
+            get() = kmLambda != null
 
 
         /**
@@ -210,17 +234,8 @@ public sealed class KotlinClassMetadata(internal val annotationData: Metadata) {
          *
          * Returns the same (mutable) [KmLambda] instance every time.
          */
-        public val kmLambda: KmLambda?
+//        public val kmLambda: KmLambda?
 
-        init {
-            if (!isLambda) {
-                kmLambda = null
-            } else {
-                val (strings, proto) = functionData!!
-                kmLambda = proto.toKmLambda(strings)
-                if (lenient) KmInternalAccessors.disallowWrite(kmLambda)
-            }
-        }
 
         /**
          * Creates a new [KmLambda] instance from this synthetic class metadata.
@@ -315,11 +330,22 @@ public sealed class KotlinClassMetadata(internal val annotationData: Metadata) {
      * @see MultiFileClassPart
      * @see JvmMultifileClass
      */
-    public class MultiFileClassFacade internal constructor(annotationData: Metadata) : KotlinClassMetadata(annotationData) {
+    public class MultiFileClassFacade(public var partClassNames: List<String>, public val version: IntArray, public val flags: Int) :
+        KotlinClassMetadata() {
+
+        internal var allowedToWrite: Boolean = true
+
+        internal constructor(annotationData: Metadata, lenient: Boolean) : this(
+            annotationData.data1.asList(),
+            annotationData.metadataVersion,
+            annotationData.extraInt
+        ) {
+            if (lenient) allowedToWrite = false
+        }
         /**
          * JVM internal names of the part classes which this multi-file class combines.
          */
-        public val partClassNames: List<String> = annotationData.data1.asList()
+//        public val partClassNames: List<String> = annotationData.data1.asList()
 
         /**
          * A writer that generates the metadata of a multi-file class facade.
@@ -364,25 +390,34 @@ public sealed class KotlinClassMetadata(internal val annotationData: Metadata) {
      * @see MultiFileClassFacade
      * @see JvmMultifileClass
      */
-    public class MultiFileClassPart internal constructor(annotationData: Metadata, lenient: Boolean) : KotlinClassMetadata(annotationData) {
+    public class MultiFileClassPart public constructor(
+        public val kmPackage: KmPackage,
+        public val facadeClassName: String,
+        public val version: IntArray,
+        public val flags: Int,
+    ) : KotlinClassMetadata() {
+
+        internal constructor(annotationData: Metadata, lenient: Boolean) : this(
+            ReadHelpers.readKmPackage(annotationData).also { if (lenient) KmInternalAccessors.disallowWrite(it) },
+            annotationData.extraString,
+            annotationData.metadataVersion,
+            annotationData.extraInt
+        )
+
+
         /**
          * Returns the [KmPackage] representation of this metadata.
          *
          * Returns the same (mutable) [KmPackage] instance every time.
          */
-        public val kmPackage: KmPackage
+//        public val kmPackage: KmPackage
 
-        init {
-            val (strings, proto) = JvmProtoBufUtil.readPackageDataFrom(annotationData.requireNotEmpty(), annotationData.data2)
-            kmPackage = proto.toKmPackage(strings)
-            if (lenient) KmInternalAccessors.disallowWrite(kmPackage)
-        }
 
         /**
          * JVM internal name of the corresponding multi-file class facade.
          */
-        public val facadeClassName: String
-            get() = annotationData.extraString
+//        public val facadeClassName: String
+//            get() = annotationData.extraString
 
         /**
          * Creates a new [KmPackage] instance from this multi-file class part metadata.
@@ -440,13 +475,38 @@ public sealed class KotlinClassMetadata(internal val annotationData: Metadata) {
      * Represents metadata of an unknown class file. This class is used if an old version of this library is used against a new kind
      * of class files generated by the Kotlin compiler, unsupported by this library.
      */
-    public data object Unknown : KotlinClassMetadata(Metadata())
+    public data object Unknown : KotlinClassMetadata()
 
     /**
      * Collection of methods for reading and writing [KotlinClassMetadata],
      * as well as metadata kind constants and [COMPATIBLE_METADATA_VERSION] constant.
      */
     public companion object {
+
+        public fun transform(metadata: Metadata, transformer: (KotlinClassMetadata) -> Unit): Metadata {
+            val original = readStrict(metadata)
+            transformer(original)
+            return write(original)
+        }
+
+        public fun write(metadata: KotlinClassMetadata): Metadata {
+            return when(metadata) {
+                is Class -> writeClass(metadata.kmClass, metadata.version, metadata.flags)
+                is FileFacade -> writeFileFacade(metadata.kmPackage, metadata.version, metadata.flags)
+                is SyntheticClass -> {
+                    throwIfNotWriteable(metadata.allowedToWrite, "synthetic class")
+                    if (metadata.isLambda) writeLambda(metadata.kmLambda!!, metadata.version, metadata.flags) else writeSyntheticClass(metadata.version, metadata.flags)
+                }
+                is MultiFileClassFacade -> {
+                    throwIfNotWriteable(metadata.allowedToWrite, "multi file class facade")
+                    writeMultiFileClassFacade(metadata.partClassNames, metadata.version, metadata.flags)
+                }
+                is MultiFileClassPart -> writeMultiFileClassPart(metadata.kmPackage, metadata.facadeClassName, metadata.version, metadata.flags)
+                is Unknown -> throw IllegalArgumentException("Can't write unknown metadata")
+            }
+        }
+
+
         /**
          * Writes contents of [kmClass] as the class metadata.
          *
@@ -471,6 +531,7 @@ public sealed class KotlinClassMetadata(internal val annotationData: Metadata) {
             val (d1, d2) = writeProtoBufData(writer.t.build(), writer.c)
             Metadata(CLASS_KIND, metadataVersion, d1, d2, extraInt = extraInt)
         }
+
 
         /**
          * Writes [kmPackage] contents as the file facade metadata.
@@ -632,7 +693,7 @@ public sealed class KotlinClassMetadata(internal val annotationData: Metadata) {
                     CLASS_KIND -> Class(annotationData, lenient)
                     FILE_FACADE_KIND -> FileFacade(annotationData, lenient)
                     SYNTHETIC_CLASS_KIND -> SyntheticClass(annotationData, lenient)
-                    MULTI_FILE_CLASS_FACADE_KIND -> MultiFileClassFacade(annotationData)
+                    MULTI_FILE_CLASS_FACADE_KIND -> MultiFileClassFacade(annotationData, lenient)
                     MULTI_FILE_CLASS_PART_KIND -> MultiFileClassPart(annotationData, lenient)
                     else -> Unknown
                 }

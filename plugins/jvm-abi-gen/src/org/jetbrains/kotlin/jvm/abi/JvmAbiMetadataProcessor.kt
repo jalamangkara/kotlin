@@ -13,6 +13,25 @@ import org.jetbrains.kotlin.load.java.JvmAnnotationNames.*
 import org.jetbrains.org.objectweb.asm.AnnotationVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes
 
+val remapper = Unit
+fun someUsage(header: Metadata) {
+    val remapped = KotlinClassMetadata.transform(header) {metadata ->
+        when(metadata) {
+            is KotlinClassMetadata.Class -> {
+                val klass = metadata.kmClass
+                metadata.kmClass = KotlinClassRemapper(remapper).remap(klass)
+            }
+            else -> Unit
+        }
+    }
+    writeClassHeader(remapped)
+}
+
+fun writeClassHeader(metadata: Metadata) {}
+
+class KotlinClassRemapper(unit: Unit) {
+    fun remap(kmClass: KmClass): KmClass = kmClass
+}
 /**
  * Wrap the visitor for a Kotlin Metadata annotation to strip out private and local
  * functions, properties, and type aliases as well as local delegated properties.
@@ -28,28 +47,19 @@ fun abiMetadataProcessor(annotationVisitor: AnnotationVisitor): AnnotationVisito
         } ?: intArrayOf(1, 4)
 
         val newHeader = runCatching {
-            when (val metadata = KotlinClassMetadata.readStrict(header)) {
-                is KotlinClassMetadata.Class -> {
-                    val klass = metadata.kmClass
-                    klass.removePrivateDeclarations()
-                    KotlinClassMetadata.writeClass(klass, metadataVersion, header.extraInt)
+            KotlinClassMetadata.transform(header) { metadata ->
+                when (metadata) {
+                    is KotlinClassMetadata.Class -> {
+                        metadata.kmClass.removePrivateDeclarations()
+                    }
+                    is KotlinClassMetadata.FileFacade -> {
+                        metadata.kmPackage.removePrivateDeclarations()
+                    }
+                    is KotlinClassMetadata.MultiFileClassPart -> {
+                        metadata.kmPackage.removePrivateDeclarations()
+                    }
+                    else -> Unit
                 }
-                is KotlinClassMetadata.FileFacade -> {
-                    val pkg = metadata.kmPackage
-                    pkg.removePrivateDeclarations()
-                    KotlinClassMetadata.writeFileFacade(pkg, metadataVersion, header.extraInt)
-                }
-                is KotlinClassMetadata.MultiFileClassPart -> {
-                    val pkg = metadata.kmPackage
-                    pkg.removePrivateDeclarations()
-                    KotlinClassMetadata.writeMultiFileClassPart(
-                        pkg,
-                        metadata.facadeClassName,
-                        metadataVersion,
-                        header.extraInt
-                    )
-                }
-                else -> header
             }
         }.getOrElse { cause ->
             // TODO: maybe jvm-abi-gen should throw this exception by default, and not only in tests.
