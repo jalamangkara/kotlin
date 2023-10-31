@@ -58,13 +58,13 @@ fun generateProxyIrModuleWith(
     val programFragment = JsIrProgramFragment(safeName, "<proxy-file>").apply {
         mainFunctionTag?.let {
             this.mainFunctionTag = it
-            nameBindings[it] = JsName("main", true)
+            nameBindings[it] = ReservedJsNames.makeMainFunctionName()
         }
         cachedTestFunctionsWithTheirPackage.takeIf { it.isNotEmpty() }?.let {
             nameBindings += it.values.asSequence()
                 .flatten()
-                .map { tag -> tag to JsName("test", true) }
-                .plus(suiteFunctionTag!! to JsName("suite", true))
+                .map { tag -> tag to ReservedJsNames.makeTestFunctionName() }
+                .plus(suiteFunctionTag!! to ReservedJsNames.makeSuiteFunctionName())
 
             JsTestFunctionTransformer.generateTestFunctionCall(
                 it.asTestFunctionContainers(suiteFunctionTag, nameBindings)
