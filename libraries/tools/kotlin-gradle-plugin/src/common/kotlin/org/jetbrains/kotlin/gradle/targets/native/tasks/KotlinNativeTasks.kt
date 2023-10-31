@@ -45,7 +45,6 @@ import org.jetbrains.kotlin.gradle.targets.native.tasks.*
 import org.jetbrains.kotlin.gradle.utils.*
 import org.jetbrains.kotlin.gradle.utils.GradleLoggerAdapter
 import org.jetbrains.kotlin.gradle.utils.listFilesOrEmpty
-import org.jetbrains.kotlin.incremental.deleteDirectoryContents
 import org.jetbrains.kotlin.ir.linkage.partial.PartialLinkageMode
 import org.jetbrains.kotlin.konan.library.KLIB_INTEROP_IR_PROVIDER_IDENTIFIER
 import org.jetbrains.kotlin.konan.properties.saveToFile
@@ -117,6 +116,9 @@ internal fun MutableList<String>.addFileArgs(parameter: String, values: FileColl
 private val File.canKlibBePassedToCompiler get() = (extension == "klib" || isDirectory) && exists()
 
 internal fun Collection<File>.filterKlibsPassedToCompiler(): List<File> = filter(File::canKlibBePassedToCompiler)
+
+internal fun Collection<File>.filterCachedDirectories(cacheDirectories: List<File>): List<File> =
+    filter { library -> !cacheDirectories.contains(library) }
 
 /* Returned FileCollection is lazy */
 internal fun FileCollection.filterKlibsPassedToCompiler(): FileCollection = filter(File::canKlibBePassedToCompiler)
@@ -898,27 +900,35 @@ internal class CacheBuilder(
             args += konanPropertiesService.additionalCacheFlags(konanTarget)
             args += settings.externalDependenciesArgs
             args += "$PARTIAL_LINKAGE_PARAMETER=$partialLinkageMode"
-            args += "-Xadd-cache=${library.libraryFile.absolutePath}"
-            args += "-Xcache-directory=${cacheDirectory.absolutePath}"
-            args += "-Xcache-directory=${rootCacheDirectory.absolutePath}"
 
-            dependenciesCacheDirectories.forEach {
-                args += "-Xcache-directory=${it.absolutePath}"
-            }
-            getAllDependencies(dependency)
+            val klibsPassedToCompiler = getAllDependencies(dependency)
                 .flatMap { getArtifacts(it) }
                 .map { it.file }
                 .filterKlibsPassedToCompiler()
+                .distinct()
+            klibsPassedToCompiler
                 .forEach {
                     args += "-l"
                     args += it.absolutePath
                 }
+            val cacheDirectories = dependenciesCacheDirectories + cacheDirectory + rootCacheDirectory
+            cacheDirectories
+                .filterCachedDirectories(klibsPassedToCompiler)
+                .forEach {
+                args += "-Xcache-directory=${it.absolutePath}"
+            }
+            klibsPassedToCompiler
+                .map { lib -> lib.absolutePath }
+                .filter { lib -> library.libraryFile.absolutePath == lib }
+                .ifEmpty {
+                args += "-Xadd-cache=${library.libraryFile.absolutePath}"
+            }
             library.unresolvedDependencies
                 .mapNotNull { artifactsLibraries[it.path] }
                 .forEach {
-                    args += "-l"
-                    args += it.libraryFile.absolutePath
-                }
+                args += "-l"
+                args += it.libraryFile.absolutePath
+            }
             KotlinNativeCompilerRunner(settings.runnerSettings, executionContext, GradleBuildMetricsReporter()).run(args)
         }
     }
