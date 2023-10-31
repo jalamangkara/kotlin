@@ -301,12 +301,8 @@ class IrModuleToJsTransformer(
             override val JsIrModules.hasExport get() = this.exportModule != null
             override val JsIrModules.packageFqn get() = this.mainModule.fragments.first().packageFqn
             override val JsIrModules.mainFunction get() = this.mainModule.fragments.first().mainFunctionTag
-            override var JsIrModules.suiteFunction
-                get() = this.mainModule.fragments.first().suiteFunctionTag
-                set(value) { this.mainModule.fragments.first().suiteFunctionTag = value }
-            override var JsIrModules.testFunction
-                get() = this.mainModule.fragments.first().testFunctionTag
-                set(value) { this.mainModule.fragments.first().testFunctionTag = value }
+            override val JsIrModules.testEnvironment
+                get() = this.mainModule.fragments.first().testEnvironment
 
             override fun List<JsIrModules>.merge() =
                 JsIrModules(map { it.mainModule }.merge(), mapNotNull { it.exportModule }.ifNotEmpty { merge() })
@@ -458,10 +454,12 @@ class IrModuleToJsTransformer(
                 ?.let { result.mainFunctionTag = definitionSet.computeTag(it) }
         }
 
-        backendContext.testFunsPerFile[fileExports.file]?.let {
-            result.testFunctionTag = definitionSet.computeTag(it)
-            result.suiteFunctionTag = definitionSet.computeTag(backendContext.suiteFun!!.owner)
-        }
+        backendContext.testFunsPerFile[fileExports.file]
+            ?.let { definitionSet.computeTag(it) }
+            ?.let {
+                val suiteFunctionTag = definitionSet.computeTag(backendContext.suiteFun!!.owner) ?: error("Expect suite function tag exists")
+                result.testEnvironment = JsIrProgramTestEnvironment(it, suiteFunctionTag)
+            }
 
         result.computeAndSaveNameBindings(definitionSet, nameGenerator)
         result.computeAndSaveImports(definitionSet, nameGenerator)

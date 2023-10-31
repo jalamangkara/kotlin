@@ -45,14 +45,15 @@ private fun Map<String, JsName>.getSuiteFunctionBySignature(signature: String?):
 }
 
 fun List<JsIrProgramFragment>.asTestFunctionContainers(): List<JsTestFunctionTransformer.TestFunctionContainer> {
-    return filter { it.testFunctionTag != null }
-        .map {
+    return mapNotNull { fragment ->
+        fragment.testEnvironment?.let {
             JsTestFunctionTransformer.TestFunctionContainer(
-                it.packageFqn,
-                it.nameBindings.getTestFunctionBySignature(it.testFunctionTag),
-                it.nameBindings.getSuiteFunctionBySignature(it.suiteFunctionTag)
+                fragment.packageFqn,
+                fragment.nameBindings.getTestFunctionBySignature(it.testFunctionTag),
+                fragment.nameBindings.getSuiteFunctionBySignature(it.suiteFunctionTag)
             )
         }
+    }
 }
 
 fun CachedTestFunctionsWithTheirPackage.asTestFunctionContainers(

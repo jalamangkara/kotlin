@@ -155,12 +155,9 @@ private class JsIrAstSerializer {
             writeString(it)
         }
 
-        ifNotNull(fragment.testFunctionTag) {
-            writeInt(internalizeString(it))
-        }
-
-        ifNotNull(fragment.suiteFunctionTag) {
-            writeInt(internalizeString(it))
+        ifNotNull(fragment.testEnvironment) {
+            writeInt(internalizeString(it.testFunctionTag))
+            writeInt(internalizeString(it.suiteFunctionTag))
         }
 
         ifNotNull(fragment.dts) {

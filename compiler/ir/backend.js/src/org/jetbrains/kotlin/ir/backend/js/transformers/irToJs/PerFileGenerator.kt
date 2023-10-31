@@ -22,8 +22,7 @@ interface PerFileGenerator<Module, File, Artifact> {
     val Artifact.hasExport: Boolean
     val Artifact.packageFqn: String
     val Artifact.mainFunction: String?
-    var Artifact.testFunction: String?
-    var Artifact.suiteFunction: String?
+    val Artifact.testEnvironment: JsIrProgramTestEnvironment?
 
     fun List<Artifact>.merge(): Artifact
     fun File.generateArtifact(module: Module): Artifact?
@@ -55,11 +54,9 @@ interface PerFileGenerator<Module, File, Artifact> {
                         hasModuleLevelEffect = true
                     }
 
-                    generatedArtifact.testFunction?.let {
-                        testFunctions.putToMultiMap(generatedArtifact.packageFqn, it)
-                        suiteFunctionTag = generatedArtifact.suiteFunction
-                        generatedArtifact.testFunction = null
-                        generatedArtifact.suiteFunction = null
+                    generatedArtifact.testEnvironment?.let { (testFunction, suiteFunction) ->
+                        testFunctions.putToMultiMap(generatedArtifact.packageFqn, testFunction)
+                        suiteFunctionTag = suiteFunction
                     }
 
                     putToMultiMap(generatedArtifact.artifactName, generatedArtifact)

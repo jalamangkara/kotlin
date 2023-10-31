@@ -84,8 +84,7 @@ class JsPerFileCache(private val moduleArtifacts: List<ModuleArtifact>) : JsMult
 
             override fun loadJsIrModule(): JsIrModule {
                 val fragments = fileArtifact.loadJsIrFragments()!!.also {
-                    it.mainFragment.testFunctionTag = null
-                    it.mainFragment.suiteFunctionTag = null
+                    it.mainFragment.testEnvironment = null
                 }
 
                 val isExportFileCachedInfo = this is ExportFileCachedInfo
@@ -101,8 +100,7 @@ class JsPerFileCache(private val moduleArtifacts: List<ModuleArtifact>) : JsMult
         open class MainFileCachedInfo(moduleArtifact: ModuleArtifact, fileArtifact: SrcFileArtifact, moduleHeader: JsIrModuleHeader? = null) :
             SerializableCachedFileInfo(moduleArtifact, fileArtifact, moduleHeader) {
             var mainFunctionTag: String? = null
-            var testFunctionTag: String? = null
-            var suiteFunctionTag: String? = null
+            var testEnvironment: JsIrProgramTestEnvironment? = null
             var exportFileCachedInfo: ExportFileCachedInfo? = null
 
             val jsFileArtifact by lazy(LazyThreadSafetyMode.NONE) { getArtifactWithName(CACHED_FILE_JS) }
@@ -126,8 +124,7 @@ class JsPerFileCache(private val moduleArtifacts: List<ModuleArtifact>) : JsMult
                         if (!info.fileArtifact.isModified()) {
                             isModified = true
                         }
-                        info.testFunctionTag?.let { testFunctionTag = it }
-                        info.suiteFunctionTag?.let { suiteFunctionTag = it }
+                        info.testEnvironment?.let { testEnvironment = it }
                     }
 
                     val mainAndExportHeaders = when {
@@ -150,8 +147,7 @@ class JsPerFileCache(private val moduleArtifacts: List<ModuleArtifact>) : JsMult
                     }
 
                     jsIrHeader = mainHeaders.merge()
-                    testFunctionTag = cachedFileInfos.firstNotNullOfOrNull { it.testFunctionTag }
-                    suiteFunctionTag = cachedFileInfos.firstNotNullOfOrNull { it.suiteFunctionTag }
+                    testEnvironment = cachedFileInfos.firstNotNullOfOrNull { it.testEnvironment }
                     exportFileCachedInfo = exportHeaders.takeIf { it.isNotEmpty() }?.let {
                         ExportFileCachedInfo.Merged(
                             filePrefix,
@@ -218,8 +214,7 @@ class JsPerFileCache(private val moduleArtifacts: List<ModuleArtifact>) : JsMult
         when (it) {
             is CachedFileInfo.MainFileCachedInfo -> {
                 it.mainFunctionTag = ifTrue { readString() }
-                it.testFunctionTag = ifTrue { readString() }
-                it.suiteFunctionTag = ifTrue { readString() }
+                it.testEnvironment = ifTrue { JsIrProgramTestEnvironment(readString(), readString()) }
             }
             is CachedFileInfo.ExportFileCachedInfo -> {
                 it.tsDeclarationsHash = ifTrue { readInt64() }
@@ -289,8 +284,10 @@ class JsPerFileCache(private val moduleArtifacts: List<ModuleArtifact>) : JsMult
         when (cachedFileInfo) {
             is CachedFileInfo.MainFileCachedInfo -> {
                 ifNotNull(cachedFileInfo.mainFunctionTag, ::writeStringNoTag)
-                ifNotNull(cachedFileInfo.testFunctionTag, ::writeStringNoTag)
-                ifNotNull(cachedFileInfo.suiteFunctionTag, ::writeStringNoTag)
+                ifNotNull(cachedFileInfo.testEnvironment) {
+                    writeStringNoTag(it.testFunctionTag)
+                    writeStringNoTag(it.suiteFunctionTag)
+                }
             }
             is CachedFileInfo.ExportFileCachedInfo -> ifNotNull(cachedFileInfo.tsDeclarationsHash, ::writeInt64NoTag)
             is CachedFileInfo.ModuleProxyFileCachedInfo -> {
@@ -356,11 +353,8 @@ class JsPerFileCache(private val moduleArtifacts: List<ModuleArtifact>) : JsMult
 
         val mainCachedFileInfo = CachedFileInfo.MainFileCachedInfo(this, fileArtifact, headers.mainHeader).apply {
             mainFunctionTag = headers.mainFunctionTag
-            testFunctionTag = mainFragment.testFunctionTag
-            suiteFunctionTag = mainFragment.suiteFunctionTag
-
-            mainFragment.testFunctionTag = null
-            mainFragment.suiteFunctionTag = null
+            testEnvironment = mainFragment.testEnvironment
+            mainFragment.testEnvironment = null
         }
 
         if (headers.exportHeader != null) {
@@ -421,12 +415,8 @@ class JsPerFileCache(private val moduleArtifacts: List<ModuleArtifact>) : JsMult
                     is CachedFileInfo.ModuleProxyFileCachedInfo -> mainFunctionTag
                     else -> error("Unexpected CachedFileInfo type ${this::class.simpleName}")
                 }
-            override var CachedFileInfo.testFunction
-                get() = (this as CachedFileInfo.MainFileCachedInfo).testFunctionTag
-                set(_) {}
-            override var CachedFileInfo.suiteFunction
-                get() = (this as CachedFileInfo.MainFileCachedInfo).suiteFunctionTag
-                set(_) {}
+            override val CachedFileInfo.testEnvironment
+                get() = (this as CachedFileInfo.MainFileCachedInfo).testEnvironment
 
             override fun SrcFileArtifact.generateArtifact(module: ModuleArtifact) = when {
                 isModified() -> module.loadFileInfoFor(this)

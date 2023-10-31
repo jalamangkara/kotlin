@@ -14,6 +14,11 @@ import org.jetbrains.kotlin.serialization.js.ModuleKind
 
 class JsIrProgramFragments(val mainFragment: JsIrProgramFragment, val exportFragment: JsIrProgramFragment? = null)
 
+data class JsIrProgramTestEnvironment(
+    val testFunctionTag: String,
+    val suiteFunctionTag: String
+)
+
 class JsIrProgramFragment(val name: String, val packageFqn: String) {
     val nameBindings = mutableMapOf<String, JsName>()
     val optionalCrossModuleImports = hashSetOf<String>()
@@ -26,10 +31,9 @@ class JsIrProgramFragment(val name: String, val packageFqn: String) {
     val initializers = JsCompositeBlock()
     val eagerInitializers = JsCompositeBlock()
     var mainFunctionTag: String? = null
-    var testFunctionTag: String? = null
-    var suiteFunctionTag: String? = null
     val definitions = mutableSetOf<String>()
     val polyfills = JsCompositeBlock()
+    var testEnvironment: JsIrProgramTestEnvironment? = null
 }
 
 class JsIrModule(
