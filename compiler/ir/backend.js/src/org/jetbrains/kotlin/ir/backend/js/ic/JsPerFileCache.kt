@@ -147,7 +147,6 @@ class JsPerFileCache(private val moduleArtifacts: List<ModuleArtifact>) : JsMult
                     }
 
                     jsIrHeader = mainHeaders.merge()
-                    testEnvironment = cachedFileInfos.firstNotNullOfOrNull { it.testEnvironment }
                     exportFileCachedInfo = exportHeaders.takeIf { it.isNotEmpty() }?.let {
                         ExportFileCachedInfo.Merged(
                             filePrefix,
@@ -182,7 +181,6 @@ class JsPerFileCache(private val moduleArtifacts: List<ModuleArtifact>) : JsMult
             var mainFunctionTag: String? = null
             var suiteFunctionTag: String? = null
             var packagesToItsTestFunctions: CachedTestFunctionsWithTheirPackage = emptyMap()
-            val testFunctionsHash: ICHash get() = packagesToItsTestFunctions.testFunctionsHashForIC()
 
             val jsFileArtifact by lazy(LazyThreadSafetyMode.NONE) { getArtifactWithName(CACHED_FILE_JS) }
             val dtsFileArtifact by lazy(LazyThreadSafetyMode.NONE) { getArtifactWithName(CACHED_FILE_D_TS) }
@@ -438,7 +436,7 @@ class JsPerFileCache(private val moduleArtifacts: List<ModuleArtifact>) : JsMult
                 it.mainFunctionTag == mainFunctionTag
                         && it.jsIrHeader.importedWithEffectInModuleWithName == moduleNameForEffects
                         && suiteFunctionTag == it.suiteFunctionTag &&
-                        it.testFunctionsHash == testFunctions.testFunctionsHashForIC() &&
+                        it.packagesToItsTestFunctions == testFunctions &&
                         it.jsIrHeader.importedWithEffectInModuleWithName == moduleNameForEffects
             } ?: generateModuleProxyFileCachedInfo(mainFunctionTag, suiteFunctionTag, testFunctions, moduleNameForEffects)
         }
