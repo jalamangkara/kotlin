@@ -104,7 +104,6 @@ internal abstract class BuildFusService : BuildService<BuildFusService.Parameter
             }
 
             //init buildStatsService
-            KotlinBuildStatsService.getOrCreateInstance(project)
 
             val fusStatisticsAvailable = fusStatisticsAvailable(project)
             val buildReportOutputs = reportingSettings(project).buildReportOutputs
@@ -114,6 +113,7 @@ internal abstract class BuildFusService : BuildService<BuildFusService.Parameter
             // so there is a change that no VariantImplementationFactory will be found
             return project.gradle.sharedServices.registerIfAbsent(serviceName, BuildFusService::class.java) { spec ->
                 if (fusStatisticsAvailable) {
+                    KotlinBuildStatsService.getOrCreateInstance(project)
                     KotlinBuildStatsService.applyIfInitialised {
                         it.recordProjectsEvaluated(project.gradle)
                     }
@@ -124,7 +124,7 @@ internal abstract class BuildFusService : BuildService<BuildFusService.Parameter
                 })
 
                 spec.parameters.configurationMetrics.add(project.provider {
-                    KotlinBuildStatHandler.collectProjectConfigurationTimeMetrics(project)
+                    KotlinBuildStatHandler.collectProjectConfigurationTimeMetrics(project, isProjectIsolationEnabled)
                 })
                 spec.parameters.fusStatisticsAvailable.set(fusStatisticsAvailable)
             }.also { buildService ->
