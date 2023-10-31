@@ -73,7 +73,14 @@ interface BasicMap<KEY, VALUE> : PersistentStorage<KEY, VALUE> {
     fun dumpKey(key: KEY): String = key.toString()
 
     @TestOnly
-    fun dumpValue(value: VALUE): String = value.toString()
+    fun dumpValue(value: VALUE): String {
+        return if (value is Collection<*>) {
+            // Sort the elements so that we can reliably compare `Collection`s in tests (in case the order of the elements is not stable).
+            value.sortedBy { it.toString() }.toString()
+        } else {
+            value.toString()
+        }
+    }
 }
 
 abstract class BasicMapBase<KEY, VALUE>(

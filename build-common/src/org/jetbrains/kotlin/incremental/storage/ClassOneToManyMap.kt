@@ -18,9 +18,7 @@ package org.jetbrains.kotlin.incremental.storage
 
 import com.intellij.util.io.DataExternalizer
 import com.intellij.util.io.EnumeratorStringDescriptor
-import org.jetbrains.annotations.TestOnly
 import org.jetbrains.kotlin.incremental.IncrementalCompilationContext
-import org.jetbrains.kotlin.incremental.dumpCollection
 import org.jetbrains.kotlin.name.FqName
 import java.io.DataInput
 import java.io.DataOutput
@@ -35,6 +33,7 @@ internal open class ClassOneToManyMap(
     LegacyFqNameExternalizer,
     icContext
 ) {
+
     @Synchronized
     override operator fun set(key: FqName, value: Set<FqName>) {
         if (value.isNotEmpty()) {
@@ -49,8 +48,6 @@ internal open class ClassOneToManyMap(
         this[key] = this[key].orEmpty() - removed
     }
 
-    @TestOnly
-    override fun dumpValue(value: Set<FqName>): String = value.map(FqName::asString).dumpCollection()
 }
 
 internal class SubtypesMap(
