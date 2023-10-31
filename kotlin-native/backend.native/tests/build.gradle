@@ -5273,6 +5273,7 @@ Task objcExportTest(
 
         def libraryName = frameworkName + "Library"
         def noEnumEntriesLibraryName = frameworkName + "NoEnumEntriesLibrary"
+        File exportedKlibArtifact = null
         konanArtifacts {
             library(libraryName, targets: [target.name]) {
                 srcDir "objcexport/library"
@@ -5291,6 +5292,7 @@ Task objcExportTest(
                     UtilsKt.dependsOnDist(it)
                 }
 
+                exportedKlibArtifact = getArtifactByTarget(target.name)
                 extraOpts "-Xshort-module-name=NoEnumEntriesLibrary"
                 extraOpts "-module-name", "org.jetbrains.kotlin.native.test-no-enum-entries-library"
                 extraOpts "-XXLanguage:-EnumEntries"
@@ -5309,7 +5311,7 @@ Task objcExportTest(
             opts += [
                     "-Xexport-kdoc",
                     "-Xbinary=bundleId=foo.bar",
-                    "-Xexport-library=test-no-enum-entries-${libraryName}.klib",
+                    "-Xexport-library=$exportedKlibArtifact",
                     "-module-name", "Kt"
             ]
             opts += frameworkOpts
