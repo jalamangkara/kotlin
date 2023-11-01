@@ -736,9 +736,21 @@ standaloneTest("readline1") {
     source = "runtime/basic/readline1.kt"
 }
 
+standaloneTest("cleaner_basic") {
+    enabled = !isNoopGC
+    source = "runtime/basic/cleaner_basic.kt"
+    flags = ['-tr', '-opt-in=kotlin.native.internal.InternalForKotlinNative']
+}
+
 standaloneTest("collect_reference_field_values") {
     enabled = !isNoopGC
     source = "runtime/basic/collectReferenceFieldValues.kt"
+    flags = ['-tr', '-opt-in=kotlin.native.internal.InternalForKotlinNative']
+}
+
+standaloneTest("cleaner_workers") {
+    enabled = !isNoopGC
+    source = "runtime/basic/cleaner_workers.kt"
     flags = ['-tr', '-opt-in=kotlin.native.internal.InternalForKotlinNative']
 }
 
