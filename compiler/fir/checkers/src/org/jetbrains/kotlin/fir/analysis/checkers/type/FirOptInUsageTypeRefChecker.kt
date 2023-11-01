@@ -14,21 +14,18 @@ import org.jetbrains.kotlin.fir.analysis.checkers.context.CheckerContext
 import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirOptInUsageBaseChecker
 import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirOptInUsageBaseChecker.loadExperimentalities
 import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirOptInUsageBaseChecker.loadExperimentalitiesFromSupertype
+import org.jetbrains.kotlin.fir.analysis.checkers.expression.FirOptInUsageBaseChecker.isExperimentalMarker
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.OPT_IN_CAN_ONLY_BE_USED_AS_ANNOTATION
 import org.jetbrains.kotlin.fir.analysis.diagnostics.FirErrors.OPT_IN_MARKER_CAN_ONLY_BE_USED_AS_ANNOTATION_OR_ARGUMENT_IN_OPT_IN
 import org.jetbrains.kotlin.fir.declarations.FirClass
-import org.jetbrains.kotlin.fir.declarations.getAnnotationByClassId
 import org.jetbrains.kotlin.fir.expressions.FirAnnotation
 import org.jetbrains.kotlin.fir.getContainingClassLookupTag
 import org.jetbrains.kotlin.fir.resolve.toSymbol
-import org.jetbrains.kotlin.fir.symbols.SymbolInternals
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassLikeSymbol
-import org.jetbrains.kotlin.fir.symbols.impl.FirRegularClassSymbol
 import org.jetbrains.kotlin.fir.symbols.impl.FirTypeAliasSymbol
 import org.jetbrains.kotlin.fir.types.*
 import org.jetbrains.kotlin.resolve.checkers.OptInNames
 
-@OptIn(SymbolInternals::class)
 object FirOptInUsageTypeRefChecker : FirTypeRefChecker() {
     override fun check(typeRef: FirTypeRef, context: CheckerContext, reporter: DiagnosticReporter) {
         val source = typeRef.source
@@ -38,8 +35,7 @@ object FirOptInUsageTypeRefChecker : FirTypeRefChecker() {
 
         val typeAliasExpandedSymbol = (symbol as? FirTypeAliasSymbol)?.resolvedExpandedTypeRef?.findSymbol(context.session)
         val processedSymbol = typeAliasExpandedSymbol ?: symbol
-        val resolvedTypeRef = typeRef as? FirResolvedTypeRef
-        val qualifier = (resolvedTypeRef?.delegatedTypeRef as? FirUserTypeRef)?.qualifier
+        val qualifier = ((typeRef as? FirResolvedTypeRef)?.delegatedTypeRef as? FirUserTypeRef)?.qualifier
 
         val classId = processedSymbol.classId
         val lastAnnotationCall = context.callsOrAssignments.lastOrNull() as? FirAnnotation
@@ -83,9 +79,6 @@ object FirOptInUsageTypeRefChecker : FirTypeRefChecker() {
         val coneType = coneTypeSafe<ConeClassLikeType>() ?: return null
         return coneType.lookupTag.toSymbol(session)
     }
-
-    private fun FirClassLikeSymbol<*>.isExperimentalMarker(session: FirSession) =
-        this is FirRegularClassSymbol && fir.getAnnotationByClassId(OptInNames.REQUIRES_OPT_IN_CLASS_ID, session) != null
 
     private fun FirClassLikeSymbol<*>.checkContainingClasses(
         source: KtSourceElement,
