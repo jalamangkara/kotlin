@@ -24,7 +24,7 @@ import java.io.ByteArrayInputStream
 class KotlinBuiltInDecompiler : KotlinMetadataDecompiler<BuiltInsBinaryVersion>(
     KotlinBuiltInFileType, { BuiltInSerializerProtocol },
     FlexibleTypeDeserializer.ThrowException, { BuiltInsBinaryVersion.INSTANCE }, { BuiltInsBinaryVersion.INVALID_VERSION },
-    KotlinStubVersions.BUILTIN_STUB_VERSION
+    stubVersionForStubBuilderAndDecompiler,
 ) {
     override val metadataStubBuilder: KotlinMetadataStubBuilder =
         KotlinBuiltInMetadataStubBuilder(::readFileSafely)
@@ -36,7 +36,7 @@ class KotlinBuiltInDecompiler : KotlinMetadataDecompiler<BuiltInsBinaryVersion>(
 
 private class KotlinBuiltInMetadataStubBuilder(
     readFile: (VirtualFile, ByteArray) -> FileWithMetadata?,
-) : KotlinMetadataStubBuilder(KotlinStubVersions.BUILTIN_STUB_VERSION, KotlinBuiltInFileType, { BuiltInSerializerProtocol }, readFile) {
+) : KotlinMetadataStubBuilder(stubVersionForStubBuilderAndDecompiler, KotlinBuiltInFileType, { BuiltInSerializerProtocol }, readFile) {
     override fun createCallableSource(file: FileWithMetadata.Compatible, filename: String): SourceElement? {
         val fileNameForFacade = when (val withoutExtension = filename.removeSuffix(BuiltInSerializerProtocol.DOT_DEFAULT_EXTENSION)) {
             // this is the filename used in stdlib, others should match
@@ -48,6 +48,13 @@ private class KotlinBuiltInMetadataStubBuilder(
         return JvmPackagePartSource(JvmClassName.byClassId(ClassId.topLevel(facadeFqName)), null, file.proto.`package`, file.nameResolver)
     }
 }
+
+/**
+ * This version is used for .kotlin_builtins and is not used for .kotlin_metadata files:
+ * K1 IDE and K2 IDE produce different decompiled files and stubs for .kotlin_builtins, but not for .kotlin_metadata
+ */
+private val stubVersionForStubBuilderAndDecompiler: Int
+    get() = KotlinStubVersions.BUILTIN_STUB_VERSION + KotlinBuiltInStubVersionOffsetProvider.getVersionOffset()
 
 class BuiltInDefinitionFile(
     proto: ProtoBuf.PackageFragment,
