@@ -23,16 +23,11 @@ class FirMissingDependencyStorage(private val session: FirSession) : FirSessionC
     }
 
     private fun findMissingSuperTypes(declaration: FirClassSymbol<*>): Set<ConeKotlinType> {
-        return buildSet {
-            for (superType in declaration.collectSuperTypes(session)) {
-                if (superType is ConeErrorType || superType is ConeDynamicType) continue // Ignore types which are already errors.
-
-                val superTypeSymbol = superType.toSymbol(session)
-                if (superTypeSymbol == null) {
-                    add(superType)
-                }
+        return declaration.collectSuperTypes(session)
+            .filterTo(mutableSetOf()) {
+                // Ignore types which are already errors.
+                it !is ConeErrorType && it !is ConeDynamicType && it.toSymbol(session) == null
             }
-        }
     }
 
     private fun FirClassSymbol<*>.collectSuperTypes(session: FirSession): Set<ConeKotlinType> {
