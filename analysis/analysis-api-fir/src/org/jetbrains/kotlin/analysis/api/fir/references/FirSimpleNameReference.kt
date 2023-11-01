@@ -41,13 +41,7 @@ internal class KtFirSimpleNameReference(
     }
 
     override fun isReferenceToImportAlias(alias: KtImportAlias): Boolean {
-        val importDirective = alias.importDirective ?: return false
-        val importedFqName = importDirective.importedFqName ?: return false
-        val codeFragment = KtPsiFactory(element.project).createExpressionCodeFragment(importedFqName.asString(), element)
-        val importResults =
-            (codeFragment.getContentElement() as? KtDotQualifiedExpression)?.selectorExpression?.mainReference?.multiResolve(false)
-                ?: return false
-        return multiResolve(false).any { it in importResults }
+        return getImportAlias(alias.importDirective) != null
     }
 
     override fun KtAnalysisSession.resolveToSymbols(): Collection<KtSymbol> {
@@ -90,18 +84,25 @@ internal class KtFirSimpleNameReference(
         return false
     }
 
-    override fun getImportAlias(): KtImportAlias? {
-        val name = element.getReferencedName()
-        val file = element.containingKtFile
-        val importDirective = file.findImportByAlias(name) ?: return null
-        val fqName = importDirective.importedFqName ?: return null
+    private fun getImportAlias(importDirective: KtImportDirective?): KtImportAlias? {
+        val fqName = importDirective?.importedFqName ?: return null
         val codeFragment = KtPsiFactory(element.project).createExpressionCodeFragment(fqName.asString(), element)
+        val contentElement = codeFragment.getContentElement()
         val importResults =
-            (codeFragment.getContentElement() as? KtDotQualifiedExpression)?.selectorExpression?.mainReference?.multiResolve(false)
-                ?: return null
+            when (contentElement) {
+                is KtDotQualifiedExpression -> contentElement.selectorExpression?.mainReference?.multiResolve(false)
+                is KtSimpleNameExpression -> contentElement.mainReference.multiResolve(false)
+                else -> null
+            } ?: return null
         if (multiResolve(false).any { it in importResults }) {
             return importDirective.alias
         }
         return null
+    }
+
+    override fun getImportAlias(): KtImportAlias? {
+        val name = element.getReferencedName()
+        val file = element.containingKtFile
+        return getImportAlias(file.findImportByAlias(name))
     }
 }

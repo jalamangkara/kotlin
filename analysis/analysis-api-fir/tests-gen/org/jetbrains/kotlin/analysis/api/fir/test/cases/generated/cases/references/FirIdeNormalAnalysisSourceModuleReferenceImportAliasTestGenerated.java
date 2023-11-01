@@ -47,6 +47,12 @@ public class FirIdeNormalAnalysisSourceModuleReferenceImportAliasTestGenerated e
     }
 
     @Test
+    @TestMetadata("classAlias.kt")
+    public void testClassAlias() throws Exception {
+        runTest("analysis/analysis-api/testData/imports/importAliases/classAlias.kt");
+    }
+
+    @Test
     @TestMetadata("functionAlias.kt")
     public void testFunctionAlias() throws Exception {
         runTest("analysis/analysis-api/testData/imports/importAliases/functionAlias.kt");
