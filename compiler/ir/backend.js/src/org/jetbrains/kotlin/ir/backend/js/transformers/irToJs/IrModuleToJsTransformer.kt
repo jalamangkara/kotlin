@@ -9,6 +9,7 @@ import org.jetbrains.kotlin.backend.common.serialization.checkIsFunctionInterfac
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.ir.backend.js.*
 import org.jetbrains.kotlin.ir.backend.js.export.*
+import org.jetbrains.kotlin.ir.backend.js.ic.JsPerFileCache
 import org.jetbrains.kotlin.ir.backend.js.lower.JsCodeOutliningLowering
 import org.jetbrains.kotlin.ir.backend.js.lower.StaticMembersLowering
 import org.jetbrains.kotlin.ir.backend.js.lower.isBuiltInClass
@@ -288,21 +289,25 @@ class IrModuleToJsTransformer(
     }
 
     private fun generateJsIrProgramPerFile(exportData: List<IrAndExportedDeclarations>, mode: TranslationMode): JsIrProgram {
-        val mainModule = exportData.last()
+        val mainModuleWithExportedData = exportData.last()
 
         val perFileGenerator = object : PerFileGenerator<IrAndExportedDeclarations, IrFileExports, JsIrModules> {
-            override val mainModuleName get() = mainModule.fragment.safeName
+            override val mainModuleName = mainModuleWithExportedData.fragment.safeName
+            private val JsIrModules.mainFragment get() = mainModule.fragments.first()
 
-            override val IrAndExportedDeclarations.isMain get() = this === mainModule
+            override val IrAndExportedDeclarations.isMain get() = this === mainModuleWithExportedData
             override val IrAndExportedDeclarations.fileList get() = files
 
-            override val JsIrModules.artifactName get() = this.mainModule.externalModuleName
-            override val JsIrModules.hasEffect get() = this.mainModule.importedWithEffectInModuleWithName != null
-            override val JsIrModules.hasExport get() = this.exportModule != null
-            override val JsIrModules.packageFqn get() = this.mainModule.fragments.first().packageFqn
-            override val JsIrModules.mainFunction get() = this.mainModule.fragments.first().mainFunctionTag
-            override val JsIrModules.testEnvironment
-                get() = this.mainModule.fragments.first().testEnvironment
+            override val JsIrModules.artifactName get() = mainModule.externalModuleName
+            override val JsIrModules.hasEffect get() = mainModule.importedWithEffectInModuleWithName != null
+            override val JsIrModules.hasExport get() = exportModule != null
+            override val JsIrModules.packageFqn get() = mainFragment.packageFqn
+            override val JsIrModules.mainFunction get() = mainFragment.mainFunctionTag
+
+            override fun JsIrModules.takeTestEnvironmentOwnership(): JsIrProgramTestEnvironment? {
+                val fragment = mainFragment
+                return fragment.testEnvironment.also { fragment.testEnvironment = null }
+            }
 
             override fun List<JsIrModules>.merge() =
                 JsIrModules(map { it.mainModule }.merge(), mapNotNull { it.exportModule }.ifNotEmpty { merge() })

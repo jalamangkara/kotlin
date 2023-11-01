@@ -413,8 +413,9 @@ class JsPerFileCache(private val moduleArtifacts: List<ModuleArtifact>) : JsMult
                     is CachedFileInfo.ModuleProxyFileCachedInfo -> mainFunctionTag
                     else -> error("Unexpected CachedFileInfo type ${this::class.simpleName}")
                 }
-            override val CachedFileInfo.testEnvironment
-                get() = (this as CachedFileInfo.MainFileCachedInfo).testEnvironment
+
+            override fun CachedFileInfo.takeTestEnvironmentOwnership() =
+                (this as CachedFileInfo.MainFileCachedInfo).testEnvironment
 
             override fun SrcFileArtifact.generateArtifact(module: ModuleArtifact) = when {
                 isModified() -> module.loadFileInfoFor(this)
