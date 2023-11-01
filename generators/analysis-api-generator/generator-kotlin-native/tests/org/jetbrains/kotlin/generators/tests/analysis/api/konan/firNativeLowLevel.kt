@@ -13,7 +13,7 @@ import org.jetbrains.kotlin.test.utils.CUSTOM_TEST_DATA_EXTENSION_PATTERN
 import org.junit.jupiter.api.Tag
 
 internal fun TestGroupSuite.generateFirNativeLowLevelTests() {
-    testGroup("analysis/low-level-api-fir/kotlin-native/tests-gen", "compiler/testData/diagnostics") {
+    testGroup("analysis/low-level-api-fir/low-level-api-fir-native/tests-gen", "compiler/testData/diagnostics") {
         testClass<AbstractLLFirNativeTest>(
             annotations = listOf(annotation(Tag::class.java, "llFirNative"))
         ) {
