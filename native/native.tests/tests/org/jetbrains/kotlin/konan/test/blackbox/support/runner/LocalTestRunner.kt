@@ -36,6 +36,7 @@ internal class LocalTestRunner(private val testRun: TestRun) : AbstractLocalProc
         testRun.runParameters.get<TestRunParameter.WithInputData> {
             process.outputStream.write(inputDataFile.readBytes())
             process.outputStream.flush()
+            process.outputStream.close()
         }
     }
 

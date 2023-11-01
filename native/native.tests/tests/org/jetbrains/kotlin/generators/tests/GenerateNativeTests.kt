@@ -353,6 +353,29 @@ fun main() {
                 model("klib/header-klibs/compilation", extension = null, recursive = false)
             }
         }
+
+        // Plain executable tests
+        testGroup("native/native.tests/tests-gen", "native/native.tests/testData") {
+            testClass<AbstractNativeBlackBoxTest>(
+                suiteTestClassName = "NativeStandaloneTestGenerated",
+                annotations = listOf(
+                    standalone(),
+                    provider<UseStandardTestCaseGroupProvider>(),
+                )
+            ) {
+                model("standalone")
+            }
+            testClass<AbstractNativeBlackBoxTest>(
+                suiteTestClassName = "FirNativeStandaloneTestGenerated",
+                annotations = listOf(
+                    standalone(),
+                    provider<UseStandardTestCaseGroupProvider>(),
+                    *frontendFir(),
+                )
+            ) {
+                model("standalone")
+            }
+        }
     }
 }
 
@@ -395,3 +418,4 @@ private fun infrastructure() = annotation(Tag::class.java, "infrastructure")
 private fun k1libContents() = annotation(Tag::class.java, "k1libContents")
 private fun k2libContents() = annotation(Tag::class.java, "k2libContents")
 private fun atomicfuNative() = annotation(Tag::class.java, "atomicfu-native")
+private fun standalone() = annotation(Tag::class.java, "standalone")
