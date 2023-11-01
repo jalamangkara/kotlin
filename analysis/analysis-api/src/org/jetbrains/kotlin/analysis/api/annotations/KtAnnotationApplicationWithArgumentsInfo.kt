@@ -5,6 +5,7 @@
 
 package org.jetbrains.kotlin.analysis.api.annotations
 
+import org.jetbrains.kotlin.analysis.api.symbols.KtConstructorSymbol
 import org.jetbrains.kotlin.descriptors.annotations.AnnotationUseSiteTarget
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.psi.KtCallElement
@@ -23,6 +24,11 @@ public data class KtAnnotationApplicationWithArgumentsInfo(
      */
     public val arguments: List<KtNamedAnnotationValue>,
     override val index: Int?,
+
+    /**
+     * The constructor symbol into which this annotation resolves if the annotation is correctly resolved
+     */
+    public val constructorSymbol: KtConstructorSymbol?,
 ) : KtAnnotationApplication {
     override val isCallWithArguments: Boolean get() = arguments.isNotEmpty()
 }
