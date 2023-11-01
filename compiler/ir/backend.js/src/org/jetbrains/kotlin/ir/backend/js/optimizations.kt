@@ -28,6 +28,7 @@ fun optimizeProgramByIr(
 
     val phaseConfig = PhaseConfig(jsOptimizationPhases)
     val phaserState = PhaserState<IrModuleFragment>()
+    // TODO KT-63073
     optimizationLoweringList.forEachIndexed { _, lowering ->
         modules.forEach { module ->
             lowering.invoke(phaseConfig, phaserState, context, module)

@@ -73,11 +73,23 @@ fun lowerPreservingTags(
     phaseConfig: PhaseConfig,
     controller: WholeWorldStageController
 ) {
-    // Lower all the things
-    controller.currentStage = 0
-
     val phaserState = PhaserState<IrModuleFragment>()
 
+    // TODO KT-63073
+//    modules.reversed().forEach { module ->
+//        module.files.forEach { file ->
+//            // Lower all the things
+//            controller.currentStage = 0
+//            loweringList.forEachIndexed { i, lowering ->
+//                controller.currentStage = i + 1
+//                // Not working right now, we need to change all lowerings to be file level lowerings
+//                lowering.invoke(phaseConfig, phaserState, context, file)
+//            }
+//        }
+//    }
+
+    // Lower all the things
+    controller.currentStage = 0
     loweringList.forEachIndexed { i, lowering ->
         controller.currentStage = i + 1
         modules.forEach { module ->

@@ -138,6 +138,7 @@ fun compileIr(
     (irFactory.stageController as? WholeWorldStageController)?.let {
         lowerPreservingTags(allModules, context, phaseConfig, it)
     } ?: run {
+        // TODO KT-63073
         val phaserState = PhaserState<IrModuleFragment>()
         loweringList.forEachIndexed { _, lowering ->
             allModules.forEach { module ->

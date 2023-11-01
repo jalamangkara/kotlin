@@ -91,6 +91,14 @@ fun compileToLoweredIr(
         }
     }
 
+    // TODO KT-63074
+//    for (module in allModules.reversed()) {
+//        for (file in module.files) {
+//            // Not working right now, we need to change all lowerings to be file level lowerings
+//            wasmPhases.invokeToplevel(phaseConfig, context, file)
+//        }
+//    }
+
     return Pair(allModules, context)
 }
 
