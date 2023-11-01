@@ -4,7 +4,7 @@
 // !OPT_IN: kotlin.contracts.ExperimentalContracts
 
 /*
- * KOTLIN DIAGNOSTICS NOT LINKED SPEC TEST (NEGATIVE)
+ * POSITIVE ADDITION TO `KOTLIN DIAGNOSTICS NOT LINKED SPEC TEST (NEGATIVE)`
  *
  * SECTIONS: contracts, declarations, contractBuilder, common
  * NUMBER: 14UserDefined

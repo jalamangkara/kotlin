@@ -6659,12 +6659,6 @@ public class FirLightTreeOldFrontendDiagnosticsTestGenerated extends AbstractFir
                 }
 
                 @Test
-                @TestMetadata("14UserDefined.kt")
-                public void test14UserDefined() throws Exception {
-                    runTest("compiler/testData/diagnostics/tests/contracts/neg/14UserDefined.kt");
-                }
-
-                @Test
                 public void testAllFilesPresentInNeg() throws Exception {
                     KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("compiler/testData/diagnostics/tests/contracts/neg"), Pattern.compile("^(.+)\\.kt$"), Pattern.compile("^(.+)\\.(reversed|fir|ll)\\.kts?$"), true, "multiplatform");
                 }
@@ -6678,6 +6672,12 @@ public class FirLightTreeOldFrontendDiagnosticsTestGenerated extends AbstractFir
                 @TestMetadata("1.kt")
                 public void test1() throws Exception {
                     runTest("compiler/testData/diagnostics/tests/contracts/pos/1.kt");
+                }
+
+                @Test
+                @TestMetadata("14UserDefined.kt")
+                public void test14UserDefined() throws Exception {
+                    runTest("compiler/testData/diagnostics/tests/contracts/pos/14UserDefined.kt");
                 }
 
                 @Test

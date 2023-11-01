@@ -38,9 +38,3 @@ inline fun <T> T?.case_3(value_1: Int?, value_2: Boolean, value_3: Int?, block: 
     block()
     return value_1 != null
 }
-
-// TESTCASE NUMBER: 4
-inline fun case_4(block: () -> Unit) {
-    kotlin.contracts.contract { callsInPlace(block, InvocationKind.EXACTLY_ONCE) }
-    return block()
-}
