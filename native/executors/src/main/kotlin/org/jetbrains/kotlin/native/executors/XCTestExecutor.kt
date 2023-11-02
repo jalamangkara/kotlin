@@ -28,7 +28,7 @@ abstract class AbstractXCTestExecutor(
 
     companion object {
         fun availableFor(configurables: AppleConfigurables): Boolean =
-            HostManager.host is KonanTarget.MACOS_ARM64 && configurables.target is KonanTarget.MACOS_X64
+            HostManager.host is KonanTarget.MACOS_ARM64 || configurables.target is KonanTarget.MACOS_X64
 
         fun supportedTargets(): List<KonanTarget> = when (HostManager.host) {
             KonanTarget.MACOS_X64 -> listOf(KonanTarget.MACOS_X64, KonanTarget.IOS_X64)

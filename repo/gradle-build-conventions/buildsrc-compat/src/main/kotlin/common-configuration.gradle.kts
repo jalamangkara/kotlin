@@ -140,6 +140,7 @@ fun Project.configureKotlinCompilationOptions() {
             ":kotlin-dom-api-compat",
             ":kotlin-test:kotlin-test-wasm-js",
             ":kotlin-test:kotlin-test-wasm-wasi",
+            ":kotlin-native:utilities:xctest-runner" // With 2.0 fails with KT-63048
         )
 
         tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>>().configureEach {
