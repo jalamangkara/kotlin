@@ -80,7 +80,9 @@ class FirStdlibTest : AbstractNativeBlackBoxTest() {
     TC(
         name = "xctest",
         runnerType = TestRunnerType.DEFAULT,
-        freeCompilerArgs = [ENABLE_MPP, STDLIB_IS_A_FRIEND, ENABLE_X_STDLIB_API, ENABLE_X_ENCODING_API, ENABLE_X_FOREIGN_API, ENABLE_RANGE_UNTIL],
+        freeCompilerArgs = [
+            ENABLE_MPP, STDLIB_IS_A_FRIEND, ENABLE_X_STDLIB_API, ENABLE_X_ENCODING_API, ENABLE_RANGE_UNTIL,
+            ENABLE_X_FOREIGN_API, ENABLE_X_NATIVE_API, ENABLE_OBSOLETE_NATIVE_API],
         sourceLocations = [
             "libraries/stdlib/test/**.kt",
             "libraries/stdlib/common/test/**.kt",
@@ -104,7 +106,9 @@ class StdlibTestWithXCTest : AbstractNativeBlackBoxTest() {
     TC(
         name = "xctest",
         runnerType = TestRunnerType.DEFAULT,
-        freeCompilerArgs = [ENABLE_MPP, STDLIB_IS_A_FRIEND, ENABLE_X_STDLIB_API, ENABLE_X_ENCODING_API, ENABLE_X_FOREIGN_API, ENABLE_RANGE_UNTIL,
+        freeCompilerArgs = [
+            ENABLE_MPP, STDLIB_IS_A_FRIEND, ENABLE_X_STDLIB_API, ENABLE_X_ENCODING_API, ENABLE_RANGE_UNTIL,
+            ENABLE_X_FOREIGN_API, ENABLE_X_NATIVE_API, ENABLE_OBSOLETE_NATIVE_API,
             "-Xcommon-sources=libraries/stdlib/common/test/jsCollectionFactories.kt",
             "-Xcommon-sources=libraries/stdlib/common/test/testUtils.kt",
             "-Xcommon-sources=libraries/stdlib/test/testUtils.kt",
