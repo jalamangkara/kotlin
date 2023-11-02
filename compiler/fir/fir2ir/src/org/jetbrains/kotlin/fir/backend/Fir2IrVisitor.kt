@@ -573,7 +573,7 @@ class Fir2IrVisitor(
         functionCall: FirFunctionCall,
         dynamicOperator: IrDynamicOperator?
     ): IrExpression {
-        val explicitReceiverExpression = convertToIrReceiverExpression(functionCall.explicitReceiver, functionCall.calleeReference)
+        val explicitReceiverExpression = convertToIrReceiverExpression(functionCall.explicitReceiver, functionCall.calleeReference, functionCall)
         return callGenerator.convertToIrCall(
             functionCall,
             functionCall.resolvedType,
@@ -653,7 +653,7 @@ class Fir2IrVisitor(
         qualifiedAccessExpression: FirQualifiedAccessExpression,
     ): IrExpression = whileAnalysing(session, qualifiedAccessExpression) {
         val explicitReceiverExpression = convertToIrReceiverExpression(
-            qualifiedAccessExpression.explicitReceiver, qualifiedAccessExpression.calleeReference
+            qualifiedAccessExpression.explicitReceiver, qualifiedAccessExpression.calleeReference, qualifiedAccessExpression
         )
         return callGenerator.convertToIrCall(
             qualifiedAccessExpression, qualifiedAccessExpression.resolvedType, explicitReceiverExpression
@@ -863,7 +863,7 @@ class Fir2IrVisitor(
         data: Any?
     ): IrElement = whileAnalysing(session, variableAssignment) {
         val explicitReceiverExpression = convertToIrReceiverExpression(
-            variableAssignment.explicitReceiver, variableAssignment.calleeReference
+            variableAssignment.explicitReceiver, variableAssignment.calleeReference, variableAssignment.unwrapLValue()
         )
         return callGenerator.convertToIrSetCall(variableAssignment, explicitReceiverExpression)
     }
@@ -925,11 +925,11 @@ class Fir2IrVisitor(
     internal fun convertToIrReceiverExpression(
         expression: FirExpression?,
         calleeReference: FirReference?,
-        callableReferenceAccess: FirCallableReferenceAccess? = null
+        correspondingQualifiedAccess: FirQualifiedAccessExpression?,
     ): IrExpression? {
         return when (expression) {
             null -> return null
-            is FirResolvedQualifier -> callGenerator.convertToGetObject(expression, callableReferenceAccess)
+            is FirResolvedQualifier -> callGenerator.convertToGetObject(expression, correspondingQualifiedAccess as? FirCallableReferenceAccess)
             is FirFunctionCall, is FirThisReceiverExpression, is FirCallableReferenceAccess, is FirSmartCastExpression ->
                 convertToIrExpression(expression)
             else -> if (expression is FirQualifiedAccessExpression && expression.explicitReceiver == null) {
@@ -946,8 +946,9 @@ class Fir2IrVisitor(
         }?.run {
             if (expression is FirQualifiedAccessExpression && expression.calleeReference is FirSuperReference) return@run this
 
-            implicitCastInserter.implicitCastFromDispatchReceiver(
-                this, expression.resolvedType, calleeReference,
+            implicitCastInserter.implicitCastFromReceivers(
+                this, expression, calleeReference,
+                correspondingQualifiedAccess,
                 conversionScope.defaultConversionTypeOrigin()
             )
         }
@@ -1056,7 +1057,7 @@ class Fir2IrVisitor(
             val originalVararg = arrayAccess.resolvedArgumentMapping?.keys?.filterIsInstance<FirVarargArgumentsExpression>()?.firstOrNull()
             (callGenerator.convertToIrCall(
                 arrayAccess, arrayAccess.resolvedType,
-                convertToIrReceiverExpression(receiverValue, arrayAccess.calleeReference),
+                convertToIrReceiverExpression(receiverValue, arrayAccess.calleeReference, arrayAccess),
                 noArguments = true
             ) as IrDynamicOperatorExpression).apply {
                 originalVararg?.arguments?.forEach {
@@ -1075,7 +1076,7 @@ class Fir2IrVisitor(
             callGenerator.convertToIrCall(
                 qualifiedAccess,
                 qualifiedAccess.resolvedType,
-                convertToIrReceiverExpression(receiverExpression, qualifiedAccess.calleeReference),
+                convertToIrReceiverExpression(receiverExpression, qualifiedAccess.calleeReference, qualifiedAccess),
             )
         }
         return callGenerator.convertToIrCall(

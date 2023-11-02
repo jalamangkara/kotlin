@@ -279,38 +279,54 @@ class Fir2IrImplicitCastInserter(
         }
     }
 
-    internal fun implicitCastFromDispatchReceiver(
+    internal fun implicitCastFromReceivers(
         original: IrExpression,
-        coneKotlinType: ConeKotlinType,
+        receiverExpression: FirExpression,
         calleeReference: FirReference?,
+        correspondingQualifiedAccess: FirQualifiedAccessExpression?,
         typeOrigin: ConversionTypeOrigin,
     ): IrExpression {
+        return implicitCastFromReceiverForIntersectionTypeOrNull(
+            original,
+            receiverExpression,
+            calleeReference,
+            correspondingQualifiedAccess,
+            typeOrigin
+        ) ?: implicitCastOrExpression(original, receiverExpression.resolvedType)
+    }
+
+    private fun implicitCastFromReceiverForIntersectionTypeOrNull(
+        originalIrReceiverExpression: IrExpression,
+        receiverExpression: FirExpression,
+        calleeReference: FirReference?,
+        correspondingQualifiedAccess: FirQualifiedAccessExpression?,
+        typeOrigin: ConversionTypeOrigin,
+    ): IrExpression? {
+        if (correspondingQualifiedAccess == null) return null
+        val receiverExpressionType = receiverExpression.resolvedType as? ConeIntersectionType ?: return null
         val referencedDeclaration = calleeReference?.toResolvedCallableSymbol()?.unwrapCallRepresentative()?.fir
 
-        val dispatchReceiverType =
-            referencedDeclaration?.dispatchReceiverType as? ConeClassLikeType
-                ?: return implicitCastOrExpression(original, coneKotlinType)
-
-        val starProjectedDispatchReceiver = dispatchReceiverType.replaceArgumentsWithStarProjections()
-
-        val castType = coneKotlinType as? ConeIntersectionType
-        castType?.intersectedTypes?.forEach { componentType ->
-            if (AbstractTypeChecker.isSubtypeOf(session.typeContext, componentType, starProjectedDispatchReceiver)) {
-                return implicitCastOrExpression(original, componentType, typeOrigin)
+        val receiverType = with(correspondingQualifiedAccess) {
+            when {
+                receiverExpression === dispatchReceiver -> referencedDeclaration?.dispatchReceiverType
+                receiverExpression === extensionReceiver -> referencedDeclaration?.receiverParameter?.typeRef?.coneType
+                else -> return null
             }
         }
 
-        return implicitCastOrExpression(original, coneKotlinType, typeOrigin)
+        if (receiverType !is ConeClassLikeType) return null
+        val starProjectedDispatchReceiver = receiverType.replaceArgumentsWithStarProjections()
+
+        for (componentType in receiverExpressionType.intersectedTypes) {
+            if (AbstractTypeChecker.isSubtypeOf(session.typeContext, componentType, starProjectedDispatchReceiver)) {
+                return implicitCastOrExpression(originalIrReceiverExpression, componentType, typeOrigin)
+            }
+        }
+        return null
     }
 
     private fun implicitCastOrExpression(
         original: IrExpression, castType: ConeKotlinType, typeOrigin: ConversionTypeOrigin = ConversionTypeOrigin.DEFAULT
-    ): IrExpression {
-        return implicitCastOrExpression(original, castType.toIrType(typeOrigin))
-    }
-
-    private fun implicitCastOrExpression(
-        original: IrExpression, castType: FirTypeRef, typeOrigin: ConversionTypeOrigin = ConversionTypeOrigin.DEFAULT
     ): IrExpression {
         return implicitCastOrExpression(original, castType.toIrType(typeOrigin))
     }
