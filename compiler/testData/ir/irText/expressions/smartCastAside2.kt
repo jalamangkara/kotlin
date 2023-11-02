@@ -1,5 +1,6 @@
-// INFERENCE_HELPERS
 // ISSUE: KT-62863
+
+fun <K> materialize(): K = null!!
 
 interface Foo<out T> {
     fun foo()
