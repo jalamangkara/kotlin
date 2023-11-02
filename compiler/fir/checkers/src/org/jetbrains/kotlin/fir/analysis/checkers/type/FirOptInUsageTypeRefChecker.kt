@@ -29,13 +29,13 @@ import org.jetbrains.kotlin.resolve.checkers.OptInNames
 object FirOptInUsageTypeRefChecker : FirTypeRefChecker() {
     override fun check(typeRef: FirTypeRef, context: CheckerContext, reporter: DiagnosticReporter) {
         val source = typeRef.source
+        val delegatedTypeRef = (typeRef as? FirResolvedTypeRef)?.delegatedTypeRef
         if (source?.kind !is KtRealSourceElementKind) return
         val coneType = typeRef.coneTypeSafe<ConeClassLikeType>() ?: return
         val symbol = typeRef.findSymbol(context.session) ?: return
 
         val typeAliasExpandedSymbol = (symbol as? FirTypeAliasSymbol)?.resolvedExpandedTypeRef?.findSymbol(context.session)
         val processedSymbol = typeAliasExpandedSymbol ?: symbol
-        val qualifier = ((typeRef as? FirResolvedTypeRef)?.delegatedTypeRef as? FirUserTypeRef)?.qualifier
 
         val classId = processedSymbol.classId
         val lastAnnotationCall = context.callsOrAssignments.lastOrNull() as? FirAnnotation
@@ -45,8 +45,8 @@ object FirOptInUsageTypeRefChecker : FirTypeRefChecker() {
                     reporter.reportOn(source, OPT_IN_CAN_ONLY_BE_USED_AS_ANNOTATION, context)
                 processedSymbol.isExperimentalMarker(context.session) ->
                     reporter.reportOn(source, OPT_IN_MARKER_CAN_ONLY_BE_USED_AS_ANNOTATION_OR_ARGUMENT_IN_OPT_IN, context)
-                !qualifier.isNullOrEmpty() -> {
-                    processedSymbol.checkContainingClasses(source, qualifier, context, reporter)
+                delegatedTypeRef is FirUserTypeRef && delegatedTypeRef.qualifier.isNotEmpty() -> {
+                    processedSymbol.checkContainingClasses(source, delegatedTypeRef.qualifier, context, reporter)
                 }
             }
         }
