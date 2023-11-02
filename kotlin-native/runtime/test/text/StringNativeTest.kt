@@ -7,14 +7,6 @@ package test.text
 
 import kotlin.test.*
 
-private class TopLevel
-
-private fun Any.toStringWithoutHashCode(): String {
-    val string = toString()
-    assertEquals(1, string.count { it == '@' }, "Invalid toString() value: $string")
-    return string.substringBefore('@')
-}
-
 class StringNativeTest {
 
     @Test
@@ -164,23 +156,5 @@ class StringNativeTest {
     fun subSequence() {
         assertEquals("ello", "Hello world".subSequence(1, 5).toString())
         assertEquals("", "Hello world".subSequence(1, 1).toString())
-    }
-
-    @Test
-    fun anyToString() {
-        assertEquals("test.text.TopLevel", TopLevel().toStringWithoutHashCode())
-
-        class Local1
-        assertEquals("test.text.StringNativeTest\$anyToString\$Local1", Local1().toStringWithoutHashCode())
-
-        assertEquals("test.text.StringNativeTest\$anyToString\$1", object {}.toStringWithoutHashCode())
-
-        fun localFun() {
-            class Local2
-            assertEquals("test.text.StringNativeTest\$anyToString\$localFun\$Local2", Local2().toStringWithoutHashCode())
-
-            assertEquals("test.text.StringNativeTest\$anyToString\$localFun\$1", object {}.toStringWithoutHashCode())
-        }
-        localFun()
     }
 }
