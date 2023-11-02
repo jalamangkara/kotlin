@@ -152,6 +152,7 @@ object CommonDeclarationCheckers : DeclarationCheckers() {
     override val fileCheckers: Set<FirFileChecker>
         get() = setOf(
             FirImportsChecker,
+            FirOptInImportsChecker,
             FirUnresolvedInMiddleOfImportChecker,
             FirTopLevelPropertiesChecker,
         )
