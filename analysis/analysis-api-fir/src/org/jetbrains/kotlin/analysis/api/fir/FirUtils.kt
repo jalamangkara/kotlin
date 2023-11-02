@@ -100,7 +100,7 @@ internal fun FirAnnotation.toKtAnnotationApplication(
         useSiteTarget = useSiteTarget,
         arguments = arguments,
         index = index,
-        constructorSymbol = constructorSymbol,
+        constructorSymbolPointer = with(builder.analysisSession) { constructorSymbol?.createPointer() },
     )
 }
 

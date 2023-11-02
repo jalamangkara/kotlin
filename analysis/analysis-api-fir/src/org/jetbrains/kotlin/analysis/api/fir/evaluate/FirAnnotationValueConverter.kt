@@ -137,7 +137,9 @@ internal object FirAnnotationValueConverter {
                                     useSiteTarget = null,
                                     toNamedConstantValue(resultMap, builder),
                                     index = null,
-                                    constructorSymbol = builder.functionLikeBuilder.buildConstructorSymbol(resolvedSymbol),
+                                    constructorSymbolPointer = with(builder.analysisSession) {
+                                        builder.functionLikeBuilder.buildConstructorSymbol(resolvedSymbol).createPointer()
+                                    },
                                 )
                             )
                         } else null
