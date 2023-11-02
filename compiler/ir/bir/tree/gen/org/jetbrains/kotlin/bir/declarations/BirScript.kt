@@ -9,8 +9,8 @@
 package org.jetbrains.kotlin.bir.declarations
 
 import org.jetbrains.kotlin.bir.BirChildElementList
-import org.jetbrains.kotlin.bir.BirElementBase
 import org.jetbrains.kotlin.bir.BirElementVisitor
+import org.jetbrains.kotlin.bir.BirImplElementBase
 import org.jetbrains.kotlin.bir.accept
 import org.jetbrains.kotlin.bir.expressions.BirStatementContainer
 import org.jetbrains.kotlin.bir.symbols.BirClassSymbol
@@ -23,7 +23,7 @@ import org.jetbrains.kotlin.bir.types.BirType
  *
  * Generated from: [org.jetbrains.kotlin.bir.generator.BirTree.script]
  */
-abstract class BirScript : BirElementBase(), BirDeclaration, BirDeclarationWithName,
+abstract class BirScript : BirImplElementBase(), BirDeclaration, BirDeclarationWithName,
         BirDeclarationParent, BirStatementContainer, BirMetadataSourceOwner, BirScriptSymbol {
     abstract var thisReceiver: BirValueParameter?
 

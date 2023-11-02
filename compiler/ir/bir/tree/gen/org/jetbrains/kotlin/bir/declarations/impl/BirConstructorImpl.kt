@@ -8,7 +8,13 @@
 
 package org.jetbrains.kotlin.bir.declarations.impl
 
-import org.jetbrains.kotlin.bir.*
+import org.jetbrains.kotlin.bir.BirChildElementList
+import org.jetbrains.kotlin.bir.BirElement
+import org.jetbrains.kotlin.bir.BirElementVisitorLite
+import org.jetbrains.kotlin.bir.BirImplChildElementList
+import org.jetbrains.kotlin.bir.BirImplElementBase
+import org.jetbrains.kotlin.bir.SourceSpan
+import org.jetbrains.kotlin.bir.acceptLite
 import org.jetbrains.kotlin.bir.declarations.BirConstructor
 import org.jetbrains.kotlin.bir.declarations.BirTypeParameter
 import org.jetbrains.kotlin.bir.declarations.BirValueParameter
@@ -39,7 +45,7 @@ class BirConstructorImpl @ObsoleteDescriptorBasedAPI constructor(
     contextReceiverParametersCount: Int,
     body: BirBody?,
     isPrimary: Boolean,
-) : BirElementBase(), BirConstructor {
+) : BirImplElementBase(), BirConstructor {
     override val owner: BirConstructorImpl
         get() = this
 
@@ -72,7 +78,7 @@ class BirConstructorImpl @ObsoleteDescriptorBasedAPI constructor(
         }
 
     override var annotations: BirChildElementList<BirConstructorCall> =
-            BirChildElementList(this, 1, false)
+            BirImplChildElementList(this, 1, false)
 
     private var _origin: IrDeclarationOrigin = origin
 
@@ -131,7 +137,7 @@ class BirConstructorImpl @ObsoleteDescriptorBasedAPI constructor(
         }
 
     override var typeParameters: BirChildElementList<BirTypeParameter> =
-            BirChildElementList(this, 2, false)
+            BirImplChildElementList(this, 2, false)
 
     private var _isInline: Boolean = isInline
 
@@ -206,7 +212,7 @@ class BirConstructorImpl @ObsoleteDescriptorBasedAPI constructor(
         }
 
     override var valueParameters: BirChildElementList<BirValueParameter> =
-            BirChildElementList(this, 3, false)
+            BirImplChildElementList(this, 3, false)
 
     private var _contextReceiverParametersCount: Int = contextReceiverParametersCount
 

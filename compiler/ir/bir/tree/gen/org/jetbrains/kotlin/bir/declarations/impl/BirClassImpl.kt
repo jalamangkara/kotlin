@@ -8,12 +8,27 @@
 
 package org.jetbrains.kotlin.bir.declarations.impl
 
-import org.jetbrains.kotlin.bir.*
-import org.jetbrains.kotlin.bir.declarations.*
+import org.jetbrains.kotlin.bir.BirChildElementList
+import org.jetbrains.kotlin.bir.BirElement
+import org.jetbrains.kotlin.bir.BirElementVisitorLite
+import org.jetbrains.kotlin.bir.BirImplChildElementList
+import org.jetbrains.kotlin.bir.BirImplElementBase
+import org.jetbrains.kotlin.bir.SourceSpan
+import org.jetbrains.kotlin.bir.acceptLite
+import org.jetbrains.kotlin.bir.declarations.BirAttributeContainer
+import org.jetbrains.kotlin.bir.declarations.BirClass
+import org.jetbrains.kotlin.bir.declarations.BirDeclaration
+import org.jetbrains.kotlin.bir.declarations.BirTypeParameter
+import org.jetbrains.kotlin.bir.declarations.BirValueParameter
 import org.jetbrains.kotlin.bir.expressions.BirConstructorCall
 import org.jetbrains.kotlin.bir.types.BirSimpleType
 import org.jetbrains.kotlin.bir.types.BirType
-import org.jetbrains.kotlin.descriptors.*
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.descriptors.ClassKind
+import org.jetbrains.kotlin.descriptors.DescriptorVisibility
+import org.jetbrains.kotlin.descriptors.Modality
+import org.jetbrains.kotlin.descriptors.SourceElement
+import org.jetbrains.kotlin.descriptors.ValueClassRepresentation
 import org.jetbrains.kotlin.ir.ObsoleteDescriptorBasedAPI
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationOrigin
 import org.jetbrains.kotlin.ir.util.IdSignature
@@ -41,7 +56,7 @@ class BirClassImpl @ObsoleteDescriptorBasedAPI constructor(
     override var superTypes: List<BirType>,
     thisReceiver: BirValueParameter?,
     valueClassRepresentation: ValueClassRepresentation<BirSimpleType>?,
-) : BirElementBase(), BirClass {
+) : BirImplElementBase(), BirClass {
     override val owner: BirClassImpl
         get() = this
 
@@ -74,7 +89,7 @@ class BirClassImpl @ObsoleteDescriptorBasedAPI constructor(
         }
 
     override var annotations: BirChildElementList<BirConstructorCall> =
-            BirChildElementList(this, 1, false)
+            BirImplChildElementList(this, 1, false)
 
     private var _origin: IrDeclarationOrigin = origin
 
@@ -133,10 +148,10 @@ class BirClassImpl @ObsoleteDescriptorBasedAPI constructor(
         }
 
     override var typeParameters: BirChildElementList<BirTypeParameter> =
-            BirChildElementList(this, 2, false)
+            BirImplChildElementList(this, 2, false)
 
     override val declarations: BirChildElementList<BirDeclaration> =
-            BirChildElementList(this, 3, false)
+            BirImplChildElementList(this, 3, false)
 
     private var _attributeOwnerId: BirAttributeContainer = this
 

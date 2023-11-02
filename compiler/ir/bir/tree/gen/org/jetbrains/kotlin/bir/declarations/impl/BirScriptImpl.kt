@@ -8,7 +8,13 @@
 
 package org.jetbrains.kotlin.bir.declarations.impl
 
-import org.jetbrains.kotlin.bir.*
+import org.jetbrains.kotlin.bir.BirChildElementList
+import org.jetbrains.kotlin.bir.BirElement
+import org.jetbrains.kotlin.bir.BirElementVisitorLite
+import org.jetbrains.kotlin.bir.BirImplChildElementList
+import org.jetbrains.kotlin.bir.BirStatement
+import org.jetbrains.kotlin.bir.SourceSpan
+import org.jetbrains.kotlin.bir.acceptLite
 import org.jetbrains.kotlin.bir.declarations.BirConstructor
 import org.jetbrains.kotlin.bir.declarations.BirScript
 import org.jetbrains.kotlin.bir.declarations.BirValueParameter
@@ -73,7 +79,7 @@ class BirScriptImpl @ObsoleteDescriptorBasedAPI constructor(
         }
 
     override var annotations: BirChildElementList<BirConstructorCall> =
-            BirChildElementList(this, 1, false)
+            BirImplChildElementList(this, 1, false)
 
     private var _origin: IrDeclarationOrigin = origin
 
@@ -103,8 +109,8 @@ class BirScriptImpl @ObsoleteDescriptorBasedAPI constructor(
             }
         }
 
-    override val statements: BirChildElementList<BirStatement> = BirChildElementList(this, 2,
-            false)
+    override val statements: BirChildElementList<BirStatement> =
+            BirImplChildElementList(this, 2, false)
 
     private var _thisReceiver: BirValueParameter? = thisReceiver
 
@@ -136,13 +142,13 @@ class BirScriptImpl @ObsoleteDescriptorBasedAPI constructor(
         }
 
     override var explicitCallParameters: BirChildElementList<BirVariable> =
-            BirChildElementList(this, 3, false)
+            BirImplChildElementList(this, 3, false)
 
     override var implicitReceiversParameters: BirChildElementList<BirValueParameter> =
-            BirChildElementList(this, 4, false)
+            BirImplChildElementList(this, 4, false)
 
     override var providedPropertiesParameters: BirChildElementList<BirValueParameter> =
-            BirChildElementList(this, 5, false)
+            BirImplChildElementList(this, 5, false)
 
     private var _resultProperty: BirPropertySymbol? = resultProperty
 

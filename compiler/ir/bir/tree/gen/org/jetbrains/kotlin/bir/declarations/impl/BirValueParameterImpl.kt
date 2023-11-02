@@ -8,7 +8,13 @@
 
 package org.jetbrains.kotlin.bir.declarations.impl
 
-import org.jetbrains.kotlin.bir.*
+import org.jetbrains.kotlin.bir.BirChildElementList
+import org.jetbrains.kotlin.bir.BirElement
+import org.jetbrains.kotlin.bir.BirElementVisitorLite
+import org.jetbrains.kotlin.bir.BirImplChildElementList
+import org.jetbrains.kotlin.bir.BirImplElementBase
+import org.jetbrains.kotlin.bir.SourceSpan
+import org.jetbrains.kotlin.bir.acceptLite
 import org.jetbrains.kotlin.bir.declarations.BirValueParameter
 import org.jetbrains.kotlin.bir.expressions.BirConstructorCall
 import org.jetbrains.kotlin.bir.expressions.BirExpressionBody
@@ -34,7 +40,7 @@ class BirValueParameterImpl @ObsoleteDescriptorBasedAPI constructor(
     isNoinline: Boolean,
     isHidden: Boolean,
     defaultValue: BirExpressionBody?,
-) : BirElementBase(), BirValueParameter {
+) : BirImplElementBase(), BirValueParameter {
     override val owner: BirValueParameterImpl
         get() = this
 
@@ -67,7 +73,7 @@ class BirValueParameterImpl @ObsoleteDescriptorBasedAPI constructor(
         }
 
     override var annotations: BirChildElementList<BirConstructorCall> =
-            BirChildElementList(this, 1, false)
+            BirImplChildElementList(this, 1, false)
 
     private var _origin: IrDeclarationOrigin = origin
 

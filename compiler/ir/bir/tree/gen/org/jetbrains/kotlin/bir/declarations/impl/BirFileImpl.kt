@@ -11,6 +11,7 @@ package org.jetbrains.kotlin.bir.declarations.impl
 import org.jetbrains.kotlin.bir.BirChildElementList
 import org.jetbrains.kotlin.bir.BirElement
 import org.jetbrains.kotlin.bir.BirElementVisitorLite
+import org.jetbrains.kotlin.bir.BirImplChildElementList
 import org.jetbrains.kotlin.bir.SourceSpan
 import org.jetbrains.kotlin.bir.declarations.BirDeclaration
 import org.jetbrains.kotlin.bir.declarations.BirFile
@@ -47,7 +48,7 @@ class BirFileImpl @ObsoleteDescriptorBasedAPI constructor(
         }
 
     override val declarations: BirChildElementList<BirDeclaration> =
-            BirChildElementList(this, 1, false)
+            BirImplChildElementList(this, 1, false)
 
     private var _signature: IdSignature? = signature
 
@@ -78,7 +79,7 @@ class BirFileImpl @ObsoleteDescriptorBasedAPI constructor(
         }
 
     override var annotations: BirChildElementList<BirConstructorCall> =
-            BirChildElementList(this, 2, false)
+            BirImplChildElementList(this, 2, false)
 
     private var _fileEntry: IrFileEntry = fileEntry
 
